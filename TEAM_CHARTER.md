@@ -1,15 +1,17 @@
 # Team Charter / Working Agreement
 
-**Date**: [Insert Date]
-**Group Number**: [Insert Group Number]
+**Date**: 02/03/2026
+**Group Number**: 28
 
 ## 1. Communication
-*   **Primary Channel**: [e.g., WhatsApp Group]
+*   **Primary Channel**: WhatsApp Group
 *   **Response Time**: We agree to respond to messages within **24 hours** on weekdays.
-*   **Availability**: We generally do not expect responses after [e.g., 8 PM] or on Sundays, unless urgent.
+```markdown
+*   **Availability**: We are available Monday to Friday mornings, excluding Wednesdays.
+```
 
 ## 2. Meetings
-*   **Weekly Stand-up**: Every [Day] at [Time] (Location/Link).
+*   **Weekly Stand-up**: Every Monday at  Zoom call.
 *   **Attendance**: Mandatory. If you cannot make it, you must notify the Scrum Master 2 hours in advance.
 *   **Consequences**: Missing 2 meetings without notice will be raised with the module tutor.
 
@@ -19,7 +21,7 @@
 *   **Code Review**: All Pull Requests must be approved by at least 1 other member before merging.
 *   **Definition of Done**: A feature is "Done" when:
     *   It runs without errors.
-    *   The code is commented with the author's Student ID.
+    *   The code is commented with the author's name.
     *   It has been pushed to the repo and merged.
 
 ## 4. Conflict Resolution
@@ -32,6 +34,6 @@
 ## 5. Signatures
 (By adding your name here, you agree to these rules)
 *   Omar Alfrouh
-*   [Member 2]
-*   [Member 3]
-*   [Member 4]
+*   Feras Bader
+*   Ahmed
+*   Numair

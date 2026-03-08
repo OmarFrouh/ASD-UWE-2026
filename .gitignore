@@ -137,3 +137,12 @@ cython_debug/
 
 # OS Specific
 .DS_Store
+
+# AI Agent Artifacts
+.agent/
+.gemini/
+
+# Local Database (SQLite)
+*.db
+*.sqlite3
+pams.db
