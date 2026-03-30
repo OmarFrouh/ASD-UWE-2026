@@ -1,40 +1,29 @@
-from database_manager import DatabaseManager
+# Student Name: Omar Alfrouh
+# Student ID: [YOUR_ID]
 
 class PropertyManager:
     def __init__(self, db_manager):
         self.db_manager = db_manager
 
-    def add_apartment(self, unit_number, address, rental_price, square_footage):
-        """
-        Adds a new apartment to the database.
-        """
-        try:
-            # Validate inputs
-            if not unit_number or not address:
-                raise ValueError("Unit number and address are required.")
-            
-            try:
-                rental_price = float(rental_price)
-                square_footage = int(square_footage)
-            except ValueError:
-                raise ValueError("Price must be a number and size must be an integer.")
+    def add_apartment(self, unit_number, address, rental_price, square_footage, city="Bristol", number_of_rooms=1):
+        if not unit_number or not address:
+            raise ValueError("Unit number and address are required.")
+        rental_price = float(rental_price)
+        square_footage = int(square_footage)
+        number_of_rooms = int(number_of_rooms)
 
-            query = """
-                INSERT INTO apartments (unit_number, address, rental_price, square_footage)
-                VALUES (?, ?, ?, ?)
-            """
-            
-            self.db_manager.execute_query(query, (unit_number, address, rental_price, square_footage))
-            print(f"Apartment {unit_number} added successfully.")
-            return True
-
-        except Exception as e:
-            print(f"Error adding apartment: {e}")
-            raise e
+        query = """
+            INSERT INTO apartments (unit_number, address, city, number_of_rooms, rental_price, square_footage)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """
+        self.db_manager.execute_query(query, (unit_number, address, city, number_of_rooms, rental_price, square_footage))
+        return True
 
     def get_all_apartments(self):
-        """
-        Fetches all apartments.
-        """
-        query = "SELECT * FROM apartments"
-        return self.db_manager.fetch_all(query)
+        return self.db_manager.fetch_all("SELECT * FROM apartments")
+
+    def get_vacant_apartments(self):
+        return self.db_manager.fetch_all("SELECT * FROM apartments WHERE status='Vacant'")
+
+    def update_status(self, apartment_id, status):
+        self.db_manager.execute_query("UPDATE apartments SET status=? WHERE id=?", (status, apartment_id))

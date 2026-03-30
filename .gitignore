@@ -1,4 +1,5 @@
 archive/
+guides/
 # Python .gitignore
 __pycache__/
 *.py[cod]

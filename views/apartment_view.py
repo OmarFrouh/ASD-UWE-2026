@@ -1,94 +1,80 @@
-import tkinter as tk
+# Student Name: Omar Alfrouh
+# Student ID: [YOUR_ID]
+
+import customtkinter as ctk
 from tkinter import messagebox, ttk
 
 class ApartmentView:
     def __init__(self, parent, property_manager):
         self.property_manager = property_manager
-        
-        # Main Container
-        self.frame = tk.Frame(parent, bg="white")
-        self.frame.pack(fill="both", expand=True, padx=20, pady=20)
-        
-        # Title
-        tk.Label(self.frame, text="Apartment Management", font=("Arial", 18, "bold"), bg="white").pack(pady=(0, 20))
-        
-        # --- Add Apartment Form ---
-        form_frame = tk.LabelFrame(self.frame, text="Add New Unit", bg="white", padx=10, pady=10)
-        form_frame.pack(fill="x", pady=10)
-        
-        # Grid Layout for Form
-        tk.Label(form_frame, text="Unit Number:", bg="white").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-        self.unit_entry = tk.Entry(form_frame)
-        self.unit_entry.grid(row=0, column=1, padx=5, pady=5)
-        
-        tk.Label(form_frame, text="Address:", bg="white").grid(row=0, column=2, padx=5, pady=5, sticky="e")
-        self.address_entry = tk.Entry(form_frame)
-        self.address_entry.grid(row=0, column=3, padx=5, pady=5)
-        
-        tk.Label(form_frame, text="Rent ($):", bg="white").grid(row=1, column=0, padx=5, pady=5, sticky="e")
-        self.rent_entry = tk.Entry(form_frame)
-        self.rent_entry.grid(row=1, column=1, padx=5, pady=5)
-        
-        tk.Label(form_frame, text="Size (sqft):", bg="white").grid(row=1, column=2, padx=5, pady=5, sticky="e")
-        self.size_entry = tk.Entry(form_frame)
-        self.size_entry.grid(row=1, column=3, padx=5, pady=5)
-        
-        tk.Button(form_frame, text="Add Unit", command=self.submit_apartment, bg="#4CAF50", fg="white", width=15).grid(row=2, column=0, columnspan=4, pady=15)
 
-        # --- Apartment List (TreeView) ---
-        list_frame = tk.Frame(self.frame, bg="white")
-        list_frame.pack(fill="both", expand=True, pady=20)
-        
-        tk.Label(list_frame, text="Unit List", font=("Arial", 12, "bold"), bg="white").pack(anchor="w")
-        
-        columns = ("unit", "address", "rent", "size", "status")
-        self.tree = ttk.Treeview(list_frame, columns=columns, show="headings")
-        
-        self.tree.heading("unit", text="Unit #")
-        self.tree.heading("address", text="Address")
-        self.tree.heading("rent", text="Rent ($)")
-        self.tree.heading("size", text="Size (sqft)")
-        self.tree.heading("status", text="Status")
-        
-        self.tree.column("unit", width=80)
-        self.tree.column("address", width=200)
-        self.tree.column("rent", width=100)
-        self.tree.column("size", width=100)
-        self.tree.column("status", width=100)
-        
-        self.tree.pack(fill="both", expand=True)
-        
+        frame = ctk.CTkFrame(parent, fg_color="transparent")
+        frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        ctk.CTkLabel(frame, text="🏠 Apartment Management", font=("Arial", 22, "bold")).pack(pady=(0, 15))
+
+        form = ctk.CTkFrame(frame)
+        form.pack(fill="x", pady=10, padx=20)
+
+        ctk.CTkLabel(form, text="Unit #:").grid(row=0, column=0, padx=8, pady=6, sticky="e")
+        self.unit_entry = ctk.CTkEntry(form, width=180)
+        self.unit_entry.grid(row=0, column=1, padx=8, pady=6)
+
+        ctk.CTkLabel(form, text="Address:").grid(row=0, column=2, padx=8, pady=6, sticky="e")
+        self.address_entry = ctk.CTkEntry(form, width=180)
+        self.address_entry.grid(row=0, column=3, padx=8, pady=6)
+
+        ctk.CTkLabel(form, text="City:").grid(row=1, column=0, padx=8, pady=6, sticky="e")
+        self.city_combo = ctk.CTkComboBox(form, values=["Bristol", "Cardiff", "London", "Manchester"], width=180)
+        self.city_combo.grid(row=1, column=1, padx=8, pady=6)
+        self.city_combo.set("Bristol")
+
+        ctk.CTkLabel(form, text="Rooms:").grid(row=1, column=2, padx=8, pady=6, sticky="e")
+        self.rooms_entry = ctk.CTkEntry(form, width=180)
+        self.rooms_entry.grid(row=1, column=3, padx=8, pady=6)
+
+        ctk.CTkLabel(form, text="Rent (£):").grid(row=2, column=0, padx=8, pady=6, sticky="e")
+        self.rent_entry = ctk.CTkEntry(form, width=180)
+        self.rent_entry.grid(row=2, column=1, padx=8, pady=6)
+
+        ctk.CTkLabel(form, text="Size (sqft):").grid(row=2, column=2, padx=8, pady=6, sticky="e")
+        self.size_entry = ctk.CTkEntry(form, width=180)
+        self.size_entry.grid(row=2, column=3, padx=8, pady=6)
+
+        ctk.CTkButton(form, text="Add Unit", command=self.submit_apartment, width=200).grid(row=3, column=0, columnspan=4, pady=12)
+
+        # Table
+        list_frame = ctk.CTkFrame(frame)
+        list_frame.pack(fill="both", expand=True, pady=10, padx=20)
+
+        cols = ("unit", "address", "city", "rooms", "rent", "sqft", "status")
+        self.tree = ttk.Treeview(list_frame, columns=cols, show="headings", height=10)
+        for c, h in zip(cols, ["Unit", "Address", "City", "Rooms", "Rent", "Sqft", "Status"]):
+            self.tree.heading(c, text=h)
+            self.tree.column(c, width=100)
+        self.tree.pack(fill="both", expand=True, padx=5, pady=5)
         self.refresh_list()
 
     def submit_apartment(self):
-        unit = self.unit_entry.get()
-        addr = self.address_entry.get()
-        rent = self.rent_entry.get()
-        size = self.size_entry.get()
-        
         try:
-            self.property_manager.add_apartment(unit, addr, rent, size)
-            messagebox.showinfo("Success", f"Apartment {unit} added successfully!")
+            self.property_manager.add_apartment(
+                self.unit_entry.get(), self.address_entry.get(),
+                self.rent_entry.get(), self.size_entry.get(),
+                self.city_combo.get(), self.rooms_entry.get() or "1"
+            )
+            messagebox.showinfo("Success", "Apartment added!")
             self.clear_form()
             self.refresh_list()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
     def clear_form(self):
-        self.unit_entry.delete(0, tk.END)
-        self.address_entry.delete(0, tk.END)
-        self.rent_entry.delete(0, tk.END)
-        self.size_entry.delete(0, tk.END)
-        
+        for e in [self.unit_entry, self.address_entry, self.rooms_entry, self.rent_entry, self.size_entry]:
+            e.delete(0, 'end')
+
     def refresh_list(self):
-        # Clear existing
         for item in self.tree.get_children():
             self.tree.delete(item)
-            
-        # Fetch updated list
-        apartments = self.property_manager.get_all_apartments()
-        
-        # Insert (DB Schema: id, unit_number, address, rental_price, square_footage, status)
-        for apt in apartments:
-            # apt is tuple: (id, unit, addr, price, sqft, status)
-            self.tree.insert("", tk.END, values=(apt[1], apt[2], f"${apt[3]:.2f}", apt[4], apt[5]))
+        for apt in self.property_manager.get_all_apartments():
+            # Schema: id, unit, address, city, rooms, price, sqft, status
+            self.tree.insert("", "end", values=(apt[1], apt[2], apt[3], apt[4], f"£{apt[5]:.2f}", apt[6], apt[7]))
