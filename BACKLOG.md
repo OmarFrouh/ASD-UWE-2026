@@ -27,11 +27,11 @@
 *   **Financial Reports**: As a Finance Manager, I want to generate reports comparing collected vs pending rents.
 
 ### Maintenance (Numair)
-*   **Log Issue**: As a Front-desk Staff, I want to record a maintenance issue reported by a tenant with priority level.
-*   **Assign Staff**: As a Manager, I want to assign a maintenance worker to an issue based on availability.
-*   **Update Status**: As a Maintenance Worker, I want to mark an issue as "In Progress" or "Fixed".
-*   **Log Costs**: As a Maintenance Worker, I want to record time spent and costs for each repair.
-*   **Communicate Dates**: As a Staff, I want to notify tenants of scheduled maintenance dates.
+*   [In Progress] **Log Issue**: As a Front-desk Staff, I want to record a maintenance issue reported by a tenant with priority level.
+*   [In Progress] **Assign Staff**: As a Manager, I want to assign a maintenance worker to an issue based on availability.
+*   [In Progress] **Update Status**: As a Maintenance Worker, I want to mark an issue as "In Progress" or "Fixed".
+*   [In Progress] **Log Costs**: As a Maintenance Worker, I want to record time spent and costs for each repair.
+*   [In Progress] **Communicate Dates**: As a Staff, I want to notify tenants of scheduled maintenance dates.
 
 ### Reporting (Numair + Ahmed)
 *   **Occupancy Report**: As a Manager, I want to see a chart of how many apartments are occupied vs empty, filtered by location.
