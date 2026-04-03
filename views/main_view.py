@@ -44,7 +44,7 @@ class MainView:
         if role in ["admin"]:
             ctk.CTkButton(self.sidebar, text="🏠 Apartments", command=lambda: self.show_view("apartments"), width=180).pack(pady=4, padx=10)
 
-        if role in ["admin", "front_desk"]:
+        if role in ["admin", "front_desk", "manager"]:
             ctk.CTkButton(self.sidebar, text="👤 Tenants", command=lambda: self.show_view("tenants"), width=180).pack(pady=4, padx=10)
 
         if role in ["admin", "finance_manager"]:
@@ -80,7 +80,7 @@ class MainView:
         elif view_name == "tenants":
             try:
                 from views.tenant_view import TenantView
-                TenantView(self.content_frame, self.db_manager)
+                TenantView(self.content_frame, self.db_manager, self.current_user[3])
             except ImportError:
                 ctk.CTkLabel(self.content_frame, text="👤 Tenants — Coming Soon (Feras)", font=("Arial", 20)).pack(pady=50)
         elif view_name == "invoices":
