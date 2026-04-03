@@ -91,12 +91,15 @@ class TenantManager:
             conn.close()
 
     def archive_tenant(self, tenant_user_id):
+        tenant = self.db_manager.fetch_one("SELECT apartment_id FROM tenants WHERE user_id=?", (tenant_user_id,))
+        if not tenant:
+            raise Exception("Tenant not found")
+
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         try:
-            tenant = self.db_manager.fetch_one("SELECT apartment_id FROM tenants WHERE user_id=?", (tenant_user_id,))
             cursor.execute("UPDATE tenants SET status='Archived' WHERE user_id=?", (tenant_user_id,))
-            if tenant and tenant[0]:
+            if tenant[0]:
                 cursor.execute("UPDATE apartments SET status='Vacant' WHERE id=?", (tenant[0],))
             conn.commit()
             return True
