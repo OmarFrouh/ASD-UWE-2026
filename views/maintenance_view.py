@@ -60,7 +60,7 @@ class MaintenanceView:
         tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
         tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        cols = ("ID", "Unit", "Tenant", "Issue", "Priority", "Status", "Reported", "Assigned To")
+        cols = ("ID", "Unit", "Tenant", "Issue", "Priority", "Status", "Reported", "Assigned To", "Hours", "Cost (£)")
         self.tree = setup_treeview_scroll(tree_frame, columns=cols, height=15)
 
         ctk.CTkButton(tab, text="Refresh", command=self.refresh_list).pack(pady=5)
@@ -203,4 +203,5 @@ class MaintenanceView:
         for t in self.manager.get_all_tickets():
             # id, unit, tenant, desc, priority, status, reported, scheduled, assigned_to, time, cost
             self.tree.insert("", "end", values=(t[0], t[1] or "N/A", t[2] or "N/A",
-                (t[3] or "")[:30], t[4], t[5], t[6], t[8] or "Unassigned"))
+                (t[3] or "")[:30], t[4], t[5], t[6], t[8] or "Unassigned", 
+                f"{t[9] or 0.0:.1f}", f"£{(t[10] or 0.0):.2f}"))
