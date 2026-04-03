@@ -29,23 +29,23 @@ class MaintenanceView:
 
     def build_new_tab(self, tab):
         form = ctk.CTkFrame(tab)
-        form.pack(pady=20, padx=40)
+        form.pack(pady=30)
 
-        ctk.CTkLabel(form, text="Apartment ID:").grid(row=0, column=0, padx=10, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Apartment ID:").grid(row=0, column=0, padx=15, pady=8, sticky="e")
         self.apt_id_entry = ctk.CTkEntry(form, width=250)
-        self.apt_id_entry.grid(row=0, column=1, padx=10, pady=8)
+        self.apt_id_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Tenant ID (optional):").grid(row=1, column=0, padx=10, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Tenant ID (optional):").grid(row=1, column=0, padx=15, pady=8, sticky="e")
         self.tenant_id_entry = ctk.CTkEntry(form, width=250)
-        self.tenant_id_entry.grid(row=1, column=1, padx=10, pady=8)
+        self.tenant_id_entry.grid(row=1, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Description:").grid(row=2, column=0, padx=10, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Description:").grid(row=2, column=0, padx=15, pady=8, sticky="e")
         self.desc_entry = ctk.CTkEntry(form, width=250)
-        self.desc_entry.grid(row=2, column=1, padx=10, pady=8)
+        self.desc_entry.grid(row=2, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Priority:").grid(row=3, column=0, padx=10, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Priority:").grid(row=3, column=0, padx=15, pady=8, sticky="e")
         self.priority_combo = ctk.CTkComboBox(form, values=["Low", "Medium", "High", "Urgent"], width=250)
-        self.priority_combo.grid(row=3, column=1, padx=10, pady=8)
+        self.priority_combo.grid(row=3, column=1, padx=15, pady=8, sticky="w")
         self.priority_combo.set("Medium")
 
         btn = ctk.CTkButton(form, text="Submit Ticket", command=self.submit_ticket, width=250)

@@ -25,15 +25,15 @@ class InvoiceView:
 
         # Generate Tab
         gen_frame = ctk.CTkFrame(tab_gen)
-        gen_frame.pack(pady=30, padx=40)
+        gen_frame.pack(pady=40)
 
-        ctk.CTkLabel(gen_frame, text="Tenant ID:").grid(row=0, column=0, padx=10, pady=10)
-        self.tenant_id_entry = ctk.CTkEntry(gen_frame, width=200)
-        self.tenant_id_entry.grid(row=0, column=1, padx=10, pady=10)
+        ctk.CTkLabel(gen_frame, text="Tenant ID:").grid(row=0, column=0, padx=15, pady=10, sticky="e")
+        self.tenant_id_entry = ctk.CTkEntry(gen_frame, width=220)
+        self.tenant_id_entry.grid(row=0, column=1, padx=15, pady=10, sticky="w")
 
-        ctk.CTkLabel(gen_frame, text="Amount (optional):").grid(row=1, column=0, padx=10, pady=10)
-        self.amount_entry = ctk.CTkEntry(gen_frame, width=200, placeholder_text="Uses monthly rent if blank")
-        self.amount_entry.grid(row=1, column=1, padx=10, pady=10)
+        ctk.CTkLabel(gen_frame, text="Amount (optional):").grid(row=1, column=0, padx=15, pady=10, sticky="e")
+        self.amount_entry = ctk.CTkEntry(gen_frame, width=220, placeholder_text="Uses monthly rent if blank")
+        self.amount_entry.grid(row=1, column=1, padx=15, pady=10, sticky="w")
 
         ctk.CTkButton(gen_frame, text="Generate Invoice", command=self.generate, width=250).grid(
             row=2, column=0, columnspan=2, pady=20)
