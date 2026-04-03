@@ -46,12 +46,19 @@ class PaymentView:
             row=4, column=0, columnspan=2, pady=20)
 
         # History Tab
+        pay_frame = ctk.CTkFrame(tab_history, fg_color="transparent")
+        pay_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
         cols = ("ID", "Tenant", "Amount", "Date", "Method", "Ref", "Invoice")
-        self.pay_tree = ttk.Treeview(tab_history, columns=cols, show="headings", height=15)
+        self.pay_tree = ttk.Treeview(pay_frame, columns=cols, show="headings", height=15)
+        pay_sb = ttk.Scrollbar(pay_frame, orient="vertical", command=self.pay_tree.yview)
+        self.pay_tree.configure(yscrollcommand=pay_sb.set)
         for c in cols:
             self.pay_tree.heading(c, text=c)
             self.pay_tree.column(c, width=100)
-        self.pay_tree.pack(fill="both", expand=True, padx=10, pady=10)
+        self.pay_tree.pack(side="left", fill="both", expand=True)
+        pay_sb.pack(side="right", fill="y")
+        ctk.CTkButton(tab_history, text="Refresh", command=self.refresh).pack(pady=5)
         self.refresh()
 
     def record(self):
