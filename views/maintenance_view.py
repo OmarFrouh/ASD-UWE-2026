@@ -170,4 +170,4 @@ class MaintenanceView:
         for t in self.manager.get_all_tickets():
             # id, unit, tenant, desc, priority, status, reported, scheduled, assigned_to, time, cost
             self.tree.insert("", "end", values=(t[0], t[1] or "N/A", t[2] or "N/A",
-                t[3][:30], t[4], t[5], t[6], t[8] or "Unassigned"))
+                (t[3] or "")[:30], t[4], t[5], t[6], t[8] or "Unassigned"))

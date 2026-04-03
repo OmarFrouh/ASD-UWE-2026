@@ -8,9 +8,13 @@ class PropertyManager:
     def add_apartment(self, unit_number, address, rental_price, square_footage, city="Bristol", number_of_rooms=1):
         if not unit_number or not address:
             raise ValueError("Unit number and address are required.")
+        if not rental_price or not square_footage:
+            raise ValueError("Rent and size are required.")
         rental_price = float(rental_price)
         square_footage = int(square_footage)
         number_of_rooms = int(number_of_rooms)
+        if rental_price <= 0:
+            raise ValueError("Rent must be positive.")
 
         query = """
             INSERT INTO apartments (unit_number, address, city, number_of_rooms, rental_price, square_footage)
