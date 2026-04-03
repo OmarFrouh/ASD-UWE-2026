@@ -36,14 +36,14 @@
 ## Sprint 2 — Reporting, Notifications & Enhancements
 
 ### Reporting (Sprint 2)
-*   [ ] **Occupancy Report**: As a Manager, I want to see how many apartments are occupied vs empty, filtered by city. (Omar)
+*   [x] **Occupancy Report**: As a Manager, I want to see how many apartments are occupied vs empty, filtered by city. (Omar)
 *   [ ] **Financial Summary**: As a Manager, I want to see collected vs pending rent totals with per-tenant breakdown. (Omar + Ahmed)
 *   [ ] **Maintenance Cost Report**: As a Manager, I want to track maintenance costs per apartment and per city for budget management. (Omar + Numair)
 
 ### Notifications (Sprint 2)
 *   [ ] **Late Payment Notification**: As a System, I want to generate a notification if the payment is late, showing tenant contact info. (Ahmed)
 *   [ ] **Maintenance Date Communication**: As a Staff, I want to notify tenants of scheduled maintenance dates and times. (Numair)
-*   [ ] **Expiring Lease Alerts**: As a System, I want to flag tenants whose leases expire within 30 days. (Omar)
+*   [x] **Expiring Lease Alerts**: As a System, I want to flag tenants whose leases expire within 30 days. (Omar)
 
 ### Tenant Enhancements (Sprint 2)
 *   [ ] **Search Tenants**: As a Front-desk Staff, I want to search tenants by name, NI, email, or phone. (Feras)
