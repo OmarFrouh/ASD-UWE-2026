@@ -24,24 +24,24 @@ class PaymentView:
 
         # Record Tab
         rec_frame = ctk.CTkFrame(tab_record)
-        rec_frame.pack(pady=30, padx=40)
+        rec_frame.pack(pady=30)
 
-        ctk.CTkLabel(rec_frame, text="Invoice ID:").grid(row=0, column=0, padx=10, pady=8)
-        self.inv_id_entry = ctk.CTkEntry(rec_frame, width=200)
-        self.inv_id_entry.grid(row=0, column=1, padx=10, pady=8)
+        ctk.CTkLabel(rec_frame, text="Invoice ID:").grid(row=0, column=0, padx=15, pady=8, sticky="e")
+        self.inv_id_entry = ctk.CTkEntry(rec_frame, width=220)
+        self.inv_id_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(rec_frame, text="Amount (£):").grid(row=1, column=0, padx=10, pady=8)
-        self.pay_amount_entry = ctk.CTkEntry(rec_frame, width=200)
-        self.pay_amount_entry.grid(row=1, column=1, padx=10, pady=8)
+        ctk.CTkLabel(rec_frame, text="Amount (£):").grid(row=1, column=0, padx=15, pady=8, sticky="e")
+        self.pay_amount_entry = ctk.CTkEntry(rec_frame, width=220)
+        self.pay_amount_entry.grid(row=1, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(rec_frame, text="Method:").grid(row=2, column=0, padx=10, pady=8)
-        self.method_combo = ctk.CTkComboBox(rec_frame, values=["Card", "Cash", "Bank Transfer"], width=200)
-        self.method_combo.grid(row=2, column=1, padx=10, pady=8)
+        ctk.CTkLabel(rec_frame, text="Method:").grid(row=2, column=0, padx=15, pady=8, sticky="e")
+        self.method_combo = ctk.CTkComboBox(rec_frame, values=["Card", "Cash", "Bank Transfer"], width=220)
+        self.method_combo.grid(row=2, column=1, padx=15, pady=8, sticky="w")
         self.method_combo.set("Card")
 
-        ctk.CTkLabel(rec_frame, text="Reference:").grid(row=3, column=0, padx=10, pady=8)
-        self.ref_entry = ctk.CTkEntry(rec_frame, width=200, placeholder_text="Optional")
-        self.ref_entry.grid(row=3, column=1, padx=10, pady=8)
+        ctk.CTkLabel(rec_frame, text="Reference:").grid(row=3, column=0, padx=15, pady=8, sticky="e")
+        self.ref_entry = ctk.CTkEntry(rec_frame, width=220, placeholder_text="Optional")
+        self.ref_entry.grid(row=3, column=1, padx=15, pady=8, sticky="w")
 
         ctk.CTkButton(rec_frame, text="Record Payment", command=self.record, width=250).grid(
             row=4, column=0, columnspan=2, pady=20)
