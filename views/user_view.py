@@ -40,7 +40,7 @@ class UserView:
 
     def toggle_staff_fields(self, *args):
         role = self.role_combo.get()
-        if role in ["staff", "manager", "maintenance", "front_desk", "finance_manager"]:
+        if role in ["manager", "maintenance", "front_desk", "finance_manager"]:
             self.lbl_empid.grid(row=4, column=0, padx=15, pady=8, sticky="e")
             self.entry_empid.grid(row=4, column=1, padx=15, pady=8)
             self.lbl_dept.grid(row=5, column=0, padx=15, pady=8, sticky="e")

@@ -41,7 +41,6 @@ class TenantView:
             ("Email:", "email"), ("Occupation:", "occupation"),
             ("References:", "refs"), ("Emergency Contact:", "emergency"),
             ("Apartment Requirements:", "apt_req"),
-            ("Lease Period (months):", "lease_period"),
             ("Username (login):", "username"), ("Password:", "password"),
         ]
 
@@ -57,12 +56,18 @@ class TenantView:
             row=len(fields), column=0, columnspan=2, pady=20)
 
     def build_list_tab(self):
+        tree_frame = ctk.CTkFrame(self.tab_list, fg_color="transparent")
+        tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
         cols = ("ID", "NI", "Name", "Phone", "Email", "Apt", "Rent", "Status")
-        self.tree = ttk.Treeview(self.tab_list, columns=cols, show="headings", height=15)
+        self.tree = ttk.Treeview(tree_frame, columns=cols, show="headings", height=15)
+        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
         for c in cols:
             self.tree.heading(c, text=c)
             self.tree.column(c, width=100)
-        self.tree.pack(fill="both", expand=True, padx=10, pady=10)
+        self.tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
         self.refresh_list()
 
     def build_actions_tab(self):
