@@ -34,8 +34,9 @@ class TenantView:
             self.build_assign_tab()
 
     def build_register_tab(self):
-        form = ctk.CTkScrollableFrame(self.tab_register)
-        form.pack(fill="both", expand=True, padx=20, pady=10)
+        # Center the scrollable frame 
+        form = ctk.CTkScrollableFrame(self.tab_register, width=500)
+        form.pack(expand=True, pady=10)
 
         fields = [
             ("NI Number:", "ni"), ("Full Name:", "name"), ("Phone:", "phone"),
@@ -47,10 +48,10 @@ class TenantView:
 
         self.entries = {}
         for i, (label, key) in enumerate(fields):
-            ctk.CTkLabel(form, text=label).grid(row=i, column=0, padx=10, pady=6, sticky="e")
+            ctk.CTkLabel(form, text=label).grid(row=i, column=0, padx=15, pady=6, sticky="e")
             show = "•" if key == "password" else ""
-            entry = ctk.CTkEntry(form, width=300, show=show)
-            entry.grid(row=i, column=1, padx=10, pady=6)
+            entry = ctk.CTkEntry(form, width=280, show=show)
+            entry.grid(row=i, column=1, padx=15, pady=6, sticky="w")
             self.entries[key] = entry
 
         ctk.CTkButton(form, text="Register Tenant", command=self.register_tenant, width=300).grid(
@@ -66,11 +67,11 @@ class TenantView:
 
     def build_actions_tab(self):
         frame = ctk.CTkFrame(self.tab_actions)
-        frame.pack(pady=30, padx=40)
+        frame.pack(pady=40)
 
-        ctk.CTkLabel(frame, text="Tenant ID:", font=("Arial", 14)).grid(row=0, column=0, padx=10, pady=10)
+        ctk.CTkLabel(frame, text="Tenant ID:", font=("Arial", 14)).grid(row=0, column=0, padx=15, pady=10, sticky="e")
         self.action_id_entry = ctk.CTkEntry(frame, width=200)
-        self.action_id_entry.grid(row=0, column=1, padx=10, pady=10)
+        self.action_id_entry.grid(row=0, column=1, padx=15, pady=10, sticky="w")
 
         ctk.CTkButton(frame, text="Early Termination (5% Penalty)", command=self.do_early_termination,
                        width=280, fg_color="orange", hover_color="darkorange").grid(row=1, column=0, columnspan=2, pady=10)
@@ -85,7 +86,7 @@ class TenantView:
 
     def build_assign_tab(self):
         frame = ctk.CTkFrame(self.tab_assign)
-        frame.pack(pady=20, padx=40)
+        frame.pack(pady=30)
 
         fields = [
             ("Tenant User ID:", "t_id"),
@@ -97,9 +98,9 @@ class TenantView:
         ]
         self.assign_entries = {}
         for i, (label, key) in enumerate(fields):
-            ctk.CTkLabel(frame, text=label, font=("Arial", 13)).grid(row=i, column=0, padx=12, pady=8, sticky="e")
+            ctk.CTkLabel(frame, text=label, font=("Arial", 13)).grid(row=i, column=0, padx=15, pady=8, sticky="e")
             entry = ctk.CTkEntry(frame, width=220)
-            entry.grid(row=i, column=1, padx=12, pady=8)
+            entry.grid(row=i, column=1, padx=15, pady=8, sticky="w")
             self.assign_entries[key] = entry
 
         self.assign_result = ctk.CTkLabel(frame, text="", font=("Arial", 12))

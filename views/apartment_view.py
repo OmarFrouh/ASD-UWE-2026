@@ -15,32 +15,32 @@ class ApartmentView:
         ctk.CTkLabel(frame, text="🏠 Apartment Management", font=("Arial", 22, "bold")).pack(pady=(0, 15))
 
         form = ctk.CTkFrame(frame)
-        form.pack(fill="x", pady=10, padx=20)
+        form.pack(pady=10)
 
-        ctk.CTkLabel(form, text="Unit #:").grid(row=0, column=0, padx=8, pady=6, sticky="e")
+        ctk.CTkLabel(form, text="Unit #:").grid(row=0, column=0, padx=15, pady=8, sticky="e")
         self.unit_entry = ctk.CTkEntry(form, width=180)
-        self.unit_entry.grid(row=0, column=1, padx=8, pady=6)
+        self.unit_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Address:").grid(row=0, column=2, padx=8, pady=6, sticky="e")
+        ctk.CTkLabel(form, text="Address:").grid(row=0, column=2, padx=15, pady=8, sticky="e")
         self.address_entry = ctk.CTkEntry(form, width=180)
-        self.address_entry.grid(row=0, column=3, padx=8, pady=6)
+        self.address_entry.grid(row=0, column=3, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="City:").grid(row=1, column=0, padx=8, pady=6, sticky="e")
+        ctk.CTkLabel(form, text="City:").grid(row=1, column=0, padx=15, pady=8, sticky="e")
         self.city_combo = ctk.CTkComboBox(form, values=["Bristol", "Cardiff", "London", "Manchester"], width=180)
-        self.city_combo.grid(row=1, column=1, padx=8, pady=6)
+        self.city_combo.grid(row=1, column=1, padx=15, pady=8, sticky="w")
         self.city_combo.set("Bristol")
 
-        ctk.CTkLabel(form, text="Rooms:").grid(row=1, column=2, padx=8, pady=6, sticky="e")
+        ctk.CTkLabel(form, text="Rooms:").grid(row=1, column=2, padx=15, pady=8, sticky="e")
         self.rooms_entry = ctk.CTkEntry(form, width=180)
-        self.rooms_entry.grid(row=1, column=3, padx=8, pady=6)
+        self.rooms_entry.grid(row=1, column=3, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Rent (£):").grid(row=2, column=0, padx=8, pady=6, sticky="e")
+        ctk.CTkLabel(form, text="Rent (£):").grid(row=2, column=0, padx=15, pady=8, sticky="e")
         self.rent_entry = ctk.CTkEntry(form, width=180)
-        self.rent_entry.grid(row=2, column=1, padx=8, pady=6)
+        self.rent_entry.grid(row=2, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Size (sqft):").grid(row=2, column=2, padx=8, pady=6, sticky="e")
+        ctk.CTkLabel(form, text="Size (sqft):").grid(row=2, column=2, padx=15, pady=8, sticky="e")
         self.size_entry = ctk.CTkEntry(form, width=180)
-        self.size_entry.grid(row=2, column=3, padx=8, pady=6)
+        self.size_entry.grid(row=2, column=3, padx=15, pady=8, sticky="w")
 
         ctk.CTkButton(form, text="Add Unit", command=self.submit_apartment, width=200).grid(row=3, column=0, columnspan=4, pady=12)
 
