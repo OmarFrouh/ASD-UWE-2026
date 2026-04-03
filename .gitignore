@@ -1,5 +1,7 @@
 archive/
 guides/
+CLAUDE.md
+.claude/
 # Python .gitignore
 __pycache__/
 *.py[cod]

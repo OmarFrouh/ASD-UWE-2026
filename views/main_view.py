@@ -99,7 +99,8 @@ class MainView:
             from views.maintenance_view import MaintenanceView
             MaintenanceView(self.content_frame, self.db_manager)
         elif view_name == "reports":
-            ctk.CTkLabel(self.content_frame, text="📈 Reports — Coming Sprint 2", font=("Arial", 20)).pack(pady=50)
+            from views.report_view import ReportView
+            ReportView(self.content_frame, self.db_manager)
 
     def show_dashboard(self):
         ctk.CTkLabel(self.content_frame, text="📊 Dashboard", font=("Arial", 24, "bold")).pack(pady=30)
