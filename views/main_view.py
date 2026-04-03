@@ -13,6 +13,9 @@ class MainView:
         self.current_user = current_user
         self.on_logout = on_logout
 
+        from notification_manager import NotificationManager
+        self.notification_manager = NotificationManager(db_manager)
+
         self.root.title("PAMS - Dashboard")
         self.root.geometry("1200x700")
 
@@ -20,7 +23,22 @@ class MainView:
         header = ctk.CTkFrame(root, height=50, corner_radius=0)
         header.pack(side="top", fill="x")
         ctk.CTkLabel(header, text="🏢 Paragon Apartment Management System", font=("Arial", 16, "bold")).pack(side="left", padx=20, pady=10)
-        ctk.CTkLabel(header, text=f"👤 {self.current_user[1]} ({self.current_user[3]})", font=("Arial", 12)).pack(side="right", padx=20)
+
+        # ─── SPRINT 2 NOTIFICATION BADGE ───
+        self.notif_count = self.notification_manager.get_notification_count()
+        self.notif_label = ctk.CTkLabel(header, text="", font=("Arial", 13, "bold"), text_color="red")
+        self.notif_label.pack(side="right", padx=(0, 20))
+        self.update_notification_badge()
+
+        ctk.CTkLabel(header, text=f"👤 {self.current_user[1]} ({self.current_user[3]})", font=("Arial", 12)).pack(side="right", padx=10)
+
+    def update_notification_badge(self):
+        """Updates the notification badge in the header."""
+        count = self.notification_manager.get_notification_count()
+        if count > 0:
+            self.notif_label.configure(text=f"🔔 {count} Notifications")
+        else:
+            self.notif_label.configure(text="")
 
         # Sidebar
         self.sidebar = ctk.CTkFrame(root, width=200, corner_radius=0)
@@ -103,6 +121,7 @@ class MainView:
             ReportView(self.content_frame, self.db_manager)
 
     def show_dashboard(self):
+        self.update_notification_badge()
         ctk.CTkLabel(self.content_frame, text="📊 Dashboard", font=("Arial", 24, "bold")).pack(pady=30)
         stats = self.auth_manager.get_dashboard_stats()
         frame = ctk.CTkFrame(self.content_frame)
