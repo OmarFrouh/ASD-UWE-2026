@@ -33,7 +33,7 @@ class TestFinance(BaseTest):
         
         with self.assertRaises(Exception) as ctx:
             self.inv.generate_invoice(self.user_id, 500)
-        self.assertIn("Cannot invoice an Terminated tenant", str(ctx.exception))
+        self.assertIn("Cannot invoice a Terminated tenant", str(ctx.exception))
 
     def test_payment_updates_invoice_status(self):
         self.inv.generate_invoice(self.user_id, 1000)
@@ -65,3 +65,16 @@ class TestFinance(BaseTest):
         with self.assertRaises(Exception) as ctx:
             self.pay.record_payment(inv_id, -50, "Cash")
         self.assertIn("Amount must be positive", str(ctx.exception))
+
+    def test_cannot_invoice_archived_tenant(self):
+        self.tenant.archive_tenant(self.user_id)
+        with self.assertRaises(Exception) as ctx:
+            self.inv.generate_invoice(self.user_id, 500)
+        self.assertIn("Cannot invoice a Archived tenant", str(ctx.exception))
+
+    def test_overpayment_rejected(self):
+        self.inv.generate_invoice(self.user_id, 100)
+        inv_id = self.inv.get_all_invoices()[0][0]
+        with self.assertRaises(Exception) as ctx:
+            self.pay.record_payment(inv_id, 150, "Cash")
+        self.assertIn("exceeds remaining balance", str(ctx.exception))

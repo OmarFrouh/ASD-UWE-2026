@@ -68,21 +68,32 @@ class MaintenanceManager:
         if new_status not in valid:
             raise Exception(f"Status must be one of: {', '.join(valid)}")
 
-        # Validate ticket exists
-        ticket = self.db_manager.fetch_one("SELECT id FROM maintenance_requests WHERE id=?", (ticket_id,))
+        # Validate ticket exists and get current status
+        ticket = self.db_manager.fetch_one(
+            "SELECT id, status FROM maintenance_requests WHERE id=?", (ticket_id,))
         if not ticket:
             raise Exception("Ticket not found")
 
-        updates = "status=?"
-        params = [new_status]
+        # Enforce valid status transitions
+        transitions = {
+            "Open": ["Assigned", "In Progress", "Closed"],
+            "Assigned": ["In Progress", "Closed"],
+            "In Progress": ["Fixed", "Closed"],
+            "Fixed": ["Closed"],
+            "Closed": [],
+        }
+        current_status = ticket[1]
+        if new_status not in transitions.get(current_status, []):
+            raise Exception(f"Cannot transition from '{current_status}' to '{new_status}'")
 
         if new_status == "Fixed":
-            updates += ", date_resolved=?"
-            params.append(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-        params.append(ticket_id)
-        self.db_manager.execute_query(
-            f"UPDATE maintenance_requests SET {updates} WHERE id=?", tuple(params))
+            self.db_manager.execute_query(
+                "UPDATE maintenance_requests SET status=?, date_resolved=? WHERE id=?",
+                (new_status, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ticket_id))
+        else:
+            self.db_manager.execute_query(
+                "UPDATE maintenance_requests SET status=? WHERE id=?",
+                (new_status, ticket_id))
         return True
 
     def log_costs(self, ticket_id, time_spent, cost):
