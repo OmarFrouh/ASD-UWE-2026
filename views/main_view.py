@@ -5,12 +5,13 @@ import customtkinter as ctk
 from tkinter import messagebox
 
 class MainView:
-    def __init__(self, root, auth_manager, property_manager, db_manager, current_user):
+    def __init__(self, root, auth_manager, property_manager, db_manager, current_user, on_logout=None):
         self.root = root
         self.auth_manager = auth_manager
         self.property_manager = property_manager
         self.db_manager = db_manager
         self.current_user = current_user
+        self.on_logout = on_logout
 
         self.root.title("PAMS - Dashboard")
         self.root.geometry("1200x700")
@@ -118,4 +119,7 @@ class MainView:
 
     def logout(self):
         if messagebox.askyesno("Logout", "Are you sure?"):
-            self.root.destroy()
+            if self.on_logout:
+                self.on_logout()
+            else:
+                self.root.destroy()

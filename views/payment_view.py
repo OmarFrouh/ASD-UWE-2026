@@ -56,20 +56,23 @@ class PaymentView:
         self.refresh()
 
     def record(self):
-        inv_id = self.inv_id_entry.get()
-        amount = self.pay_amount_entry.get()
+        iid = self.inv_id_entry.get()
+        amt = self.pay_amount_entry.get()
         method = self.method_combo.get()
         ref = self.ref_entry.get()
 
-        if not inv_id or not amount:
+        if not iid or not amt:
             messagebox.showwarning("Error", "Invoice ID and Amount required.")
             return
+
         try:
-            self.payment_manager.record_payment(int(inv_id), amount, method, ref)
+            self.payment_manager.record_payment(int(iid), float(amt), method, ref)
             messagebox.showinfo("Success", "Payment recorded!")
             for e in [self.inv_id_entry, self.pay_amount_entry, self.ref_entry]:
                 e.delete(0, 'end')
             self.refresh()
+        except ValueError:
+            messagebox.showerror("Error", "Invoice ID and Amount must be valid numbers.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 

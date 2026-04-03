@@ -21,12 +21,17 @@ def main():
 
         root = ctk.CTk()
 
+        def launch_login():
+            for widget in root.winfo_children():
+                widget.destroy()
+            LoginView(root, auth_manager, launch_dashboard)
+
         def launch_dashboard(user):
             for widget in root.winfo_children():
                 widget.destroy()
-            MainView(root, auth_manager, property_manager, db_manager, user)
+            MainView(root, auth_manager, property_manager, db_manager, user, launch_login)
 
-        LoginView(root, auth_manager, launch_dashboard)
+        launch_login()
 
         print("Starting PAMS...")
         root.mainloop()

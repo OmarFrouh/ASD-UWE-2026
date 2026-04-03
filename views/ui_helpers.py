@@ -12,7 +12,7 @@ def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, heigh
     for i, c in enumerate(columns):
         heading = headings[i] if headings else c
         width = col_widths[i] if col_widths else 100
-        tree.heading(c, text=heading)
+        tree.heading(c, text=heading, command=lambda _c=c: _treeview_sort_column(tree, _c, False))
         tree.column(c, width=width)
 
     tree.pack(side="left", fill="both", expand=True)
@@ -32,3 +32,19 @@ def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, heigh
     tree.bind("<Button-5>", lambda e: tree.yview_scroll(1, "units"))
 
     return tree
+
+def _treeview_sort_column(tree, col, reverse):
+    """Sort tree contents when a column header is clicked."""
+    l = [(tree.set(k, col), k) for k in tree.get_children('')]
+    
+    # Try sorting numerically if possible
+    try:
+        l.sort(key=lambda t: float(t[0].replace('£', '').replace(',', '').strip()), reverse=reverse)
+    except ValueError:
+        l.sort(reverse=reverse)
+
+    for index, (val, k) in enumerate(l):
+        tree.move(k, '', index)
+
+    # Reverse sort next time
+    tree.heading(col, command=lambda _c=col: _treeview_sort_column(tree, _c, not reverse))
