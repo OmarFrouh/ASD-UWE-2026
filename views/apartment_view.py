@@ -2,7 +2,7 @@
 # Student ID: [YOUR_ID]
 
 import customtkinter as ctk
-from tkinter import messagebox, ttk
+from tkinter import messagebox
 from views.ui_helpers import setup_treeview_scroll
 
 class ApartmentView:

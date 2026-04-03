@@ -4,13 +4,15 @@
 import bcrypt
 from datetime import datetime
 
+EARLY_TERMINATION_PENALTY_RATE = 0.05
+
 class TenantManager:
     def __init__(self, db_manager):
         self.db_manager = db_manager
 
     def register_tenant(self, username, password, ni_number, full_name, phone, email, occupation, references, emergency_contact, apt_requirements):
         salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password.encode(), salt)
+        hashed = bcrypt.hashpw(password.encode(), salt).decode('utf-8')
 
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
@@ -58,10 +60,12 @@ class TenantManager:
         if not tenant:
             raise Exception("Tenant not found")
 
-        # Validate apartment exists
-        apt = self.db_manager.fetch_one("SELECT id FROM apartments WHERE id=?", (apartment_id,))
+        # Validate apartment exists and is vacant
+        apt = self.db_manager.fetch_one("SELECT id, status FROM apartments WHERE id=?", (apartment_id,))
         if not apt:
             raise Exception("Apartment not found")
+        if apt[1] != "Vacant":
+            raise Exception("Apartment is already occupied")
 
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
@@ -87,7 +91,7 @@ class TenantManager:
         if tenant[2] in ("Terminated", "Archived"):
             raise Exception(f"Tenant is already {tenant[2]}")
 
-        penalty = (tenant[0] or 0) * 0.05
+        penalty = (tenant[0] or 0) * EARLY_TERMINATION_PENALTY_RATE
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         try:

@@ -49,10 +49,26 @@ class TestTenantManager(BaseTest):
         self.tenant.register_tenant("pen", "pass", "NIPEN", "Pen", "", "", "", "", "", "")
         user_id = self.db.fetch_one("SELECT id FROM users")[0]
         self.tenant.assign_apartment(user_id, self.apt_id, "2026-01-01", "2026-12-31", 1000.0, 500.0)
-        
+
         penalty = self.tenant.early_termination(user_id)
         # 5% of 1000 is 50
         self.assertEqual(penalty, 50.0)
-        
+
         t = self.db.fetch_one("SELECT status FROM tenants WHERE user_id=?", (user_id,))
         self.assertEqual(t[0], "Terminated")
+
+        # Verify apartment is vacated
+        apt = self.db.fetch_one("SELECT status FROM apartments WHERE id=?", (self.apt_id,))
+        self.assertEqual(apt[0], "Vacant")
+
+    def test_assign_occupied_apartment_fails(self):
+        self.tenant.register_tenant("t1", "pass", "NI_A", "Tenant A", "", "", "", "", "", "")
+        uid1 = self.db.fetch_all("SELECT id FROM users WHERE username='t1'")[0][0]
+        self.tenant.assign_apartment(uid1, self.apt_id, "2026-01-01", "2026-12-31", 1000.0, 500.0)
+
+        self.tenant.register_tenant("t2", "pass", "NI_B", "Tenant B", "", "", "", "", "", "")
+        uid2 = self.db.fetch_all("SELECT id FROM users WHERE username='t2'")[0][0]
+
+        with self.assertRaises(Exception) as ctx:
+            self.tenant.assign_apartment(uid2, self.apt_id, "2026-01-01", "2026-12-31", 1000.0, 500.0)
+        self.assertIn("already occupied", str(ctx.exception))

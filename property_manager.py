@@ -15,6 +15,10 @@ class PropertyManager:
         number_of_rooms = int(number_of_rooms)
         if rental_price <= 0:
             raise ValueError("Rent must be positive.")
+        if square_footage <= 0:
+            raise ValueError("Square footage must be positive.")
+        if number_of_rooms <= 0:
+            raise ValueError("Number of rooms must be positive.")
 
         query = """
             INSERT INTO apartments (unit_number, address, city, number_of_rooms, rental_price, square_footage)
@@ -30,4 +34,10 @@ class PropertyManager:
         return self.db_manager.fetch_all("SELECT * FROM apartments WHERE status='Vacant'")
 
     def update_status(self, apartment_id, status):
+        valid_statuses = ["Vacant", "Occupied", "Maintenance"]
+        if status not in valid_statuses:
+            raise ValueError(f"Status must be one of: {', '.join(valid_statuses)}")
+        apt = self.db_manager.fetch_one("SELECT id FROM apartments WHERE id=?", (apartment_id,))
+        if not apt:
+            raise Exception("Apartment not found")
         self.db_manager.execute_query("UPDATE apartments SET status=? WHERE id=?", (status, apartment_id))
