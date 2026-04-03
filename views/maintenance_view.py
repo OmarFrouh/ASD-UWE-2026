@@ -69,59 +69,61 @@ class MaintenanceView:
     def build_manage_tab(self, tab):
         # Top section: ID
         top_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        top_frame.pack(pady=(10, 5))
-        ctk.CTkLabel(top_frame, text="Ticket ID:", font=("Arial", 14)).pack(side="left", padx=5)
-        self.manage_id = ctk.CTkEntry(top_frame, width=150)
-        self.manage_id.pack(side="left", padx=5)
+        top_frame.pack(pady=(30, 20))
+        ctk.CTkLabel(top_frame, text="Ticket ID:", font=("Arial", 14, "bold")).pack(side="left", padx=10)
+        self.manage_id = ctk.CTkEntry(top_frame, width=200)
+        self.manage_id.pack(side="left", padx=10)
 
         # Bottom section: 3 horizontal columns side-by-side
         cols_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        cols_frame.pack(pady=10, fill="x", padx=10)
+        cols_frame.pack(pady=10, fill="x", padx=60)
         cols_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
         # ---- COL 1: ASSIGN ----
-        col1 = ctk.CTkFrame(cols_frame)
-        col1.grid(row=0, column=0, padx=10, pady=10, sticky="n")
-        ctk.CTkLabel(col1, text="Assign Staff", font=("Arial", 14, "bold")).pack(pady=10)
+        col1 = ctk.CTkFrame(cols_frame, fg_color="transparent")
+        col1.grid(row=0, column=0, padx=20, pady=10, sticky="n")
+        ctk.CTkLabel(col1, text="Assign Staff", text_color="#1f6aa5", font=("Arial", 16, "bold")).pack(pady=(0, 20))
         
-        ctk.CTkLabel(col1, text="Staff User ID:").pack()
-        self.staff_id_entry = ctk.CTkEntry(col1, width=160)
-        self.staff_id_entry.pack(pady=5)
+        ctk.CTkLabel(col1, text="Staff User ID:").pack(anchor="w")
+        self.staff_id_entry = ctk.CTkEntry(col1, width=200)
+        self.staff_id_entry.pack(pady=(0, 15))
         
-        ctk.CTkLabel(col1, text="Scheduled Date:").pack()
-        self.sched_entry = ctk.CTkEntry(col1, width=160, placeholder_text="YYYY-MM-DD")
-        self.sched_entry.pack(pady=5)
+        ctk.CTkLabel(col1, text="Scheduled Date:").pack(anchor="w")
+        self.sched_entry = ctk.CTkEntry(col1, width=200, placeholder_text="YYYY-MM-DD")
+        self.sched_entry.pack(pady=(0, 25))
         
-        ctk.CTkButton(col1, text="Assign", command=self.assign, width=140).pack(pady=15)
+        ctk.CTkButton(col1, text="Assign", command=self.assign, width=200).pack()
 
         # ---- COL 2: STATUS ----
-        col2 = ctk.CTkFrame(cols_frame)
-        col2.grid(row=0, column=1, padx=10, pady=10, sticky="n")
-        ctk.CTkLabel(col2, text="Update Status", font=("Arial", 14, "bold")).pack(pady=10)
+        col2 = ctk.CTkFrame(cols_frame, fg_color="transparent")
+        col2.grid(row=0, column=1, padx=20, pady=10, sticky="n")
+        ctk.CTkLabel(col2, text="Update Status", text_color="#1f6aa5", font=("Arial", 16, "bold")).pack(pady=(0, 20))
         
-        self.status_combo = ctk.CTkComboBox(col2, values=["Open", "Assigned", "In Progress", "Fixed", "Closed"], width=160)
-        self.status_combo.pack(pady=10)
+        ctk.CTkLabel(col2, text="New Status:").pack(anchor="w")
+        self.status_combo = ctk.CTkComboBox(col2, values=["Open", "Assigned", "In Progress", "Fixed", "Closed"], width=200)
+        self.status_combo.pack(pady=(0, 25))
         self.status_combo.set("In Progress")
         
-        ctk.CTkButton(col2, text="Update Status", command=self.update_status, width=140).pack(pady=20)
+        ctk.CTkButton(col2, text="Update Status", command=self.update_status, width=200).pack()
 
         # ---- COL 3: COSTS ----
-        col3 = ctk.CTkFrame(cols_frame)
-        col3.grid(row=0, column=2, padx=10, pady=10, sticky="n")
-        ctk.CTkLabel(col3, text="Log Costs", font=("Arial", 14, "bold")).pack(pady=10)
+        col3 = ctk.CTkFrame(cols_frame, fg_color="transparent")
+        col3.grid(row=0, column=2, padx=20, pady=10, sticky="n")
+        ctk.CTkLabel(col3, text="Log Costs", text_color="#1f6aa5", font=("Arial", 16, "bold")).pack(pady=(0, 20))
         
-        ctk.CTkLabel(col3, text="Hours Spent:").pack()
-        self.hours_entry = ctk.CTkEntry(col3, width=160)
-        self.hours_entry.pack(pady=5)
+        ctk.CTkLabel(col3, text="Hours Spent:").pack(anchor="w")
+        self.hours_entry = ctk.CTkEntry(col3, width=200)
+        self.hours_entry.pack(pady=(0, 15))
         
-        ctk.CTkLabel(col3, text="Cost (£):").pack()
-        self.cost_entry = ctk.CTkEntry(col3, width=160)
-        self.cost_entry.pack(pady=5)
+        ctk.CTkLabel(col3, text="Cost (£):").pack(anchor="w")
+        self.cost_entry = ctk.CTkEntry(col3, width=200)
+        self.cost_entry.pack(pady=(0, 25))
         
-        ctk.CTkButton(col3, text="Log Costs", command=self.log_costs, width=140).pack(pady=15)
+        ctk.CTkButton(col3, text="Log Costs", command=self.log_costs, width=200).pack()
 
         self.manage_result = ctk.CTkLabel(tab, text="", font=("Arial", 12))
-        self.manage_result.pack(pady=5)
+        self.manage_result.pack(pady=20)
+
         
         # Enter key bindings for UX
         self.manage_id.bind("<Return>", lambda e: self.update_status())
