@@ -25,6 +25,11 @@ class AuthManager:
         return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
 
     def create_user(self, username, password, role="staff", employee_id=None, department=None):
+        # Prevent raw SQLite Integrity error by checking explicitly
+        existing = self.db_manager.fetch_one("SELECT id FROM users WHERE username=?", (username,))
+        if existing:
+            raise Exception("Username is already taken.")
+            
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
 

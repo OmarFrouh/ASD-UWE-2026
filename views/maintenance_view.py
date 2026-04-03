@@ -162,6 +162,8 @@ class MaintenanceView:
             self.manager.assign_staff(int(tid), int(sid), sched or None)
             self.manage_result.configure(text="Staff assigned!", text_color="green")
             self.refresh_list()
+        except ValueError:
+            messagebox.showerror("Error", "Ticket ID and Staff ID must be valid numbers.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
@@ -174,6 +176,8 @@ class MaintenanceView:
             self.manager.update_status(int(tid), self.status_combo.get())
             self.manage_result.configure(text="Status updated!", text_color="green")
             self.refresh_list()
+        except ValueError:
+            messagebox.showerror("Error", "Ticket ID must be a valid number.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
@@ -188,6 +192,8 @@ class MaintenanceView:
             self.manager.log_costs(int(tid), hours, cost)
             self.manage_result.configure(text="Costs logged!", text_color="green")
             self.refresh_list()
+        except ValueError:
+            messagebox.showerror("Error", "Ticket ID, Hours, and Cost must be valid numbers.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
