@@ -91,13 +91,20 @@ class MaintenanceManager:
         if not ticket:
             raise Exception("Ticket not found")
 
-        time_spent = float(time_spent)
-        cost = float(cost)
+        try:
+            time_spent = float(time_spent)
+            cost = float(cost)
+        except ValueError:
+            raise Exception("Time and cost must be valid numbers")
+
         if time_spent < 0 or cost < 0:
             raise Exception("Time and cost must be positive")
 
         self.db_manager.execute_query("""
-            UPDATE maintenance_requests SET time_spent=?, cost=? WHERE id=?
+            UPDATE maintenance_requests 
+            SET time_spent = COALESCE(time_spent, 0) + ?, 
+                cost = COALESCE(cost, 0) + ? 
+            WHERE id=?
         """, (time_spent, cost, ticket_id))
         return True
 

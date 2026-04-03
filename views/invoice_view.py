@@ -59,12 +59,18 @@ class InvoiceView:
         tid = self.tenant_id_entry.get()
         amt = self.amount_entry.get()
         if not tid:
-            messagebox.showwarning("Error", "Enter tenant ID.")
+            messagebox.showwarning("Error", "Tenant ID is required")
             return
+            
         try:
-            self.invoice_manager.generate_invoice(int(tid), float(amt) if amt else None)
-            messagebox.showinfo("Success", "Invoice generated!")
+            val = float(amt) if amt.strip() else None
+            self.invoice_manager.generate_invoice(int(tid), val)
+            messagebox.showinfo("Success", "Invoice generated")
+            self.tenant_id_entry.delete(0, 'end')
+            self.amount_entry.delete(0, 'end')
             self.refresh()
+        except ValueError:
+            messagebox.showerror("Error", "Tenant ID and Amount must be valid numbers.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 

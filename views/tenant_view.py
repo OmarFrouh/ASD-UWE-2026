@@ -110,18 +110,27 @@ class TenantView:
             row=len(fields) + 1, column=0, columnspan=2, pady=12)
 
     def do_assign(self):
-        v = {k: e.get() for k, e in self.assign_entries.items()}
-        if not all([v["t_id"], v["apt_id"], v["start"], v["end"], v["rent"], v["deposit"]]):
-            messagebox.showwarning("Error", "All fields are required.")
-            return
         try:
+            t_id = self.assign_entries["t_id"].get()
+            apt_id = self.assign_entries["apt_id"].get()
+            rent = self.assign_entries["rent"].get()
+            dep = self.assign_entries["deposit"].get()
+
+            if not all([t_id, apt_id, rent, dep]):
+                raise Exception("All numeric fields are required")
+
             self.tenant_manager.assign_apartment(
-                int(v["t_id"]), int(v["apt_id"]),
-                v["start"], v["end"],
-                float(v["rent"]), float(v["deposit"])
+                int(t_id),
+                int(apt_id),
+                self.assign_entries["start"].get(),
+                self.assign_entries["end"].get(),
+                float(rent),
+                float(dep)
             )
-            self.assign_result.configure(text="Apartment assigned successfully!", text_color="green")
+            self.assign_result.configure(text="Apartment Assigned!", text_color="green")
             self.refresh_list()
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numbers for IDs, rent, and deposit.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
@@ -146,24 +155,36 @@ class TenantView:
     def do_early_termination(self):
         tid = self.action_id_entry.get()
         if not tid:
-            messagebox.showwarning("Error", "Enter tenant ID.")
+            messagebox.showwarning("Warning", "Enter Tenant ID")
             return
+        
+        if not messagebox.askyesno("Confirm Termination", "Are you sure you want to terminate this tenant's lease? This applies a 5% penalty."):
+            return
+            
         try:
             penalty = self.tenant_manager.early_termination(int(tid))
-            self.action_result.configure(text=f"Terminated. Penalty: £{penalty:.2f}", text_color="orange")
+            messagebox.showinfo("Success", f"Lease terminated. Penalty applied: £{penalty:.2f}")
             self.refresh_list()
+        except ValueError:
+            messagebox.showerror("Error", "Invalid Tenant ID. Must be a number.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
     def do_archive(self):
         tid = self.action_id_entry.get()
         if not tid:
-            messagebox.showwarning("Error", "Enter tenant ID.")
+            messagebox.showwarning("Warning", "Enter Tenant ID")
             return
+            
+        if not messagebox.askyesno("Confirm Archive", "Are you sure you want to permanently archive this tenant?"):
+            return
+            
         try:
             self.tenant_manager.archive_tenant(int(tid))
-            self.action_result.configure(text="Tenant archived.", text_color="green")
+            messagebox.showinfo("Success", "Tenant Archived.")
             self.refresh_list()
+        except ValueError:
+            messagebox.showerror("Error", "Invalid Tenant ID. Must be a number.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
