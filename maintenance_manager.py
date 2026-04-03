@@ -13,6 +13,11 @@ class MaintenanceManager:
         if priority not in ["Low", "Medium", "High", "Urgent"]:
             raise Exception("Priority must be Low, Medium, High, or Urgent")
 
+        # Validate apartment exists
+        apt = self.db_manager.fetch_one("SELECT id FROM apartments WHERE id=?", (apartment_id,))
+        if not apt:
+            raise Exception("Apartment not found")
+
         self.db_manager.execute_query("""
             INSERT INTO maintenance_requests
                 (apartment_id, tenant_id, description, priority, status, date_reported)
@@ -41,6 +46,11 @@ class MaintenanceManager:
         """)
 
     def assign_staff(self, ticket_id, staff_user_id, scheduled_date=None):
+        # Validate ticket exists
+        ticket = self.db_manager.fetch_one("SELECT id FROM maintenance_requests WHERE id=?", (ticket_id,))
+        if not ticket:
+            raise Exception("Ticket not found")
+
         staff = self.db_manager.fetch_one(
             "SELECT user_id FROM staff WHERE user_id=?", (staff_user_id,))
         if not staff:
@@ -58,6 +68,11 @@ class MaintenanceManager:
         if new_status not in valid:
             raise Exception(f"Status must be one of: {', '.join(valid)}")
 
+        # Validate ticket exists
+        ticket = self.db_manager.fetch_one("SELECT id FROM maintenance_requests WHERE id=?", (ticket_id,))
+        if not ticket:
+            raise Exception("Ticket not found")
+
         updates = "status=?"
         params = [new_status]
 
@@ -71,6 +86,11 @@ class MaintenanceManager:
         return True
 
     def log_costs(self, ticket_id, time_spent, cost):
+        # Validate ticket exists
+        ticket = self.db_manager.fetch_one("SELECT id FROM maintenance_requests WHERE id=?", (ticket_id,))
+        if not ticket:
+            raise Exception("Ticket not found")
+
         time_spent = float(time_spent)
         cost = float(cost)
         if time_spent < 0 or cost < 0:
