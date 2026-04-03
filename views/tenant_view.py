@@ -23,10 +23,14 @@ class TenantView:
         self.tab_register = self.tabview.add("Register")
         self.tab_list = self.tabview.add("Active Tenants")
         self.tab_actions = self.tabview.add("Actions")
+        if self.role == "admin":
+            self.tab_assign = self.tabview.add("Assign Apartment")
 
         self.build_register_tab()
         self.build_list_tab()
         self.build_actions_tab()
+        if self.role == "admin":
+            self.build_assign_tab()
 
     def build_register_tab(self):
         form = ctk.CTkScrollableFrame(self.tab_register)
@@ -79,6 +83,47 @@ class TenantView:
 
         self.action_result = ctk.CTkLabel(frame, text="", font=("Arial", 12))
         self.action_result.grid(row=3, column=0, columnspan=2, pady=10)
+
+    def build_assign_tab(self):
+        frame = ctk.CTkFrame(self.tab_assign)
+        frame.pack(pady=20, padx=40)
+
+        fields = [
+            ("Tenant User ID:", "t_id"),
+            ("Apartment ID:", "apt_id"),
+            ("Lease Start (YYYY-MM-DD):", "start"),
+            ("Lease End (YYYY-MM-DD):", "end"),
+            ("Monthly Rent (£):", "rent"),
+            ("Deposit (£):", "deposit"),
+        ]
+        self.assign_entries = {}
+        for i, (label, key) in enumerate(fields):
+            ctk.CTkLabel(frame, text=label, font=("Arial", 13)).grid(row=i, column=0, padx=12, pady=8, sticky="e")
+            entry = ctk.CTkEntry(frame, width=220)
+            entry.grid(row=i, column=1, padx=12, pady=8)
+            self.assign_entries[key] = entry
+
+        self.assign_result = ctk.CTkLabel(frame, text="", font=("Arial", 12))
+        self.assign_result.grid(row=len(fields), column=0, columnspan=2, pady=5)
+
+        ctk.CTkButton(frame, text="Assign Apartment", command=self.do_assign, width=280).grid(
+            row=len(fields) + 1, column=0, columnspan=2, pady=12)
+
+    def do_assign(self):
+        v = {k: e.get() for k, e in self.assign_entries.items()}
+        if not all([v["t_id"], v["apt_id"], v["start"], v["end"], v["rent"], v["deposit"]]):
+            messagebox.showwarning("Error", "All fields are required.")
+            return
+        try:
+            self.tenant_manager.assign_apartment(
+                int(v["t_id"]), int(v["apt_id"]),
+                v["start"], v["end"],
+                float(v["rent"]), float(v["deposit"])
+            )
+            self.assign_result.configure(text="Apartment assigned successfully!", text_color="green")
+            self.refresh_list()
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
     def register_tenant(self):
         v = {k: e.get() for k, e in self.entries.items()}

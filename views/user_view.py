@@ -25,9 +25,9 @@ class UserView:
         self.password_entry.grid(row=2, column=1, padx=15, pady=8)
 
         ctk.CTkLabel(form, text="Role:").grid(row=3, column=0, padx=15, pady=8, sticky="e")
-        self.role_combo = ctk.CTkComboBox(form, values=["staff", "manager", "admin", "maintenance", "finance_manager", "front_desk"], width=250, command=self.toggle_staff_fields)
+        self.role_combo = ctk.CTkComboBox(form, values=["front_desk", "finance_manager", "maintenance", "manager", "admin"], width=250, command=self.toggle_staff_fields)
         self.role_combo.grid(row=3, column=1, padx=15, pady=8)
-        self.role_combo.set("staff")
+        self.role_combo.set("front_desk")
 
         self.lbl_empid = ctk.CTkLabel(form, text="Employee ID:")
         self.entry_empid = ctk.CTkEntry(form, width=250)

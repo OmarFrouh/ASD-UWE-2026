@@ -21,17 +21,26 @@ class PaymentManager:
 
         today = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        self.db_manager.execute_query("""
-            INSERT INTO payments (invoice_id, amount, payment_date, method, transaction_ref)
-            VALUES (?, ?, ?, ?, ?)
-        """, (invoice_id, amount, today, method, transaction_ref))
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                INSERT INTO payments (invoice_id, amount, payment_date, method, transaction_ref)
+                VALUES (?, ?, ?, ?, ?)
+            """, (invoice_id, amount, today, method, transaction_ref))
 
-        # Check if fully paid
-        total_paid = self.db_manager.fetch_one(
-            "SELECT SUM(amount) FROM payments WHERE invoice_id=?", (invoice_id,))
-        if total_paid and total_paid[0] >= invoice[0]:
-            self.db_manager.execute_query(
-                "UPDATE invoices SET status='Paid' WHERE id=?", (invoice_id,))
+            # Check within same transaction if now fully paid
+            cursor.execute("SELECT SUM(amount) FROM payments WHERE invoice_id=?", (invoice_id,))
+            total_paid = cursor.fetchone()
+            if total_paid and total_paid[0] >= invoice[0]:
+                cursor.execute("UPDATE invoices SET status='Paid' WHERE id=?", (invoice_id,))
+
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
 
         return True
 

@@ -9,9 +9,11 @@ class InvoiceManager:
 
     def generate_invoice(self, tenant_id, amount=None):
         tenant = self.db_manager.fetch_one(
-            "SELECT monthly_rent, full_name FROM tenants WHERE user_id=?", (tenant_id,))
+            "SELECT monthly_rent, full_name, status FROM tenants WHERE user_id=?", (tenant_id,))
         if not tenant:
             raise Exception("Tenant not found")
+        if tenant[2] in ("Terminated", "Archived"):
+            raise Exception(f"Cannot invoice an {tenant[2]} tenant")
 
         if amount is None:
             amount = tenant[0]
