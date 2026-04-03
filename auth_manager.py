@@ -3,6 +3,8 @@
 
 import bcrypt
 
+VALID_ROLES = ["admin", "staff", "front_desk", "finance_manager", "maintenance", "manager", "tenant"]
+
 class AuthManager:
     def __init__(self, db_manager):
         self.db_manager = db_manager
@@ -16,6 +18,8 @@ class AuthManager:
 
         stored_hash = user_record[2]
         if self.verify_hash(password, stored_hash):
+            self.db_manager.execute_query(
+                "UPDATE users SET last_login=CURRENT_TIMESTAMP WHERE id=?", (user_record[0],))
             return user_record
         return None
 
@@ -25,13 +29,17 @@ class AuthManager:
         return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
 
     def create_user(self, username, password, role="staff", employee_id=None, department=None):
+        # Validate role
+        if role not in VALID_ROLES:
+            raise Exception(f"Invalid role '{role}'. Must be one of: {', '.join(VALID_ROLES)}")
+
         # Prevent raw SQLite Integrity error by checking explicitly
         existing = self.db_manager.fetch_one("SELECT id FROM users WHERE username=?", (username,))
         if existing:
             raise Exception("Username is already taken.")
-            
+
         salt = bcrypt.gensalt()
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
@@ -74,5 +82,5 @@ class AuthManager:
                 stats["Vacant"] = cursor.fetchone()[0]
         except Exception as e:
             print(f"Error fetching stats: {e}")
-            return {"Error": 0}
+            return {}
         return stats

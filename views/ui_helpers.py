@@ -1,6 +1,5 @@
 # Shared UI helpers for PAMS views
 from tkinter import ttk
-import platform
 
 def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, height=15):
     """Create a Treeview with vertical scrollbar and mousewheel/trackpad support."""

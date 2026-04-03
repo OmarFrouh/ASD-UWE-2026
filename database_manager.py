@@ -119,7 +119,7 @@ class DatabaseManager:
                 time_spent REAL,
                 cost REAL,
                 FOREIGN KEY (apartment_id) REFERENCES apartments (id) ON DELETE CASCADE,
-                FOREIGN KEY (tenant_id) REFERENCES tenants (user_id),
+                FOREIGN KEY (tenant_id) REFERENCES tenants (user_id) ON DELETE SET NULL,
                 FOREIGN KEY (staff_id) REFERENCES staff (user_id) ON DELETE SET NULL
             );
         """)
@@ -131,7 +131,7 @@ class DatabaseManager:
                 tenant_id INTEGER NOT NULL,
                 issue_date TEXT,
                 due_date TEXT,
-                total_amount REAL,
+                total_amount REAL NOT NULL,
                 status TEXT DEFAULT 'Pending',
                 FOREIGN KEY (tenant_id) REFERENCES tenants (user_id) ON DELETE CASCADE
             );
@@ -142,7 +142,7 @@ class DatabaseManager:
             CREATE TABLE IF NOT EXISTS payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 invoice_id INTEGER NOT NULL,
-                amount REAL,
+                amount REAL NOT NULL,
                 payment_date TEXT,
                 method TEXT,
                 transaction_ref TEXT,

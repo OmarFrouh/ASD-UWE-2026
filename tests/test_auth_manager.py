@@ -15,6 +15,7 @@ class TestAuthManager(BaseTest):
         user = self.auth.login("omar", "secure123")
         self.assertIsNotNone(user)
         self.assertEqual(user[1], "omar")
+        self.assertEqual(user[3], "admin")
 
     def test_duplicate_username_fails(self):
         self.auth.create_user("feras", "pass", "staff", "EMP123")
@@ -34,3 +35,8 @@ class TestAuthManager(BaseTest):
         with self.assertRaises(Exception) as context:
             self.auth.create_user("new_staff", "pass", "manager")
         self.assertIn("Employee ID is required", str(context.exception))
+
+    def test_invalid_role_rejected(self):
+        with self.assertRaises(Exception) as ctx:
+            self.auth.create_user("hacker", "pass", "super_admin")
+        self.assertIn("Invalid role", str(ctx.exception))

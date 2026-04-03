@@ -16,9 +16,11 @@ class BaseTest(unittest.TestCase):
         self.db = DatabaseManager(self.db_path)
         # Suppress prints from setup
         old_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
+        devnull = open(os.devnull, 'w')
+        sys.stdout = devnull
         self.db.create_tables()
         sys.stdout = old_stdout
+        devnull.close()
 
     def tearDown(self):
         """Runs after every test to clean up."""
