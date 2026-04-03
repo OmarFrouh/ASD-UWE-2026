@@ -48,9 +48,9 @@ class ApartmentView:
         list_frame = ctk.CTkFrame(frame, fg_color="transparent")
         list_frame.pack(fill="both", expand=True, pady=10, padx=20)
 
-        cols = ("unit", "address", "city", "rooms", "rent", "sqft", "status")
-        headings = ["Unit", "Address", "City", "Rooms", "Rent", "Sqft", "Status"]
-        self.tree = setup_treeview_scroll(list_frame, columns=cols, headings=headings, col_widths=[100]*7, height=10)
+        cols = ("id", "unit", "address", "city", "rooms", "rent", "sqft", "status")
+        headings = ["ID", "Unit", "Address", "City", "Rooms", "Rent", "Sqft", "Status"]
+        self.tree = setup_treeview_scroll(list_frame, columns=cols, headings=headings, col_widths=[50, 100, 100, 100, 80, 100, 100, 100], height=10)
         self.refresh_list()
 
     def submit_apartment(self):
@@ -75,4 +75,4 @@ class ApartmentView:
             self.tree.delete(item)
         for apt in self.property_manager.get_all_apartments():
             # Schema: id, unit, address, city, rooms, price, sqft, status
-            self.tree.insert("", "end", values=(apt[1], apt[2], apt[3], apt[4], f"£{apt[5]:.2f}", apt[6], apt[7]))
+            self.tree.insert("", "end", values=(apt[0], apt[1], apt[2], apt[3], apt[4], f"£{apt[5]:.2f}", apt[6], apt[7]))
