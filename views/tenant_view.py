@@ -4,6 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox, ttk
 from tenant_manager import TenantManager
+from views.ui_helpers import setup_treeview_scroll
 
 class TenantView:
     def __init__(self, parent, db_manager, role="front_desk"):
@@ -60,14 +61,7 @@ class TenantView:
         tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         cols = ("ID", "NI", "Name", "Phone", "Email", "Apt", "Rent", "Status")
-        self.tree = ttk.Treeview(tree_frame, columns=cols, show="headings", height=15)
-        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-        for c in cols:
-            self.tree.heading(c, text=c)
-            self.tree.column(c, width=100)
-        self.tree.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        self.tree = setup_treeview_scroll(tree_frame, columns=cols, height=15)
         self.refresh_list()
 
     def build_actions_tab(self):
