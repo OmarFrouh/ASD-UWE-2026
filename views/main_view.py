@@ -34,6 +34,17 @@ class MainView:
         self.notif_label.pack(side="right", padx=(0, 20))
         self.update_notification_badge()
 
+        # Sidebar
+        self.sidebar = ctk.CTkFrame(self.root, width=200, corner_radius=0)
+        self.sidebar.pack(side="left", fill="y")
+        self.sidebar.pack_propagate(False)
+        self.setup_sidebar()
+
+        # Content
+        self.content_frame = ctk.CTkFrame(self.root, corner_radius=0)
+        self.content_frame.pack(side="right", expand=True, fill="both")
+        self.show_view("dashboard")
+
     def update_notification_badge(self):
         """Updates the notification badge in the header."""
         count = self.notification_manager.get_notification_count()
@@ -41,17 +52,6 @@ class MainView:
             self.notif_label.configure(text=f"🔔 {count} Notifications")
         else:
             self.notif_label.configure(text="")
-
-        # Sidebar
-        self.sidebar = ctk.CTkFrame(root, width=200, corner_radius=0)
-        self.sidebar.pack(side="left", fill="y")
-        self.sidebar.pack_propagate(False)
-        self.setup_sidebar()
-
-        # Content
-        self.content_frame = ctk.CTkFrame(root, corner_radius=0)
-        self.content_frame.pack(side="right", expand=True, fill="both")
-        self.show_view("dashboard")
 
     def setup_sidebar(self):
         ctk.CTkLabel(self.sidebar, text="Navigation", font=("Arial", 14, "bold")).pack(pady=(20, 10))
