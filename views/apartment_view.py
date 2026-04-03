@@ -3,6 +3,7 @@
 
 import customtkinter as ctk
 from tkinter import messagebox, ttk
+from views.ui_helpers import setup_treeview_scroll
 
 class ApartmentView:
     def __init__(self, parent, property_manager):
@@ -44,15 +45,12 @@ class ApartmentView:
         ctk.CTkButton(form, text="Add Unit", command=self.submit_apartment, width=200).grid(row=3, column=0, columnspan=4, pady=12)
 
         # Table
-        list_frame = ctk.CTkFrame(frame)
+        list_frame = ctk.CTkFrame(frame, fg_color="transparent")
         list_frame.pack(fill="both", expand=True, pady=10, padx=20)
 
         cols = ("unit", "address", "city", "rooms", "rent", "sqft", "status")
-        self.tree = ttk.Treeview(list_frame, columns=cols, show="headings", height=10)
-        for c, h in zip(cols, ["Unit", "Address", "City", "Rooms", "Rent", "Sqft", "Status"]):
-            self.tree.heading(c, text=h)
-            self.tree.column(c, width=100)
-        self.tree.pack(fill="both", expand=True, padx=5, pady=5)
+        headings = ["Unit", "Address", "City", "Rooms", "Rent", "Sqft", "Status"]
+        self.tree = setup_treeview_scroll(list_frame, columns=cols, headings=headings, col_widths=[100]*7, height=10)
         self.refresh_list()
 
     def submit_apartment(self):

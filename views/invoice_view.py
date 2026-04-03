@@ -4,6 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox, ttk
 from invoice_manager import InvoiceManager
+from views.ui_helpers import setup_treeview_scroll
 
 class InvoiceView:
     def __init__(self, parent, db_manager):
@@ -42,14 +43,7 @@ class InvoiceView:
         inv_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         cols = ("ID", "Tenant", "Issued", "Due", "Amount", "Status")
-        self.inv_tree = ttk.Treeview(inv_frame, columns=cols, show="headings", height=15)
-        inv_sb = ttk.Scrollbar(inv_frame, orient="vertical", command=self.inv_tree.yview)
-        self.inv_tree.configure(yscrollcommand=inv_sb.set)
-        for c in cols:
-            self.inv_tree.heading(c, text=c)
-            self.inv_tree.column(c, width=110)
-        self.inv_tree.pack(side="left", fill="both", expand=True)
-        inv_sb.pack(side="right", fill="y")
+        self.inv_tree = setup_treeview_scroll(inv_frame, columns=cols, col_widths=[110]*6, height=15)
         ctk.CTkButton(tab_list, text="Refresh", command=self.refresh).pack(pady=5)
 
         # Overdue Tab
@@ -57,14 +51,7 @@ class InvoiceView:
         od_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         od_cols = ("ID", "Tenant", "Due Date", "Amount")
-        self.od_tree = ttk.Treeview(od_frame, columns=od_cols, show="headings", height=15)
-        od_sb = ttk.Scrollbar(od_frame, orient="vertical", command=self.od_tree.yview)
-        self.od_tree.configure(yscrollcommand=od_sb.set)
-        for c in od_cols:
-            self.od_tree.heading(c, text=c)
-            self.od_tree.column(c, width=130)
-        self.od_tree.pack(side="left", fill="both", expand=True)
-        od_sb.pack(side="right", fill="y")
+        self.od_tree = setup_treeview_scroll(od_frame, columns=od_cols, col_widths=[130]*4, height=15)
 
         self.refresh()
 

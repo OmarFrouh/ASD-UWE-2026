@@ -2,8 +2,9 @@
 # Student ID: [YOUR_ID]
 
 import customtkinter as ctk
-from tkinter import messagebox, ttk
+from tkinter import messagebox
 from maintenance_manager import MaintenanceManager
+from views.ui_helpers import setup_treeview_scroll
 
 class MaintenanceView:
     def __init__(self, parent, db_manager):
@@ -47,75 +48,87 @@ class MaintenanceView:
         self.priority_combo.grid(row=3, column=1, padx=10, pady=8)
         self.priority_combo.set("Medium")
 
-        ctk.CTkButton(form, text="Submit Ticket", command=self.submit_ticket, width=250).grid(
-            row=4, column=0, columnspan=2, pady=20)
+        btn = ctk.CTkButton(form, text="Submit Ticket", command=self.submit_ticket, width=250)
+        btn.grid(row=4, column=0, columnspan=2, pady=20)
+        
+        # UX bindings
+        def on_enter(e): self.submit_ticket()
+        for widget in [self.apt_id_entry, self.tenant_id_entry, self.desc_entry]:
+            widget.bind("<Return>", on_enter)
 
     def build_list_tab(self, tab):
-        # Treeview with vertical scrollbar
         tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
         tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         cols = ("ID", "Unit", "Tenant", "Issue", "Priority", "Status", "Reported", "Assigned To")
-        self.tree = ttk.Treeview(tree_frame, columns=cols, show="headings", height=15)
-        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-
-        for c in cols:
-            self.tree.heading(c, text=c)
-            self.tree.column(c, width=100)
-
-        self.tree.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        self.tree = setup_treeview_scroll(tree_frame, columns=cols, height=15)
 
         ctk.CTkButton(tab, text="Refresh", command=self.refresh_list).pack(pady=5)
         self.refresh_list()
 
     def build_manage_tab(self, tab):
-        # ✅ UI BUG FIX: wrap in CTkScrollableFrame so all 13 rows are reachable
-        scroll = ctk.CTkScrollableFrame(tab)
-        scroll.pack(fill="both", expand=True, padx=20, pady=10)
+        # Top section: ID
+        top_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        top_frame.pack(pady=(10, 5))
+        ctk.CTkLabel(top_frame, text="Ticket ID:", font=("Arial", 14)).pack(side="left", padx=5)
+        self.manage_id = ctk.CTkEntry(top_frame, width=150)
+        self.manage_id.pack(side="left", padx=5)
 
-        ctk.CTkLabel(scroll, text="Ticket ID:").grid(row=0, column=0, padx=10, pady=8, sticky="e")
-        self.manage_id = ctk.CTkEntry(scroll, width=200)
-        self.manage_id.grid(row=0, column=1, padx=10, pady=8)
+        # Bottom section: 3 horizontal columns side-by-side
+        cols_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        cols_frame.pack(pady=10, fill="x", padx=10)
+        cols_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
-        # Assign Staff
-        ctk.CTkLabel(scroll, text="── Assign Staff ──", font=("Arial", 13, "bold")).grid(row=1, column=0, columnspan=2, pady=(15, 5))
+        # ---- COL 1: ASSIGN ----
+        col1 = ctk.CTkFrame(cols_frame)
+        col1.grid(row=0, column=0, padx=10, pady=10, sticky="n")
+        ctk.CTkLabel(col1, text="Assign Staff", font=("Arial", 14, "bold")).pack(pady=10)
+        
+        ctk.CTkLabel(col1, text="Staff User ID:").pack()
+        self.staff_id_entry = ctk.CTkEntry(col1, width=160)
+        self.staff_id_entry.pack(pady=5)
+        
+        ctk.CTkLabel(col1, text="Scheduled Date:").pack()
+        self.sched_entry = ctk.CTkEntry(col1, width=160, placeholder_text="YYYY-MM-DD")
+        self.sched_entry.pack(pady=5)
+        
+        ctk.CTkButton(col1, text="Assign", command=self.assign, width=140).pack(pady=15)
 
-        ctk.CTkLabel(scroll, text="Staff User ID:").grid(row=2, column=0, padx=10, pady=8, sticky="e")
-        self.staff_id_entry = ctk.CTkEntry(scroll, width=200)
-        self.staff_id_entry.grid(row=2, column=1, padx=10, pady=8)
-
-        ctk.CTkLabel(scroll, text="Scheduled Date:").grid(row=3, column=0, padx=10, pady=8, sticky="e")
-        self.sched_entry = ctk.CTkEntry(scroll, width=200, placeholder_text="YYYY-MM-DD")
-        self.sched_entry.grid(row=3, column=1, padx=10, pady=8)
-
-        ctk.CTkButton(scroll, text="Assign", command=self.assign, width=200).grid(row=4, column=0, columnspan=2, pady=8)
-
-        # Update Status
-        ctk.CTkLabel(scroll, text="── Update Status ──", font=("Arial", 13, "bold")).grid(row=5, column=0, columnspan=2, pady=(15, 5))
-
-        self.status_combo = ctk.CTkComboBox(scroll, values=["Open", "Assigned", "In Progress", "Fixed", "Closed"], width=200)
-        self.status_combo.grid(row=6, column=0, columnspan=2, pady=8)
+        # ---- COL 2: STATUS ----
+        col2 = ctk.CTkFrame(cols_frame)
+        col2.grid(row=0, column=1, padx=10, pady=10, sticky="n")
+        ctk.CTkLabel(col2, text="Update Status", font=("Arial", 14, "bold")).pack(pady=10)
+        
+        self.status_combo = ctk.CTkComboBox(col2, values=["Open", "Assigned", "In Progress", "Fixed", "Closed"], width=160)
+        self.status_combo.pack(pady=10)
         self.status_combo.set("In Progress")
+        
+        ctk.CTkButton(col2, text="Update Status", command=self.update_status, width=140).pack(pady=20)
 
-        ctk.CTkButton(scroll, text="Update Status", command=self.update_status, width=200).grid(row=7, column=0, columnspan=2, pady=8)
+        # ---- COL 3: COSTS ----
+        col3 = ctk.CTkFrame(cols_frame)
+        col3.grid(row=0, column=2, padx=10, pady=10, sticky="n")
+        ctk.CTkLabel(col3, text="Log Costs", font=("Arial", 14, "bold")).pack(pady=10)
+        
+        ctk.CTkLabel(col3, text="Hours Spent:").pack()
+        self.hours_entry = ctk.CTkEntry(col3, width=160)
+        self.hours_entry.pack(pady=5)
+        
+        ctk.CTkLabel(col3, text="Cost (£):").pack()
+        self.cost_entry = ctk.CTkEntry(col3, width=160)
+        self.cost_entry.pack(pady=5)
+        
+        ctk.CTkButton(col3, text="Log Costs", command=self.log_costs, width=140).pack(pady=15)
 
-        # Log Costs
-        ctk.CTkLabel(scroll, text="── Log Costs ──", font=("Arial", 13, "bold")).grid(row=8, column=0, columnspan=2, pady=(15, 5))
-
-        ctk.CTkLabel(scroll, text="Hours Spent:").grid(row=9, column=0, padx=10, pady=8, sticky="e")
-        self.hours_entry = ctk.CTkEntry(scroll, width=200)
-        self.hours_entry.grid(row=9, column=1, padx=10, pady=8)
-
-        ctk.CTkLabel(scroll, text="Cost (£):").grid(row=10, column=0, padx=10, pady=8, sticky="e")
-        self.cost_entry = ctk.CTkEntry(scroll, width=200)
-        self.cost_entry.grid(row=10, column=1, padx=10, pady=8)
-
-        ctk.CTkButton(scroll, text="Log Costs", command=self.log_costs, width=200).grid(row=11, column=0, columnspan=2, pady=15)
-
-        self.manage_result = ctk.CTkLabel(scroll, text="", font=("Arial", 12))
-        self.manage_result.grid(row=12, column=0, columnspan=2, pady=5)
+        self.manage_result = ctk.CTkLabel(tab, text="", font=("Arial", 12))
+        self.manage_result.pack(pady=5)
+        
+        # Enter key bindings for UX
+        self.manage_id.bind("<Return>", lambda e: self.update_status())
+        self.hours_entry.bind("<Return>", lambda e: self.log_costs())
+        self.cost_entry.bind("<Return>", lambda e: self.log_costs())
+        self.staff_id_entry.bind("<Return>", lambda e: self.assign())
+        self.sched_entry.bind("<Return>", lambda e: self.assign())
 
     def submit_ticket(self):
         apt_id = self.apt_id_entry.get()
@@ -129,7 +142,6 @@ class MaintenanceView:
         try:
             self.manager.create_ticket(int(apt_id), int(tid) if tid else None, desc, priority)
             messagebox.showinfo("Success", "Ticket created!")
-            # ✅ UI BUG FIX: clear all form fields after success, not just description
             for e in [self.apt_id_entry, self.tenant_id_entry, self.desc_entry]:
                 e.delete(0, 'end')
             self.priority_combo.set("Medium")

@@ -31,6 +31,14 @@ class LoginView:
         self.status_label = ctk.CTkLabel(frame, text="", font=("Arial", 12))
         self.status_label.pack(pady=(0, 20))
 
+        # UX: Enter key triggers login from either field
+        self.username_entry.bind("<Return>", lambda e: self.handle_login())
+        self.password_entry.bind("<Return>", lambda e: self.handle_login())
+        # UX: Tab from username goes to password
+        self.username_entry.bind("<Tab>", lambda e: self.password_entry.focus_set())
+        # UX: Auto-focus username on launch
+        self.username_entry.focus_set()
+
     def handle_login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
