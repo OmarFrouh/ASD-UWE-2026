@@ -61,7 +61,7 @@ class TenantView:
         tree_frame = ctk.CTkFrame(self.tab_list, fg_color="transparent")
         tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        cols = ("ID", "NI", "Name", "Phone", "Email", "Apt", "Rent", "Status")
+        cols = ("ID", "NI", "Name", "Phone", "Email", "Occupation", "Apt", "Start Date", "End Date", "Rent", "Status")
         self.tree = setup_treeview_scroll(tree_frame, columns=cols, height=15)
         self.refresh_list()
 
@@ -193,4 +193,8 @@ class TenantView:
             self.tree.delete(item)
         for t in self.tenant_manager.get_all_tenants():
             # user_id, ni, name, phone, email, occupation, apt_id, lease_start, lease_end, rent, status, unit
-            self.tree.insert("", "end", values=(t[0], t[1], t[2], t[3], t[4], t[11] or "N/A", f"£{t[9] or 0:.2f}", t[10]))
+            self.tree.insert("", "end", values=(
+                t[0], t[1], t[2], t[3], t[4], t[5] or "N/A", 
+                t[11] or "N/A", t[7] or "N/A", t[8] or "N/A", 
+                f"£{t[9] or 0:.2f}", t[10]
+            ))
