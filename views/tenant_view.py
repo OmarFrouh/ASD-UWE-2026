@@ -34,9 +34,9 @@ class TenantView:
             self.build_assign_tab()
 
     def build_register_tab(self):
-        # Center the scrollable frame 
-        form = ctk.CTkScrollableFrame(self.tab_register, width=500)
-        form.pack(expand=True, pady=10)
+        # Use a standard frame so it auto-sizes perfectly without useless scrolling/truncation
+        form = ctk.CTkFrame(self.tab_register)
+        form.pack(pady=30)
 
         fields = [
             ("NI Number:", "ni"), ("Full Name:", "name"), ("Phone:", "phone"),
