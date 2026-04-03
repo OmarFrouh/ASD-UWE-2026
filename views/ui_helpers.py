@@ -20,13 +20,15 @@ def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, heigh
 
     # Bind mousewheel / trackpad scrolling (macOS + Windows + Linux)
     def _on_mousewheel(event):
-        if platform.system() == "Darwin":
-            tree.yview_scroll(-1 * event.delta, "units")
-        else:
-            tree.yview_scroll(-1 * (event.delta // 120), "units")
+        # Normalize delta reading. macOS gives variable small/large ints, Windows gives 120 multiples.
+        # We scroll exactly 1 unit per event trigger for smooth trackpad UX
+        if event.delta > 0:
+            tree.yview_scroll(-1, "units")
+        elif event.delta < 0:
+            tree.yview_scroll(1, "units")
 
     tree.bind("<MouseWheel>", _on_mousewheel)
-    tree.bind("<Button-4>", lambda e: tree.yview_scroll(-3, "units"))
-    tree.bind("<Button-5>", lambda e: tree.yview_scroll(3, "units"))
+    tree.bind("<Button-4>", lambda e: tree.yview_scroll(-1, "units"))
+    tree.bind("<Button-5>", lambda e: tree.yview_scroll(1, "units"))
 
     return tree
