@@ -3,6 +3,7 @@
 
 import customtkinter as ctk
 from tkinter import messagebox
+from notification_manager import NotificationManager
 
 class MainView:
     def __init__(self, root, auth_manager, property_manager, db_manager, current_user, on_logout=None):
@@ -13,7 +14,6 @@ class MainView:
         self.current_user = current_user
         self.on_logout = on_logout
 
-        from notification_manager import NotificationManager
         self.notification_manager = NotificationManager(db_manager)
 
         self.root.title("PAMS - Dashboard")
@@ -24,13 +24,15 @@ class MainView:
         header.pack(side="top", fill="x")
         ctk.CTkLabel(header, text="🏢 Paragon Apartment Management System", font=("Arial", 16, "bold")).pack(side="left", padx=20, pady=10)
 
+        # Profile is packed first to stay on the far right
+        ctk.CTkLabel(header, text=f"👤 {self.current_user[1]} ({self.current_user[3]})", font=("Arial", 12)).pack(side="right", padx=10)
+
         # ─── SPRINT 2 NOTIFICATION BADGE ───
+        # Packed second so it sits to the left of the profile
         self.notif_count = self.notification_manager.get_notification_count()
         self.notif_label = ctk.CTkLabel(header, text="", font=("Arial", 13, "bold"), text_color="red")
         self.notif_label.pack(side="right", padx=(0, 20))
         self.update_notification_badge()
-
-        ctk.CTkLabel(header, text=f"👤 {self.current_user[1]} ({self.current_user[3]})", font=("Arial", 12)).pack(side="right", padx=10)
 
     def update_notification_badge(self):
         """Updates the notification badge in the header."""
