@@ -41,16 +41,18 @@ class MainView:
         if role == "admin":
             ctk.CTkButton(self.sidebar, text="👥 Users", command=lambda: self.show_view("users"), width=180).pack(pady=4, padx=10)
 
-        ctk.CTkButton(self.sidebar, text="🏠 Apartments", command=lambda: self.show_view("apartments"), width=180).pack(pady=4, padx=10)
+        if role in ["admin"]:
+            ctk.CTkButton(self.sidebar, text="🏠 Apartments", command=lambda: self.show_view("apartments"), width=180).pack(pady=4, padx=10)
 
-        if role in ["admin", "front_desk", "manager"]:
+        if role in ["admin", "front_desk"]:
             ctk.CTkButton(self.sidebar, text="👤 Tenants", command=lambda: self.show_view("tenants"), width=180).pack(pady=4, padx=10)
 
         if role in ["admin", "finance_manager"]:
             ctk.CTkButton(self.sidebar, text="💰 Invoices", command=lambda: self.show_view("invoices"), width=180).pack(pady=4, padx=10)
             ctk.CTkButton(self.sidebar, text="💳 Payments", command=lambda: self.show_view("payments"), width=180).pack(pady=4, padx=10)
 
-        ctk.CTkButton(self.sidebar, text="🔧 Maintenance", command=lambda: self.show_view("maintenance"), width=180).pack(pady=4, padx=10)
+        if role in ["admin", "front_desk", "maintenance"]:
+            ctk.CTkButton(self.sidebar, text="🔧 Maintenance", command=lambda: self.show_view("maintenance"), width=180).pack(pady=4, padx=10)
 
         if role in ["admin", "manager"]:
             ctk.CTkButton(self.sidebar, text="📈 Reports", command=lambda: self.show_view("reports"), width=180).pack(pady=4, padx=10)
