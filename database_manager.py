@@ -8,7 +8,9 @@ class DatabaseManager:
         self.db_name = db_name
 
     def get_connection(self):
-        return sqlite3.connect(self.db_name)
+        conn = sqlite3.connect(self.db_name)
+        conn.execute("PRAGMA foreign_keys = ON")
+        return conn
 
     def execute_query(self, query, params=()):
         try:
