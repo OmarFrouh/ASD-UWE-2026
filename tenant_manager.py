@@ -80,16 +80,20 @@ class TenantManager:
             conn.close()
 
     def early_termination(self, tenant_user_id):
-        tenant = self.db_manager.fetch_one("SELECT monthly_rent, apartment_id FROM tenants WHERE user_id=?", (tenant_user_id,))
+        tenant = self.db_manager.fetch_one(
+            "SELECT monthly_rent, apartment_id, status FROM tenants WHERE user_id=?", (tenant_user_id,))
         if not tenant:
             raise Exception("Tenant not found")
+        if tenant[2] in ("Terminated", "Archived"):
+            raise Exception(f"Tenant is already {tenant[2]}")
 
         penalty = (tenant[0] or 0) * 0.05
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("UPDATE tenants SET status='Terminated', lease_end_date=? WHERE user_id=?",
-                           (datetime.now().strftime("%Y-%m-%d"), tenant_user_id))
+            cursor.execute(
+                "UPDATE tenants SET status='Terminated', lease_end_date=?, apartment_id=NULL WHERE user_id=?",
+                (datetime.now().strftime("%Y-%m-%d"), tenant_user_id))
             if tenant[1]:
                 cursor.execute("UPDATE apartments SET status='Vacant' WHERE id=?", (tenant[1],))
             conn.commit()
@@ -101,14 +105,19 @@ class TenantManager:
             conn.close()
 
     def archive_tenant(self, tenant_user_id):
-        tenant = self.db_manager.fetch_one("SELECT apartment_id FROM tenants WHERE user_id=?", (tenant_user_id,))
+        tenant = self.db_manager.fetch_one(
+            "SELECT apartment_id, status FROM tenants WHERE user_id=?", (tenant_user_id,))
         if not tenant:
             raise Exception("Tenant not found")
+        if tenant[1] == "Archived":
+            raise Exception("Tenant is already Archived")
 
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("UPDATE tenants SET status='Archived' WHERE user_id=?", (tenant_user_id,))
+            cursor.execute(
+                "UPDATE tenants SET status='Archived', apartment_id=NULL WHERE user_id=?",
+                (tenant_user_id,))
             if tenant[0]:
                 cursor.execute("UPDATE apartments SET status='Vacant' WHERE id=?", (tenant[0],))
             conn.commit()
