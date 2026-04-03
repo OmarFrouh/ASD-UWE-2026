@@ -60,13 +60,21 @@ class MainView:
 
         ctk.CTkButton(self.sidebar, text="🚪 Logout", command=self.logout, width=180, fg_color="red", hover_color="darkred").pack(side="bottom", pady=20, padx=10)
 
-    def check_permissions(self, permission):
-        role = self.current_user[3]
-        if permission == "manage_users":
-            return role == 'admin'
-        return False
+    ROLE_PERMISSIONS = {
+        "admin": ["dashboard", "users", "apartments", "tenants", "invoices", "payments", "maintenance", "reports"],
+        "front_desk": ["dashboard", "tenants", "maintenance"],
+        "finance_manager": ["dashboard", "invoices", "payments"],
+        "maintenance": ["dashboard", "maintenance"],
+        "manager": ["dashboard", "tenants", "reports"],
+    }
 
     def show_view(self, view_name):
+        role = self.current_user[3]
+        allowed = self.ROLE_PERMISSIONS.get(role, ["dashboard"])
+        if view_name not in allowed:
+            messagebox.showerror("Access Denied", f"Your role ({role}) cannot access {view_name}.")
+            return
+
         for widget in self.content_frame.winfo_children():
             widget.destroy()
 
@@ -79,29 +87,17 @@ class MainView:
             from views.apartment_view import ApartmentView
             ApartmentView(self.content_frame, self.property_manager)
         elif view_name == "tenants":
-            try:
-                from views.tenant_view import TenantView
-                TenantView(self.content_frame, self.db_manager, self.current_user[3])
-            except ImportError:
-                ctk.CTkLabel(self.content_frame, text="👤 Tenants — Coming Soon (Feras)", font=("Arial", 20)).pack(pady=50)
+            from views.tenant_view import TenantView
+            TenantView(self.content_frame, self.db_manager, self.current_user[3])
         elif view_name == "invoices":
-            try:
-                from views.invoice_view import InvoiceView
-                InvoiceView(self.content_frame, self.db_manager)
-            except ImportError:
-                ctk.CTkLabel(self.content_frame, text="💰 Invoices — Coming Soon (Ahmed)", font=("Arial", 20)).pack(pady=50)
+            from views.invoice_view import InvoiceView
+            InvoiceView(self.content_frame, self.db_manager)
         elif view_name == "payments":
-            try:
-                from views.payment_view import PaymentView
-                PaymentView(self.content_frame, self.db_manager)
-            except ImportError:
-                ctk.CTkLabel(self.content_frame, text="💳 Payments — Coming Soon (Ahmed)", font=("Arial", 20)).pack(pady=50)
+            from views.payment_view import PaymentView
+            PaymentView(self.content_frame, self.db_manager)
         elif view_name == "maintenance":
-            try:
-                from views.maintenance_view import MaintenanceView
-                MaintenanceView(self.content_frame, self.db_manager)
-            except ImportError:
-                ctk.CTkLabel(self.content_frame, text="🔧 Maintenance — Coming Soon (Numair)", font=("Arial", 20)).pack(pady=50)
+            from views.maintenance_view import MaintenanceView
+            MaintenanceView(self.content_frame, self.db_manager)
         elif view_name == "reports":
             ctk.CTkLabel(self.content_frame, text="📈 Reports — Coming Sprint 2", font=("Arial", 20)).pack(pady=50)
 

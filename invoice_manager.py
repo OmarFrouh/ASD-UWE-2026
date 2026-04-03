@@ -13,7 +13,7 @@ class InvoiceManager:
         if not tenant:
             raise Exception("Tenant not found")
         if tenant[2] in ("Terminated", "Archived"):
-            raise Exception(f"Cannot invoice an {tenant[2]} tenant")
+            raise Exception(f"Cannot invoice a {tenant[2]} tenant")
 
         if amount is None:
             amount = tenant[0]
