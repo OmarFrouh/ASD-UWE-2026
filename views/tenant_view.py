@@ -6,8 +6,9 @@ from tkinter import messagebox, ttk
 from tenant_manager import TenantManager
 
 class TenantView:
-    def __init__(self, parent, db_manager):
+    def __init__(self, parent, db_manager, role="front_desk"):
         self.db_manager = db_manager
+        self.role = role
         self.tenant_manager = TenantManager(db_manager)
 
         self.frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -71,8 +72,10 @@ class TenantView:
         ctk.CTkButton(frame, text="Early Termination (5% Penalty)", command=self.do_early_termination,
                        width=280, fg_color="orange", hover_color="darkorange").grid(row=1, column=0, columnspan=2, pady=10)
 
-        ctk.CTkButton(frame, text="Archive Tenant", command=self.do_archive,
-                       width=280, fg_color="red", hover_color="darkred").grid(row=2, column=0, columnspan=2, pady=10)
+        # Archive is a Manager/Admin-only action (Use Case Diagram: Archive Tenant → Manager)
+        if self.role in ["admin", "manager"]:
+            ctk.CTkButton(frame, text="Archive Tenant", command=self.do_archive,
+                           width=280, fg_color="red", hover_color="darkred").grid(row=2, column=0, columnspan=2, pady=10)
 
         self.action_result = ctk.CTkLabel(frame, text="", font=("Arial", 12))
         self.action_result.grid(row=3, column=0, columnspan=2, pady=10)
