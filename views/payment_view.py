@@ -2,7 +2,7 @@
 # Student ID: 24046227
 
 import customtkinter as ctk
-from tkinter import messagebox, ttk
+from tkinter import messagebox
 from payment_manager import PaymentManager
 from views.ui_helpers import setup_treeview_scroll
 

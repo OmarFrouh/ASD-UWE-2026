@@ -19,6 +19,14 @@ class PaymentManager:
         if amount <= 0:
             raise Exception("Amount must be positive")
 
+        # Reject overpayment: check remaining balance
+        existing = self.db_manager.fetch_one(
+            "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE invoice_id=?", (invoice_id,))
+        already_paid = existing[0] if existing else 0
+        remaining = invoice[0] - already_paid
+        if amount > remaining:
+            raise Exception(f"Amount exceeds remaining balance of {remaining:.2f}")
+
         today = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         conn = self.db_manager.get_connection()
