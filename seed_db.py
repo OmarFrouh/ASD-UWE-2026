@@ -49,6 +49,40 @@ def seed():
     for t in ts:
         cursor.execute("INSERT OR IGNORE INTO tenants (user_id, ni_number, full_name, phone_number, email, occupation, references_info, emergency_contact, apartment_requirements, apartment_id, lease_start_date, lease_end_date, deposit_amount, monthly_rent, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", t)
 
+    # 5. Invoices (for Sprint 2 reporting & overdue testing)
+    from datetime import datetime, timedelta
+    today = datetime.now().strftime("%Y-%m-%d")
+    thirty_ago = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
+    due_past = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d")
+    due_future = (datetime.now() + timedelta(days=25)).strftime("%Y-%m-%d")
+
+    invoices = [
+        (6, thirty_ago, due_past, 850.00, "Pending"),    # John — OVERDUE
+        (6, today, due_future, 850.00, "Pending"),        # John — upcoming
+        (7, thirty_ago, due_past, 1100.00, "Paid"),       # Sarah — paid on time
+        (7, today, due_future, 1100.00, "Pending"),       # Sarah — upcoming
+    ]
+    for inv in invoices:
+        cursor.execute("INSERT OR IGNORE INTO invoices (tenant_id, issue_date, due_date, total_amount, status) VALUES (?,?,?,?,?)", inv)
+
+    # 6. Payments (partial data for financial summary)
+    payments = [
+        (3, 1100.00, thirty_ago, "Bank Transfer", "TXN-001"),  # Sarah's paid invoice
+    ]
+    for pay in payments:
+        cursor.execute("INSERT OR IGNORE INTO payments (invoice_id, amount, payment_date, method, transaction_ref) VALUES (?,?,?,?,?)", pay)
+
+    # 7. Maintenance requests (for cost reporting)
+    maint_requests = [
+        (1, 6, 4, "Leaking kitchen tap", "High", "Fixed", thirty_ago, 2.5, 150.00),
+        (3, 7, 4, "Broken window latch", "Medium", "Fixed", thirty_ago, 1.0, 75.00),
+        (1, 6, None, "Flickering hallway light", "Low", "Open", today, None, None),
+    ]
+    for mr in maint_requests:
+        cursor.execute("""INSERT OR IGNORE INTO maintenance_requests
+            (apartment_id, tenant_id, staff_id, description, priority, status, date_reported, time_spent, cost)
+            VALUES (?,?,?,?,?,?,?,?,?)""", mr)
+
     conn.commit()
     conn.close()
     print("✅ Database seeded with mock data!")
