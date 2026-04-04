@@ -131,3 +131,47 @@ class TenantManager:
             raise e
         finally:
             conn.close()
+
+    def search_tenants(self, query):
+        """Search tenants by name, NI number, email, or phone.
+        Returns: list matching the same format as get_all_tenants()"""
+        search = f"%{query}%"
+        return self.db_manager.fetch_all("""
+            SELECT t.user_id, t.ni_number, t.full_name, t.phone_number, t.email,
+                   t.occupation, t.apartment_id, t.lease_start_date, t.lease_end_date,
+                   t.monthly_rent, t.status, a.unit_number
+            FROM tenants t
+            LEFT JOIN apartments a ON t.apartment_id = a.id
+            WHERE t.status = 'Active'
+              AND (t.full_name LIKE ? OR t.ni_number LIKE ? OR t.email LIKE ? OR t.phone_number LIKE ?)
+            ORDER BY t.full_name
+        """, (search, search, search, search))
+
+    def filter_tenants_by_status(self, status):
+        """Filter tenants by status (Active, Archived, Terminated, All).
+        Returns: list matching the same format as get_all_tenants()"""
+        if status == "All":
+            return self.db_manager.fetch_all("""
+                SELECT t.user_id, t.ni_number, t.full_name, t.phone_number, t.email,
+                       t.occupation, t.apartment_id, t.lease_start_date, t.lease_end_date,
+                       t.monthly_rent, t.status, a.unit_number
+                FROM tenants t
+                LEFT JOIN apartments a ON t.apartment_id = a.id
+                ORDER BY t.full_name
+            """)
+        return self.db_manager.fetch_all("""
+            SELECT t.user_id, t.ni_number, t.full_name, t.phone_number, t.email,
+                   t.occupation, t.apartment_id, t.lease_start_date, t.lease_end_date,
+                   t.monthly_rent, t.status, a.unit_number
+            FROM tenants t
+            LEFT JOIN apartments a ON t.apartment_id = a.id
+            WHERE t.status = ?
+            ORDER BY t.full_name
+        """, (status,))
+
+    def get_tenant_count_by_status(self):
+        """Returns dict with counts per status for dashboard display."""
+        rows = self.db_manager.fetch_all("""
+            SELECT status, COUNT(*) FROM tenants GROUP BY status
+        """)
+        return {row[0]: row[1] for row in rows}
