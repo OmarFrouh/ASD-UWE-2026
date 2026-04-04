@@ -60,6 +60,33 @@ class TenantView:
             row=len(fields), column=0, columnspan=2, pady=20)
 
     def build_list_tab(self):
+        # ─── Search & Filter Bar ───
+        filter_frame = ctk.CTkFrame(self.tab_list)
+        filter_frame.pack(fill="x", padx=10, pady=(10, 5))
+
+        ctk.CTkLabel(filter_frame, text="🔍 Search:", font=("Arial", 13)).pack(side="left", padx=(10, 5))
+        self.search_entry = ctk.CTkEntry(filter_frame, width=200, placeholder_text="Name, NI, email, phone...")
+        self.search_entry.pack(side="left", padx=5)
+        self.search_entry.bind("<KeyRelease>", lambda e: self.refresh_list())
+
+        ctk.CTkLabel(filter_frame, text="Status:", font=("Arial", 13)).pack(side="left", padx=(20, 5))
+        self.status_filter = ctk.CTkComboBox(
+            filter_frame,
+            values=["Active", "Archived", "Terminated", "All"],
+            width=150,
+            command=lambda _: self.refresh_list()
+        )
+        self.status_filter.pack(side="left", padx=5)
+        self.status_filter.set("Active")
+
+        ctk.CTkButton(filter_frame, text="🔄 Reset", width=80,
+                       command=self.reset_filters).pack(side="left", padx=10)
+
+        # ─── Summary bar ───
+        self.summary_frame = ctk.CTkFrame(self.tab_list)
+        self.summary_frame.pack(fill="x", padx=10, pady=5)
+
+        # ─── Data table ───
         tree_frame = ctk.CTkFrame(self.tab_list, fg_color="transparent")
         tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -82,6 +109,11 @@ class TenantView:
             self.archived_tree.delete(item)
         for t in self.tenant_manager.get_archived_tenants():
             self.archived_tree.insert("", "end", values=(t[0], t[1], t[2], t[3]))
+
+    def reset_filters(self):
+        self.search_entry.delete(0, "end")
+        self.status_filter.set("Active")
+        self.refresh_list()
 
     def build_actions_tab(self):
         frame = ctk.CTkFrame(self.tab_actions)
@@ -211,9 +243,36 @@ class TenantView:
             messagebox.showerror("Error", str(e))
 
     def refresh_list(self):
+        # Determine data source based on search/filter
+        search_query = ""
+        if hasattr(self, "search_entry"):
+            search_query = self.search_entry.get().strip()
+
+        status = "Active"
+        if hasattr(self, "status_filter"):
+            status = self.status_filter.get()
+
+        if search_query:
+            tenants = self.tenant_manager.search_tenants(search_query)
+        else:
+            tenants = self.tenant_manager.filter_tenants_by_status(status)
+
+        # Update summary bar
+        if hasattr(self, "summary_frame"):
+            for w in self.summary_frame.winfo_children():
+                w.destroy()
+            counts = self.tenant_manager.get_tenant_count_by_status()
+            for i, (st, count) in enumerate(counts.items()):
+                lbl = ctk.CTkLabel(self.summary_frame,
+                    text=f"{st}: {count}",
+                    font=("Arial", 12, "bold"),
+                    text_color="green" if st == "Active" else "gray")
+                lbl.pack(side="left", padx=15, pady=5)
+
+        # Update tree
         for item in self.tree.get_children():
             self.tree.delete(item)
-        for t in self.tenant_manager.get_all_tenants():
+        for t in tenants:
             # user_id, ni, name, phone, email, occupation, apt_id, lease_start, lease_end, rent, status, unit
             self.tree.insert("", "end", values=(
                 t[0], t[1], t[2], t[3], t[4], t[5] or "N/A",
