@@ -1,5 +1,5 @@
 # Student Name: Feras Bader
-# Student ID: [YOUR_ID]
+# Student ID: 24033513
 
 import customtkinter as ctk
 from tkinter import messagebox, ttk
@@ -23,12 +23,14 @@ class TenantView:
 
         self.tab_register = self.tabview.add("Register")
         self.tab_list = self.tabview.add("Active Tenants")
+        self.tab_archived = self.tabview.add("Archived / Terminated")
         self.tab_actions = self.tabview.add("Actions")
         if self.role == "admin":
             self.tab_assign = self.tabview.add("Assign Apartment")
 
         self.build_register_tab()
         self.build_list_tab()
+        self.build_archived_tab()
         self.build_actions_tab()
         if self.role == "admin":
             self.build_assign_tab()
@@ -64,6 +66,22 @@ class TenantView:
         cols = ("ID", "NI", "Name", "Phone", "Email", "Occupation", "Apt", "Start Date", "End Date", "Rent", "Status")
         self.tree = setup_treeview_scroll(tree_frame, columns=cols, height=15)
         self.refresh_list()
+
+    def build_archived_tab(self):
+        tree_frame = ctk.CTkFrame(self.tab_archived, fg_color="transparent")
+        tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        cols = ("ID", "NI", "Name", "Status")
+        self.archived_tree = setup_treeview_scroll(tree_frame, columns=cols, height=15)
+
+        ctk.CTkButton(self.tab_archived, text="Refresh", command=self.refresh_archived).pack(pady=(5, 10))
+        self.refresh_archived()
+
+    def refresh_archived(self):
+        for item in self.archived_tree.get_children():
+            self.archived_tree.delete(item)
+        for t in self.tenant_manager.get_archived_tenants():
+            self.archived_tree.insert("", "end", values=(t[0], t[1], t[2], t[3]))
 
     def build_actions_tab(self):
         frame = ctk.CTkFrame(self.tab_actions)
@@ -113,21 +131,25 @@ class TenantView:
         try:
             t_id = self.assign_entries["t_id"].get()
             apt_id = self.assign_entries["apt_id"].get()
+            start = self.assign_entries["start"].get()
+            end = self.assign_entries["end"].get()
             rent = self.assign_entries["rent"].get()
             dep = self.assign_entries["deposit"].get()
 
-            if not all([t_id, apt_id, rent, dep]):
-                raise Exception("All numeric fields are required")
+            if not all([t_id, apt_id, start, end, rent, dep]):
+                raise Exception("All fields are required")
 
             self.tenant_manager.assign_apartment(
                 int(t_id),
                 int(apt_id),
-                self.assign_entries["start"].get(),
-                self.assign_entries["end"].get(),
+                start,
+                end,
                 float(rent),
                 float(dep)
             )
             self.assign_result.configure(text="Apartment Assigned!", text_color="green")
+            for e in self.assign_entries.values():
+                e.delete(0, 'end')
             self.refresh_list()
         except ValueError:
             messagebox.showerror("Error", "Please enter valid numbers for IDs, rent, and deposit.")
@@ -194,7 +216,8 @@ class TenantView:
         for t in self.tenant_manager.get_all_tenants():
             # user_id, ni, name, phone, email, occupation, apt_id, lease_start, lease_end, rent, status, unit
             self.tree.insert("", "end", values=(
-                t[0], t[1], t[2], t[3], t[4], t[5] or "N/A", 
-                t[11] or "N/A", t[7] or "N/A", t[8] or "N/A", 
+                t[0], t[1], t[2], t[3], t[4], t[5] or "N/A",
+                t[11] or "N/A", t[7] or "N/A", t[8] or "N/A",
                 f"£{t[9] or 0:.2f}", t[10]
             ))
+        self.refresh_archived()

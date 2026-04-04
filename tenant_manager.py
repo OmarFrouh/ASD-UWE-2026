@@ -1,5 +1,5 @@
 # Student Name: Feras Bader
-# Student ID: [YOUR_ID]
+# Student ID: 24033513
 
 import bcrypt
 from datetime import datetime
@@ -55,10 +55,12 @@ class TenantManager:
         """)
 
     def assign_apartment(self, tenant_user_id, apartment_id, lease_start, lease_end, monthly_rent, deposit):
-        # Validate tenant exists
-        tenant = self.db_manager.fetch_one("SELECT user_id FROM tenants WHERE user_id=?", (tenant_user_id,))
+        # Validate tenant exists and is active
+        tenant = self.db_manager.fetch_one("SELECT user_id, status FROM tenants WHERE user_id=?", (tenant_user_id,))
         if not tenant:
             raise Exception("Tenant not found")
+        if tenant[1] in ("Terminated", "Archived"):
+            raise Exception(f"Cannot assign apartment to a {tenant[1]} tenant")
 
         # Validate apartment exists and is vacant
         apt = self.db_manager.fetch_one("SELECT id, status FROM apartments WHERE id=?", (apartment_id,))
