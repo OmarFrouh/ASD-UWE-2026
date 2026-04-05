@@ -135,3 +135,78 @@ class MaintenanceManager:
             JOIN apartments a ON m.apartment_id = a.id
             GROUP BY a.unit_number
         """)
+
+    def get_cost_report_by_apartment(self):
+        """Returns maintenance cost breakdown per apartment unit.
+        Used in the Reports module for budget management.
+        Returns: list of (unit_number, city, total_tickets, open_tickets, resolved_tickets, total_cost, total_hours, avg_cost_per_ticket)"""
+        return self.db_manager.fetch_all("""
+            SELECT a.unit_number, a.city,
+                   COUNT(m.id) AS total_tickets,
+                   SUM(CASE WHEN m.status IN ('Open', 'Assigned', 'In Progress') THEN 1 ELSE 0 END) AS open_tickets,
+                   SUM(CASE WHEN m.status IN ('Fixed', 'Closed') THEN 1 ELSE 0 END) AS resolved_tickets,
+                   COALESCE(SUM(m.cost), 0) AS total_cost,
+                   COALESCE(SUM(m.time_spent), 0) AS total_hours,
+                   ROUND(COALESCE(AVG(m.cost), 0), 2) AS avg_cost
+            FROM maintenance_requests m
+            JOIN apartments a ON m.apartment_id = a.id
+            GROUP BY a.id
+            ORDER BY total_cost DESC
+        """)
+
+    def get_cost_report_by_city(self):
+        """Returns maintenance cost breakdown per city.
+        Returns: list of (city, total_tickets, total_cost, total_hours, avg_cost_per_ticket)"""
+        return self.db_manager.fetch_all("""
+            SELECT a.city,
+                   COUNT(m.id) AS total_tickets,
+                   COALESCE(SUM(m.cost), 0) AS total_cost,
+                   COALESCE(SUM(m.time_spent), 0) AS total_hours,
+                   ROUND(COALESCE(AVG(m.cost), 0), 2) AS avg_cost
+            FROM maintenance_requests m
+            JOIN apartments a ON m.apartment_id = a.id
+            GROUP BY a.city
+            ORDER BY total_cost DESC
+        """)
+
+    def get_tickets_by_status_count(self):
+        """Returns count of tickets grouped by status.
+        Returns: dict of status -> count"""
+        rows = self.db_manager.fetch_all("""
+            SELECT status, COUNT(*) FROM maintenance_requests GROUP BY status
+        """)
+        return {row[0]: row[1] for row in rows}
+
+    def notify_tenant_scheduled_date(self, ticket_id, scheduled_date):
+        """Sets the scheduled maintenance date on a ticket.
+        This is the 'communicate dates' requirement from the brief.
+        Returns: dict with tenant name and scheduled date for confirmation."""
+        # Validate ticket exists
+        ticket = self.db_manager.fetch_one(
+            "SELECT id, tenant_id FROM maintenance_requests WHERE id=?", (ticket_id,))
+        if not ticket:
+            raise Exception("Ticket not found")
+
+        # Update the scheduled date
+        self.db_manager.execute_query(
+            "UPDATE maintenance_requests SET scheduled_date=? WHERE id=?",
+            (scheduled_date, ticket_id))
+
+        # Get tenant info for confirmation
+        if ticket[1]:
+            tenant = self.db_manager.fetch_one(
+                "SELECT full_name, phone_number, email FROM tenants WHERE user_id=?",
+                (ticket[1],))
+            if tenant:
+                return {
+                    "tenant_name": tenant[0],
+                    "phone": tenant[1] or "N/A",
+                    "email": tenant[2] or "N/A",
+                    "scheduled_date": scheduled_date,
+                    "ticket_id": ticket_id
+                }
+        return {
+            "tenant_name": "No tenant linked",
+            "scheduled_date": scheduled_date,
+            "ticket_id": ticket_id
+        }
