@@ -22,6 +22,7 @@ class InvoiceView:
         tab_gen = self.tabview.add("Generate Invoice")
         tab_list = self.tabview.add("All Invoices")
         tab_overdue = self.tabview.add("Overdue")
+        tab_notif = self.tabview.add("Late Notifications")
 
         # Generate Tab
         gen_frame = ctk.CTkFrame(tab_gen)
@@ -53,7 +54,21 @@ class InvoiceView:
         od_cols = ("ID", "Tenant", "Due Date", "Amount")
         self.od_tree = setup_treeview_scroll(od_frame, columns=od_cols, col_widths=[130]*4, height=15)
 
+        self.build_notification_tab(tab_notif)
         self.refresh()
+
+    def build_notification_tab(self, tab):
+        """Builds the Late Payment Notification tab with tenant contact info."""
+        ctk.CTkLabel(tab, text="⚠️ Late Payment Notifications",
+                     font=("Arial", 16, "bold"), text_color="orange").pack(pady=(10, 5))
+        ctk.CTkLabel(tab, text="These tenants have overdue invoices. Contact them for payment.",
+                     font=("Arial", 12), text_color="gray").pack(pady=(0, 10))
+
+        tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        cols = ("Invoice", "Tenant", "Email", "Phone", "Due Date", "Amount", "Days Overdue")
+        self.notif_tree = setup_treeview_scroll(tree_frame, columns=cols, height=12)
 
     def generate(self):
         tid = self.tenant_id_entry.get()
@@ -75,12 +90,36 @@ class InvoiceView:
             messagebox.showerror("Error", str(e))
 
     def refresh(self):
+        # ─── All Invoices Tab ───
         for item in self.inv_tree.get_children():
             self.inv_tree.delete(item)
         for inv in self.invoice_manager.get_all_invoices():
-            self.inv_tree.insert("", "end", values=(inv[0], inv[1], inv[2], inv[3], f"£{inv[4]:.2f}", inv[5]))
+            # Add visual overdue tag
+            status_display = inv[5]
+            if inv[5] == "Pending":
+                from datetime import datetime
+                try:
+                    due = datetime.strptime(inv[3], "%Y-%m-%d")
+                    if due < datetime.now():
+                        status_display = "⚠️ OVERDUE"
+                except (ValueError, TypeError):
+                    pass
+            self.inv_tree.insert("", "end", values=(
+                inv[0], inv[1], inv[2], inv[3], f"£{inv[4]:.2f}", status_display))
 
+        # ─── Overdue Tab ───
         for item in self.od_tree.get_children():
             self.od_tree.delete(item)
         for od in self.invoice_manager.get_overdue_invoices():
-            self.od_tree.insert("", "end", values=(od[0], od[1], od[2], f"£{od[3]:.2f}"))
+            self.od_tree.insert("", "end", values=(
+                od[0], od[1], od[2], f"£{od[3]:.2f}"))
+
+        # ─── Late Payment Notification Tab ───
+        if hasattr(self, 'notif_tree'):
+            for item in self.notif_tree.get_children():
+                self.notif_tree.delete(item)
+            for row in self.invoice_manager.get_overdue_with_details():
+                # invoice_id, name, email, phone, due_date, amount, days_overdue
+                self.notif_tree.insert("", "end", values=(
+                    row[0], row[1], row[2] or "N/A", row[3] or "N/A",
+                    row[4], f"£{row[5]:.2f}", f"{row[6]} days"))
