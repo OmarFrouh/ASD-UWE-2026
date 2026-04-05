@@ -21,6 +21,7 @@ class PaymentView:
 
         tab_record = self.tabview.add("Record Payment")
         tab_history = self.tabview.add("Payment History")
+        tab_summary = self.tabview.add("Financial Summary")
 
         # Record Tab
         rec_frame = ctk.CTkFrame(tab_record)
@@ -53,7 +54,51 @@ class PaymentView:
         cols = ("ID", "Tenant", "Amount", "Date", "Method", "Ref", "Invoice")
         self.pay_tree = setup_treeview_scroll(pay_frame, columns=cols, col_widths=[100]*7, height=15)
         ctk.CTkButton(tab_history, text="Refresh", command=self.refresh).pack(pady=5)
+
+        self.build_summary_tab(tab_summary)
         self.refresh()
+
+    def build_summary_tab(self, tab):
+        """Builds the Financial Summary tab showing collected vs pending."""
+        # Summary cards
+        self.sum_card_frame = ctk.CTkFrame(tab)
+        self.sum_card_frame.pack(fill="x", padx=10, pady=10)
+
+        # Payment method breakdown
+        tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        cols = ("Payment Method", "Total Amount", "Transaction Count")
+        self.sum_tree = setup_treeview_scroll(tree_frame, columns=cols, height=8)
+        for c in cols:
+            self.sum_tree.column(c, width=150)
+
+    def refresh_summary(self):
+        """Refreshes the Financial Summary tab data."""
+        if not hasattr(self, 'sum_card_frame'):
+            return
+
+        # Summary cards
+        for w in self.sum_card_frame.winfo_children():
+            w.destroy()
+        summary = self.payment_manager.get_collected_vs_pending()
+        cards = [
+            ("Collected", f"£{summary['collected']:.2f}"),
+            ("Pending", f"£{summary['pending']:.2f}"),
+            ("Total Invoiced", f"£{summary['total']:.2f}"),
+        ]
+        for i, (label, val) in enumerate(cards):
+            card = ctk.CTkFrame(self.sum_card_frame, corner_radius=10)
+            card.grid(row=0, column=i, padx=15, pady=10, sticky="nsew")
+            self.sum_card_frame.grid_columnconfigure(i, weight=1)
+            ctk.CTkLabel(card, text=val, font=("Arial", 28, "bold")).pack(pady=(15, 3))
+            ctk.CTkLabel(card, text=label, font=("Arial", 12), text_color="gray").pack(pady=(0, 15))
+
+        # Payment method breakdown
+        for item in self.sum_tree.get_children():
+            self.sum_tree.delete(item)
+        for row in self.payment_manager.get_payment_history_by_method():
+            self.sum_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}", row[2]))
 
     def record(self):
         iid = self.inv_id_entry.get()
@@ -80,4 +125,6 @@ class PaymentView:
         for item in self.pay_tree.get_children():
             self.pay_tree.delete(item)
         for p in self.payment_manager.get_all_payments():
-            self.pay_tree.insert("", "end", values=(p[0], p[1], f"£{p[2]:.2f}", p[3], p[4], p[5], p[6]))
+            self.pay_tree.insert("", "end", values=(
+                p[0], p[1], f"£{p[2]:.2f}", p[3], p[4], p[5], p[6]))
+        self.refresh_summary()
