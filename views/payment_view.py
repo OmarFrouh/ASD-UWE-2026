@@ -71,6 +71,7 @@ class PaymentView:
         cols = ("Payment Method", "Total Amount", "Transaction Count")
         self.sum_tree = setup_treeview_scroll(tree_frame, columns=cols, height=8)
         for c in cols:
+            self.sum_tree.heading(c, text=c)
             self.sum_tree.column(c, width=150)
 
     def refresh_summary(self):
