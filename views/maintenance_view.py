@@ -22,10 +22,12 @@ class MaintenanceView:
         tab_new = self.tabview.add("New Ticket")
         tab_list = self.tabview.add("All Tickets")
         tab_manage = self.tabview.add("Manage")
+        tab_costs = self.tabview.add("Cost Report")
 
         self.build_new_tab(tab_new)
         self.build_list_tab(tab_list)
         self.build_manage_tab(tab_manage)
+        self.build_cost_tab(tab_costs)
 
     def build_new_tab(self, tab):
         form = ctk.CTkFrame(tab)
@@ -121,6 +123,21 @@ class MaintenanceView:
         
         ctk.CTkButton(col3, text="Log Costs", command=self.log_costs, width=200).pack()
 
+        # ─── Communicate Date to Tenant ───
+        notify_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        notify_frame.pack(pady=(10, 5))
+
+        ctk.CTkLabel(notify_frame, text="── Notify Tenant ──", font=("Arial", 13, "bold")).grid(
+            row=0, column=0, columnspan=2, pady=(5, 10))
+
+        ctk.CTkLabel(notify_frame, text="Maintenance Date:").grid(row=1, column=0, padx=10, pady=8, sticky="e")
+        self.notify_date_entry = ctk.CTkEntry(notify_frame, width=200, placeholder_text="YYYY-MM-DD")
+        self.notify_date_entry.grid(row=1, column=1, padx=10, pady=8)
+
+        ctk.CTkButton(notify_frame, text="📧 Set Date & Notify Tenant",
+                       command=self.notify_tenant, width=220).grid(
+            row=2, column=0, columnspan=2, pady=8)
+
         self.manage_result = ctk.CTkLabel(tab, text="", font=("Arial", 12))
         self.manage_result.pack(pady=20)
 
@@ -205,3 +222,88 @@ class MaintenanceView:
             self.tree.insert("", "end", values=(t[0], t[1] or "N/A", t[2] or "N/A",
                 (t[3] or "")[:30], t[4], t[5], t[6], t[8] or "Unassigned", 
                 f"{t[9] or 0.0:.1f}", f"£{(t[10] or 0.0):.2f}"))
+
+    def build_cost_tab(self, tab):
+        """Builds the maintenance cost report tab with per-apartment and per-city breakdown."""
+        # ─── Summary Cards ───
+        self.cost_summary_frame = ctk.CTkFrame(tab)
+        self.cost_summary_frame.pack(fill="x", padx=10, pady=10)
+
+        # ─── Per-Apartment Breakdown ───
+        ctk.CTkLabel(tab, text="Cost by Apartment", font=("Arial", 14, "bold")).pack(pady=(10, 5))
+
+        apt_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        apt_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        cols = ("Unit", "City", "Total Tickets", "Open", "Resolved", "Total Cost", "Total Hours", "Avg Cost")
+        self.cost_apt_tree = setup_treeview_scroll(apt_frame, columns=cols, height=6)
+        for c in cols:
+            self.cost_apt_tree.column(c, width=90)
+
+        # ─── Per-City Breakdown ───
+        ctk.CTkLabel(tab, text="Cost by City", font=("Arial", 14, "bold")).pack(pady=(10, 5))
+
+        city_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        city_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        city_cols = ("City", "Total Tickets", "Total Cost", "Total Hours", "Avg Cost")
+        self.cost_city_tree = setup_treeview_scroll(city_frame, columns=city_cols, height=5)
+        for c in city_cols:
+            self.cost_city_tree.column(c, width=120)
+
+        ctk.CTkButton(tab, text="🔄 Refresh Report", command=self.refresh_cost_report).pack(pady=8)
+        self.refresh_cost_report()
+
+    def refresh_cost_report(self):
+        """Refreshes the cost report data in both tables and summary cards."""
+        # ─── Summary Cards ───
+        for w in self.cost_summary_frame.winfo_children():
+            w.destroy()
+        status_counts = self.manager.get_tickets_by_status_count()
+        total = sum(status_counts.values())
+        cards = [("Total Tickets", str(total))]
+        for status, count in status_counts.items():
+            cards.append((status, str(count)))
+        for i, (label, val) in enumerate(cards):
+            card = ctk.CTkFrame(self.cost_summary_frame, corner_radius=10)
+            card.grid(row=0, column=i, padx=8, pady=8, sticky="nsew")
+            self.cost_summary_frame.grid_columnconfigure(i, weight=1)
+            ctk.CTkLabel(card, text=val, font=("Arial", 22, "bold")).pack(pady=(10, 2))
+            ctk.CTkLabel(card, text=label, font=("Arial", 11), text_color="gray").pack(pady=(0, 10))
+
+        # ─── Per-Apartment Table ───
+        for item in self.cost_apt_tree.get_children():
+            self.cost_apt_tree.delete(item)
+        for row in self.manager.get_cost_report_by_apartment():
+            # unit, city, total, open, resolved, cost, hours, avg
+            self.cost_apt_tree.insert("", "end", values=(
+                row[0], row[1], row[2], row[3], row[4],
+                f"£{row[5]:.2f}", f"{row[6]:.1f}h", f"£{row[7]:.2f}"))
+
+        # ─── Per-City Table ───
+        for item in self.cost_city_tree.get_children():
+            self.cost_city_tree.delete(item)
+        for row in self.manager.get_cost_report_by_city():
+            # city, total, cost, hours, avg
+            self.cost_city_tree.insert("", "end", values=(
+                row[0], row[1], f"£{row[2]:.2f}", f"{row[3]:.1f}h", f"£{row[4]:.2f}"))
+
+    def notify_tenant(self):
+        """Handles the 'Communicate Dates' requirement from the brief."""
+        tid = self.manage_id.get()
+        date = self.notify_date_entry.get()
+        if not tid or not date:
+            messagebox.showwarning("Error", "Ticket ID and date required.")
+            return
+        try:
+            result = self.manager.notify_tenant_scheduled_date(int(tid), date)
+            msg = (f"✅ Maintenance scheduled for {result['scheduled_date']}!\n\n"
+                   f"Tenant: {result['tenant_name']}\n"
+                   f"Phone: {result.get('phone', 'N/A')}\n"
+                   f"Email: {result.get('email', 'N/A')}\n\n"
+                   f"Please contact the tenant to confirm.")
+            messagebox.showinfo("Tenant Notified", msg)
+            self.manage_result.configure(text="Date set & tenant notified!", text_color="green")
+            self.refresh_list()
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
