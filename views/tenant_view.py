@@ -279,4 +279,5 @@ class TenantView:
                 t[11] or "N/A", t[7] or "N/A", t[8] or "N/A",
                 f"£{t[9] or 0:.2f}", t[10]
             ))
-        self.refresh_archived()
+        if hasattr(self, 'archived_tree'):
+            self.refresh_archived()
