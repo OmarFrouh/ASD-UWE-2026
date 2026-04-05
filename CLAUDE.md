@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working in this repository.
+This file provides project guidelines and context for all developers working in this repository.
 
 ---
 
