@@ -69,6 +69,9 @@ class InvoiceView:
 
         cols = ("Invoice", "Tenant", "Email", "Phone", "Due Date", "Amount", "Days Overdue")
         self.notif_tree = setup_treeview_scroll(tree_frame, columns=cols, height=12)
+        for c in cols:
+            self.notif_tree.heading(c, text=c)
+            self.notif_tree.column(c, width=100)
 
     def generate(self):
         tid = self.tenant_id_entry.get()
