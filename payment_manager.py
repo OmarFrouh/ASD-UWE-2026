@@ -70,3 +70,36 @@ class PaymentManager:
             "Collected": collected[0] if collected else 0,
             "Pending": pending[0] if pending else 0,
         }
+
+    def get_collected_vs_pending(self):
+        """Returns collected vs pending rent totals for financial summary.
+        Returns: dict with collected, pending, total keys"""
+        collected = self.db_manager.fetch_one(
+            "SELECT COALESCE(SUM(amount), 0) FROM payments")[0]
+        pending = self.db_manager.fetch_one(
+            "SELECT COALESCE(SUM(total_amount), 0) FROM invoices WHERE status = 'Pending'")[0]
+        total = self.db_manager.fetch_one(
+            "SELECT COALESCE(SUM(total_amount), 0) FROM invoices")[0]
+        return {"collected": collected, "pending": pending, "total": total}
+
+    def get_payment_history_by_method(self):
+        """Returns payment totals grouped by payment method.
+        Returns: list of (method, total_amount, count)"""
+        return self.db_manager.fetch_all("""
+            SELECT method, COALESCE(SUM(amount), 0) AS total, COUNT(*) AS cnt
+            FROM payments
+            GROUP BY method
+            ORDER BY total DESC
+        """)
+
+    def get_monthly_revenue(self):
+        """Returns monthly revenue for the last 6 months.
+        Returns: list of (month_label, total_collected)"""
+        return self.db_manager.fetch_all("""
+            SELECT strftime('%Y-%m', payment_date) AS month,
+                   COALESCE(SUM(amount), 0) AS total
+            FROM payments
+            GROUP BY month
+            ORDER BY month DESC
+            LIMIT 6
+        """)
