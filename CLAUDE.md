@@ -25,13 +25,14 @@ Every `.py` file must have the correct student name and ID at the top — this i
 | Omar Al Frouh (Lead) | 24020879 | `main.py`, `database_manager.py`, `auth_manager.py`, `property_manager.py`, `seed_db.py`, `report_manager.py`, `notification_manager.py`, `views/login_view.py`, `views/main_view.py`, `views/user_view.py`, `views/apartment_view.py`, `views/ui_helpers.py`, `tests/*` |
 | Feras Bader | 24033513 | `tenant_manager.py`, `views/tenant_view.py` |
 | Ahmed Deraz | 24046227 | `invoice_manager.py`, `payment_manager.py`, `views/invoice_view.py`, `views/payment_view.py` |
-| Numair (ID TBC) | TBC | `maintenance_manager.py`, `views/maintenance_view.py` |
+| Numair | 24026758 | `maintenance_manager.py`, `views/maintenance_view.py` |
 
 **Do not modify files you don't own** unless it is a cross-cutting fix authorized by Omar (the lead).
 
 Files currently missing their student ID header (needs fixing before submission):
-- All Omar-owned files still showing `[YOUR_ID]` must be updated to `24020879`
-- Numair's files once his ID is confirmed
+- All Omar-owned files still showing `[YOUR_ID]` must be updated to `24020879`:
+  `main.py`, `database_manager.py`, `auth_manager.py`, `property_manager.py`, `seed_db.py`,
+  `views/login_view.py`, `views/main_view.py`, `views/user_view.py`, `views/apartment_view.py`, `views/ui_helpers.py`
 
 ---
 
@@ -65,7 +66,7 @@ pip install -r requirements.txt
 
 ## Sprint Status
 
-### Sprint 1 — COMPLETE (merged to dev)
+### Sprint 1 — COMPLETE ✅ (merged to dev)
 - Role-based access control (5 roles: admin, front_desk, finance_manager, maintenance, manager)
 - Tenant: registration, apartment assignment, early termination (5% penalty), archival
 - Finance: invoice generation, payment recording, overdue tracking
@@ -73,34 +74,48 @@ pip install -r requirements.txt
 - Security: bcrypt hashing, parameterized SQL, input validation
 - 54 automated unit tests, all passing
 
-### Sprint 2 — IN PROGRESS
-**Omar (done, merged to dev):**
+### Sprint 2 — IN PROGRESS 🔄
+**Omar — DONE ✅ (merged to dev)**
 - `report_manager.py` — occupancy report (by city), financial summary (collected vs pending), maintenance cost report
 - `notification_manager.py` — overdue invoices, expiring leases (30-day window), upcoming maintenance
-- `views/report_view.py` — full Reports tab with city filters and summary cards
+- `views/report_view.py` — Reports tab with city filters and summary cards
 - Notification badge in main header
+- Sprint 2 guide fixes for Ahmed and Numair reviewed and corrected
 
-**Feras (done, merged to dev):**
-- `search_tenants()` — search by name, NI, email, phone
+**Feras — DONE ✅ (merged to dev)**
+- `search_tenants()` — search active tenants by name, NI, email, phone
 - `filter_tenants_by_status()` — filter by Active/Archived/Terminated/All
 - `get_tenant_count_by_status()` — status summary bar
-- Search bar + filter dropdown + summary counts in the Active Tenants tab
+- Search bar + filter dropdown + summary counts in Active Tenants tab
+- Archived/Terminated tab in tenant view (added by Omar hotfix)
+- `assign_apartment` guard: blocks assignment to Terminated/Archived tenants (Omar hotfix)
 
-**Ahmed (pending):**
-- Overdue badges on invoice list
-- Payment method breakdown report
+**Ahmed — PENDING ⏳ (guide reviewed, ready to start)**
+- `get_overdue_with_details()` in `invoice_manager.py` — overdue invoices with tenant contact info
+- `get_invoice_aging()` in `invoice_manager.py` — invoice aging breakdown
+- `get_collected_vs_pending()` in `payment_manager.py` — financial totals
+- `get_payment_history_by_method()` in `payment_manager.py` — breakdown by payment method
+- `get_monthly_revenue()` in `payment_manager.py` — last 6 months revenue
+- Overdue badges (`⚠️ OVERDUE`) on invoice list
+- Late Payment Notifications tab in invoice view
+- Financial Summary tab in payment view
 
-**Numair (pending):**
-- Communicate maintenance scheduled date to tenant (notification display)
+**Numair — PENDING ⏳ (guide reviewed, ready to start)**
+- `get_cost_report_by_apartment()` in `maintenance_manager.py` — cost/ticket breakdown per unit
+- `get_cost_report_by_city()` in `maintenance_manager.py` — cost breakdown per city
+- `get_tickets_by_status_count()` in `maintenance_manager.py` — status summary counts
+- `notify_tenant_scheduled_date()` in `maintenance_manager.py` — communicate maintenance date
+- Cost Report tab in maintenance view (per-apartment + per-city tables + summary cards)
+- "Notify Tenant" section in Manage tab (set date + show tenant contact info)
 
 ### Sprint 3 — UPCOMING (Apr 14–18): Testing + Documentation
 - Formal test case table (PDF) with pass/fail screenshots — Numair
 - Agile practices report PDF — Omar
-- Remaining brief gaps: tenant update, complaint logs, 1-month notice enforcement
+- Remaining brief gaps to implement: tenant update/edit, 1-month notice on termination, complaint logs, billing receipts
 
 ### Sprint 4 — UPCOMING (Apr 19–22): Submission prep
 - Export all UML diagrams from `pmas.asta` into one PDF
-- Fix all `[YOUR_ID]` headers across every `.py` file
+- Fix all remaining `[YOUR_ID]` headers (Omar's files — 10 files need `24020879`)
 - Create submission ZIP per brief instructions
 - Demo rehearsal
 
