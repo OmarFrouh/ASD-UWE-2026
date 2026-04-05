@@ -65,14 +65,20 @@ class PaymentView:
         self.sum_card_frame.pack(fill="x", padx=10, pady=10)
 
         # Payment method breakdown
+        ctk.CTkLabel(tab, text="Payment Method Breakdown", font=("Arial", 13, "bold")).pack(anchor="w", padx=15)
         tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        tree_frame.pack(fill="x", padx=10, pady=(0, 5))
 
         cols = ("Payment Method", "Total Amount", "Transaction Count")
-        self.sum_tree = setup_treeview_scroll(tree_frame, columns=cols, height=8)
-        for c in cols:
-            self.sum_tree.heading(c, text=c)
-            self.sum_tree.column(c, width=150)
+        self.sum_tree = setup_treeview_scroll(tree_frame, columns=cols, col_widths=[180, 150, 150], height=4)
+
+        # Monthly revenue (last 6 months)
+        ctk.CTkLabel(tab, text="Monthly Revenue (Last 6 Months)", font=("Arial", 13, "bold")).pack(anchor="w", padx=15, pady=(5, 0))
+        rev_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        rev_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
+
+        rev_cols = ("Month", "Total Collected")
+        self.rev_tree = setup_treeview_scroll(rev_frame, columns=rev_cols, col_widths=[200, 200], height=6)
 
     def refresh_summary(self):
         """Refreshes the Financial Summary tab data."""
@@ -100,6 +106,12 @@ class PaymentView:
             self.sum_tree.delete(item)
         for row in self.payment_manager.get_payment_history_by_method():
             self.sum_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}", row[2]))
+
+        # Monthly revenue
+        for item in self.rev_tree.get_children():
+            self.rev_tree.delete(item)
+        for row in self.payment_manager.get_monthly_revenue():
+            self.rev_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}"))
 
     def record(self):
         iid = self.inv_id_entry.get()
