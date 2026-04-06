@@ -4,7 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox, ttk
 from tenant_manager import TenantManager
-from views.ui_helpers import setup_treeview_scroll
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
 
 class TenantView:
     def __init__(self, parent, db_manager, role="front_desk"):
@@ -112,6 +112,8 @@ class TenantView:
             self.archived_tree.delete(item)
         for t in self.tenant_manager.get_archived_tenants():
             self.archived_tree.insert("", "end", values=(t[0], t[1], t[2], t[3]))
+        apply_row_stripes(self.archived_tree)
+        autofit_columns(self.archived_tree)
 
     def reset_filters(self):
         self.search_entry.delete(0, "end")
@@ -316,5 +318,7 @@ class TenantView:
                 t[11] or "N/A", t[7] or "N/A", t[8] or "N/A",
                 f"£{t[9] or 0:.2f}", t[10]
             ))
+        apply_row_stripes(self.tree)
+        autofit_columns(self.tree)
         if hasattr(self, 'archived_tree'):
             self.refresh_archived()
