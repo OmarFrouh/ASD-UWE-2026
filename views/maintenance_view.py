@@ -4,7 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from maintenance_manager import MaintenanceManager
-from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes, enable_trackpad_scroll
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
 
 class MaintenanceView:
     def __init__(self, parent, db_manager):
@@ -242,7 +242,7 @@ class MaintenanceView:
         apt_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
         cols = ("Unit", "City", "Total Tickets", "Open", "Resolved", "Total Cost", "Total Hours", "Avg Cost")
-        self.cost_apt_tree = setup_treeview_scroll(apt_frame, columns=cols, height=6)
+        self.cost_apt_tree = setup_treeview_scroll(apt_frame, columns=cols, height=6, bind_scroll=False)
         for c in cols:
             self.cost_apt_tree.column(c, width=90)
 
@@ -253,14 +253,12 @@ class MaintenanceView:
         city_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
         city_cols = ("City", "Total Tickets", "Total Cost", "Total Hours", "Avg Cost")
-        self.cost_city_tree = setup_treeview_scroll(city_frame, columns=city_cols, height=5)
+        self.cost_city_tree = setup_treeview_scroll(city_frame, columns=city_cols, height=5, bind_scroll=False)
         for c in city_cols:
             self.cost_city_tree.column(c, width=120)
 
         ctk.CTkButton(scroll, text="🔄 Refresh Report", command=self.refresh_cost_report).pack(pady=8)
         self.refresh_cost_report()
-        # Bind trackpad scrolling to all children (macOS CTkScrollableFrame fix)
-        scroll.after(100, lambda: enable_trackpad_scroll(scroll))
 
 
     def refresh_cost_report(self):
