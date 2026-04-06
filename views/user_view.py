@@ -3,17 +3,20 @@
 
 import customtkinter as ctk
 from tkinter import messagebox
-from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes, enable_trackpad_scroll
 
 class UserView:
     def __init__(self, parent_frame, auth_manager):
         self.parent = parent_frame
         self.auth_manager = auth_manager
 
-        ctk.CTkLabel(self.parent, text="👥 User Management", font=("Arial", 22, "bold")).pack(pady=20)
+        scroll = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent")
+        scroll.pack(fill="both", expand=True)
 
-        form = ctk.CTkFrame(self.parent)
-        form.pack(pady=30)
+        ctk.CTkLabel(scroll, text="👥 User Management", font=("Arial", 22, "bold")).pack(pady=20)
+
+        form = ctk.CTkFrame(scroll)
+        form.pack(pady=15)
 
         ctk.CTkLabel(form, text="Create New User", font=("Arial", 16, "bold")).grid(row=0, column=0, columnspan=2, pady=15)
 
@@ -40,7 +43,7 @@ class UserView:
         ctk.CTkButton(form, text="Create User", command=self.create_user, width=250).grid(row=6, column=0, columnspan=2, pady=20)
 
         # ─── User List ───
-        list_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
+        list_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         list_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
 
         header = ctk.CTkFrame(list_frame, fg_color="transparent")
@@ -51,6 +54,7 @@ class UserView:
         cols = ("ID", "Username", "Role", "Employee ID", "Department", "Created", "Last Login")
         self.tree = setup_treeview_scroll(list_frame, columns=cols, col_widths=[40, 120, 130, 110, 120, 140, 140], height=10)
         self.refresh_list()
+        scroll.after(200, lambda: enable_trackpad_scroll(scroll))
 
     def toggle_staff_fields(self, *args):
         role = self.role_combo.get()
