@@ -218,6 +218,9 @@ def enable_trackpad_scroll(scrollable_frame):
         return "break"   # ← KEY: stops ttk class binding from consuming event
 
     def _bind_recursive(widget):
+        # Skip ttk.Treeview — it handles its own trackpad scroll
+        if isinstance(widget, ttk.Treeview):
+            return
         widget.bind("<MouseWheel>", _scroll)   # NO add="+" — replace, don't append
         for child in widget.winfo_children():
             _bind_recursive(child)
