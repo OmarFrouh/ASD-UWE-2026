@@ -4,7 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from maintenance_manager import MaintenanceManager
-from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes, enable_trackpad_scroll
 
 class MaintenanceView:
     def __init__(self, parent, db_manager):
@@ -259,6 +259,8 @@ class MaintenanceView:
 
         ctk.CTkButton(scroll, text="🔄 Refresh Report", command=self.refresh_cost_report).pack(pady=8)
         self.refresh_cost_report()
+        # Bind trackpad scrolling to all children (macOS CTkScrollableFrame fix)
+        scroll.after(100, lambda: enable_trackpad_scroll(scroll))
 
 
     def refresh_cost_report(self):

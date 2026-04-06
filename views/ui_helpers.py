@@ -192,6 +192,34 @@ def _apply_dark_style():
     style.map("Dark.Horizontal.TScrollbar", background=[("active", "#666")])
 
 
+def enable_trackpad_scroll(scrollable_frame):
+    """Enable smooth macOS/Linux trackpad scrolling for a CTkScrollableFrame.
+
+    CTkScrollableFrame's internal canvas doesn't receive <MouseWheel> events from
+    child widgets by default on macOS. This function recursively binds the event to
+    every descendant so trackpad gestures work anywhere inside the frame.
+
+    Call this AFTER all children have been added to the frame.
+    """
+    try:
+        canvas = scrollable_frame._parent_canvas
+    except AttributeError:
+        return  # not a CTkScrollableFrame
+
+    def _vscroll(event):
+        canvas.yview_scroll(int(-1 * event.delta), "units")
+
+    def _bind_recursive(widget):
+        widget.bind("<MouseWheel>", _vscroll, add="+")
+        widget.bind("<Button-4>", lambda e: canvas.yview_scroll(-3, "units"), add="+")
+        widget.bind("<Button-5>", lambda e: canvas.yview_scroll( 3, "units"), add="+")
+        for child in widget.winfo_children():
+            _bind_recursive(child)
+
+    canvas.bind("<MouseWheel>", _vscroll, add="+")
+    _bind_recursive(scrollable_frame)
+
+
 def _sort_column(tree, col, reverse):
     data = [(tree.set(k, col), k) for k in tree.get_children("")]
     try:
