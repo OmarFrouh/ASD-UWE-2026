@@ -27,11 +27,13 @@ class MainView:
         # Profile is packed first to stay on the far right
         ctk.CTkLabel(header, text=f"👤 {self.current_user[1]} ({self.current_user[3]})", font=("Arial", 12)).pack(side="right", padx=10)
 
-        # ─── SPRINT 2 NOTIFICATION BADGE ───
-        # Packed second so it sits to the left of the profile
-        self.notif_count = self.notification_manager.get_notification_count()
-        self.notif_label = ctk.CTkLabel(header, text="", font=("Arial", 13, "bold"), text_color="red")
-        self.notif_label.pack(side="right", padx=(0, 20))
+        # ─── SPRINT 2 NOTIFICATION BADGE ─── clickable button, not static label
+        self.notif_btn = ctk.CTkButton(
+            header, text="", font=("Arial", 13, "bold"),
+            text_color="white", fg_color="#c0392b", hover_color="#e74c3c",
+            command=self.show_notifications, width=160, height=30, corner_radius=6
+        )
+        self.notif_btn.pack(side="right", padx=(0, 20))
         self.update_notification_badge()
 
         # Sidebar
@@ -46,12 +48,35 @@ class MainView:
         self.show_view("dashboard")
 
     def update_notification_badge(self):
-        """Updates the notification badge in the header."""
+        """Updates the notification badge button in the header."""
         count = self.notification_manager.get_notification_count()
         if count > 0:
-            self.notif_label.configure(text=f"🔔 {count} Notifications")
+            self.notif_btn.configure(text=f"🔔 {count} Notifications")
+            self.notif_btn.pack(side="right", padx=(0, 20))
         else:
-            self.notif_label.configure(text="")
+            self.notif_btn.pack_forget()
+
+    def show_notifications(self):
+        """Opens a popup listing all active notifications (overdue invoices + expiring leases)."""
+        notifications = self.notification_manager.get_notifications()
+        popup = ctk.CTkToplevel(self.root)
+        popup.title("Notifications")
+        popup.geometry("600x420")
+        popup.grab_set()
+
+        ctk.CTkLabel(popup, text="🔔 Active Notifications",
+                     font=("Arial", 16, "bold"), text_color="#e74c3c").pack(pady=(16, 8))
+
+        if not notifications:
+            ctk.CTkLabel(popup, text="No active notifications.", font=("Arial", 13)).pack(pady=20)
+        else:
+            for n in notifications:
+                row = ctk.CTkFrame(popup, corner_radius=8)
+                row.pack(fill="x", padx=16, pady=4)
+                ctk.CTkLabel(row, text=n["text"], font=("Arial", 12), anchor="w").pack(
+                    fill="x", padx=10, pady=6)
+
+        ctk.CTkButton(popup, text="Close", command=popup.destroy, width=120).pack(pady=14)
 
     def setup_sidebar(self):
         ctk.CTkLabel(self.sidebar, text="Navigation", font=("Arial", 14, "bold")).pack(pady=(20, 10))
