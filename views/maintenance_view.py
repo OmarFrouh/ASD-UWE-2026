@@ -227,14 +227,18 @@ class MaintenanceView:
 
     def build_cost_tab(self, tab):
         """Builds the maintenance cost report tab with per-apartment and per-city breakdown."""
+        # Wrap everything in a scrollable frame so content below the window is reachable
+        scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
+        scroll.pack(fill="both", expand=True)
+
         # ─── Summary Cards ───
-        self.cost_summary_frame = ctk.CTkFrame(tab)
+        self.cost_summary_frame = ctk.CTkFrame(scroll)
         self.cost_summary_frame.pack(fill="x", padx=10, pady=10)
 
         # ─── Per-Apartment Breakdown ───
-        ctk.CTkLabel(tab, text="Cost by Apartment", font=("Arial", 14, "bold")).pack(pady=(10, 5))
+        ctk.CTkLabel(scroll, text="Cost by Apartment", font=("Arial", 14, "bold")).pack(pady=(10, 5))
 
-        apt_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        apt_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         apt_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
         cols = ("Unit", "City", "Total Tickets", "Open", "Resolved", "Total Cost", "Total Hours", "Avg Cost")
@@ -243,9 +247,9 @@ class MaintenanceView:
             self.cost_apt_tree.column(c, width=90)
 
         # ─── Per-City Breakdown ───
-        ctk.CTkLabel(tab, text="Cost by City", font=("Arial", 14, "bold")).pack(pady=(10, 5))
+        ctk.CTkLabel(scroll, text="Cost by City", font=("Arial", 14, "bold")).pack(pady=(10, 5))
 
-        city_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        city_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         city_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
         city_cols = ("City", "Total Tickets", "Total Cost", "Total Hours", "Avg Cost")
@@ -253,8 +257,9 @@ class MaintenanceView:
         for c in city_cols:
             self.cost_city_tree.column(c, width=120)
 
-        ctk.CTkButton(tab, text="🔄 Refresh Report", command=self.refresh_cost_report).pack(pady=8)
+        ctk.CTkButton(scroll, text="🔄 Refresh Report", command=self.refresh_cost_report).pack(pady=8)
         self.refresh_cost_report()
+
 
     def refresh_cost_report(self):
         """Refreshes the cost report data in both tables and summary cards."""
