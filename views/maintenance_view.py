@@ -191,7 +191,7 @@ class MaintenanceView:
             return
         try:
             self.manager.update_status(int(tid), self.status_combo.get())
-            self.manage_result.configure(text="Status updated!", text_color="green")
+            messagebox.showinfo("Success", f"Ticket {tid} status updated to '{self.status_combo.get()}'!")
             self.refresh_list()
         except ValueError:
             messagebox.showerror("Error", "Ticket ID must be a valid number.")
@@ -207,7 +207,9 @@ class MaintenanceView:
             return
         try:
             self.manager.log_costs(int(tid), hours, cost)
-            self.manage_result.configure(text="Costs logged!", text_color="green")
+            messagebox.showinfo("Success", f"Costs logged for Ticket {tid}: {hours}h, £{cost}!")
+            self.hours_entry.delete(0, 'end')
+            self.cost_entry.delete(0, 'end')
             self.refresh_list()
         except ValueError:
             messagebox.showerror("Error", "Ticket ID, Hours, and Cost must be valid numbers.")
