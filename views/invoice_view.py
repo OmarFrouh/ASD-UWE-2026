@@ -4,7 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from invoice_manager import InvoiceManager
-from views.ui_helpers import setup_treeview_scroll
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
 
 class InvoiceView:
     def __init__(self, parent, db_manager):
@@ -109,6 +109,8 @@ class InvoiceView:
                     pass
             self.inv_tree.insert("", "end", values=(
                 inv[0], inv[1], inv[2], inv[3], f"£{inv[4]:.2f}", status_display))
+        apply_row_stripes(self.inv_tree)
+        autofit_columns(self.inv_tree)
 
         # ─── Overdue Tab ───
         for item in self.od_tree.get_children():
@@ -116,6 +118,8 @@ class InvoiceView:
         for od in self.invoice_manager.get_overdue_invoices():
             self.od_tree.insert("", "end", values=(
                 od[0], od[1], od[2], f"£{od[3]:.2f}"))
+        apply_row_stripes(self.od_tree)
+        autofit_columns(self.od_tree)
 
         # ─── Late Payment Notification Tab ───
         if hasattr(self, 'notif_tree'):
@@ -126,3 +130,5 @@ class InvoiceView:
                 self.notif_tree.insert("", "end", values=(
                     row[0], row[1], row[2] or "N/A", row[3] or "N/A",
                     row[4], f"£{row[5]:.2f}", f"{row[6]} days"))
+            apply_row_stripes(self.notif_tree)
+            autofit_columns(self.notif_tree)
