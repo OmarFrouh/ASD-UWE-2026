@@ -17,7 +17,7 @@ _SCROLL_TROUGH = "#2b2b2b"
 _FONT = ("Arial", 11)
 _FONT_BOLD = ("Arial", 11, "bold")
 _ROW_HEIGHT = 30
-_COL_PAD = 20          # extra pixels added per column beyond measured text
+_COL_PAD = 36          # extra pixels added per column beyond measured text
 
 
 def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, height=15):
@@ -63,7 +63,7 @@ def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, heigh
 
         tree.heading(c, text=label, anchor="w",
                      command=lambda _c=c: _sort_column(tree, _c, False))
-        tree.column(c, width=w, minwidth=60, anchor="w", stretch=True)
+        tree.column(c, width=w, minwidth=70, anchor="w", stretch=False)
 
     # ─── Smooth macOS trackpad scrolling ───
     def _vscroll(event):
