@@ -67,6 +67,18 @@ class AuthManager:
         finally:
             conn.close()
 
+    def get_all_users(self):
+        """Returns all users with their staff details where applicable.
+        Returns list of (id, username, role, employee_id, department, created_at, last_login)"""
+        return self.db_manager.fetch_all("""
+            SELECT u.id, u.username, u.role,
+                   COALESCE(s.employee_id, ''), COALESCE(s.department, ''),
+                   u.created_at, u.last_login
+            FROM users u
+            LEFT JOIN staff s ON u.id = s.user_id
+            ORDER BY u.id
+        """)
+
     def get_dashboard_stats(self):
         stats = {}
         try:
