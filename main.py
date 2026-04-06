@@ -21,6 +21,22 @@ def main():
 
         root = ctk.CTk()
 
+        def _universal_scroll(event):
+            """Route MouseWheel events to the nearest scrollable ancestor."""
+            widget = event.widget
+            while widget:
+                try:
+                    widget.yview_scroll(int(-1 * event.delta), "units")
+                    return
+                except AttributeError:
+                    pass
+                try:
+                    widget = widget.master
+                except AttributeError:
+                    break
+
+        root.bind_all("<MouseWheel>", _universal_scroll, add="+")
+
         def launch_login():
             for widget in root.winfo_children():
                 widget.destroy()
