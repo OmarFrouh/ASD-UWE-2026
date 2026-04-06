@@ -17,15 +17,15 @@ class ApartmentView:
         form = ctk.CTkFrame(frame)
         form.pack(pady=10)
 
-        ctk.CTkLabel(form, text="Unit #:").grid(row=0, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Unit # *:", text_color="red").grid(row=0, column=0, padx=15, pady=8, sticky="e")
         self.unit_entry = ctk.CTkEntry(form, width=180)
         self.unit_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Address:").grid(row=0, column=2, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Address *:", text_color="red").grid(row=0, column=2, padx=15, pady=8, sticky="e")
         self.address_entry = ctk.CTkEntry(form, width=180)
         self.address_entry.grid(row=0, column=3, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="City:").grid(row=1, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="City *:", text_color="red").grid(row=1, column=0, padx=15, pady=8, sticky="e")
         self.city_combo = ctk.CTkComboBox(form, values=["Bristol", "Cardiff", "London", "Manchester"], width=180)
         self.city_combo.grid(row=1, column=1, padx=15, pady=8, sticky="w")
         self.city_combo.set("Bristol")
@@ -34,7 +34,7 @@ class ApartmentView:
         self.rooms_entry = ctk.CTkEntry(form, width=180)
         self.rooms_entry.grid(row=1, column=3, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Rent (£):").grid(row=2, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Rent (£) *:", text_color="red").grid(row=2, column=0, padx=15, pady=8, sticky="e")
         self.rent_entry = ctk.CTkEntry(form, width=180)
         self.rent_entry.grid(row=2, column=1, padx=15, pady=8, sticky="w")
 

@@ -27,15 +27,15 @@ class PaymentView:
         rec_frame = ctk.CTkFrame(tab_record)
         rec_frame.pack(pady=30)
 
-        ctk.CTkLabel(rec_frame, text="Invoice ID:").grid(row=0, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(rec_frame, text="Invoice ID *:", text_color="red").grid(row=0, column=0, padx=15, pady=8, sticky="e")
         self.inv_id_entry = ctk.CTkEntry(rec_frame, width=220)
         self.inv_id_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(rec_frame, text="Amount (£):").grid(row=1, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(rec_frame, text="Amount (£) *:", text_color="red").grid(row=1, column=0, padx=15, pady=8, sticky="e")
         self.pay_amount_entry = ctk.CTkEntry(rec_frame, width=220)
         self.pay_amount_entry.grid(row=1, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(rec_frame, text="Method:").grid(row=2, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(rec_frame, text="Method *:", text_color="red").grid(row=2, column=0, padx=15, pady=8, sticky="e")
         self.method_combo = ctk.CTkComboBox(rec_frame, values=["Card", "Cash", "Bank Transfer"], width=220)
         self.method_combo.grid(row=2, column=1, padx=15, pady=8, sticky="w")
         self.method_combo.set("Card")
