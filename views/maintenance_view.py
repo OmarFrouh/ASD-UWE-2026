@@ -62,7 +62,7 @@ class MaintenanceView:
         tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
         tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        cols = ("ID", "Unit", "Tenant", "Issue", "Priority", "Status", "Reported", "Assigned To", "Hours", "Cost (£)")
+        cols = ("ID", "Unit", "Tenant", "Issue", "Priority", "Status", "Reported", "Scheduled", "Assigned To", "Hours", "Cost (£)")
         self.tree = setup_treeview_scroll(tree_frame, columns=cols, height=15)
 
         ctk.CTkButton(tab, text="Refresh", command=self.refresh_list).pack(pady=5)
@@ -90,7 +90,7 @@ class MaintenanceView:
         self.staff_id_entry = ctk.CTkEntry(col1, width=200)
         self.staff_id_entry.pack(pady=(0, 15))
         
-        ctk.CTkLabel(col1, text="Scheduled Date:").pack(anchor="w")
+        ctk.CTkLabel(col1, text="Scheduled Date *:", text_color="red").pack(anchor="w")
         self.sched_entry = ctk.CTkEntry(col1, width=200, placeholder_text="YYYY-MM-DD")
         self.sched_entry.pack(pady=(0, 25))
         
@@ -130,7 +130,7 @@ class MaintenanceView:
         ctk.CTkLabel(notify_frame, text="── Notify Tenant ──", font=("Arial", 13, "bold")).grid(
             row=0, column=0, columnspan=2, pady=(5, 10))
 
-        ctk.CTkLabel(notify_frame, text="Maintenance Date:").grid(row=1, column=0, padx=10, pady=8, sticky="e")
+        ctk.CTkLabel(notify_frame, text="Maintenance Date *:", text_color="red").grid(row=1, column=0, padx=10, pady=8, sticky="e")
         self.notify_date_entry = ctk.CTkEntry(notify_frame, width=200, placeholder_text="YYYY-MM-DD")
         self.notify_date_entry.grid(row=1, column=1, padx=10, pady=8)
 
@@ -220,7 +220,7 @@ class MaintenanceView:
         for t in self.manager.get_all_tickets():
             # id, unit, tenant, desc, priority, status, reported, scheduled, assigned_to, time, cost
             self.tree.insert("", "end", values=(t[0], t[1] or "N/A", t[2] or "N/A",
-                (t[3] or "")[:30], t[4], t[5], t[6], t[8] or "Unassigned", 
+                (t[3] or "")[:30], t[4], t[5], t[6], t[7] or "Not set", t[8] or "Unassigned",
                 f"{t[9] or 0.0:.1f}", f"£{(t[10] or 0.0):.2f}"))
         apply_row_stripes(self.tree)
         autofit_columns(self.tree)
