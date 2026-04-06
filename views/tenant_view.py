@@ -124,7 +124,7 @@ class TenantView:
         frame = ctk.CTkFrame(self.tab_actions)
         frame.pack(pady=40)
 
-        ctk.CTkLabel(frame, text="Tenant ID:", font=("Arial", 14)).grid(row=0, column=0, padx=15, pady=10, sticky="e")
+        ctk.CTkLabel(frame, text="Tenant ID *:", font=("Arial", 14), text_color="red").grid(row=0, column=0, padx=15, pady=10, sticky="e")
         self.action_id_entry = ctk.CTkEntry(frame, width=200)
         self.action_id_entry.grid(row=0, column=1, padx=15, pady=10, sticky="w")
 

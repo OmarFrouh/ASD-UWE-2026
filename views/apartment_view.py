@@ -41,7 +41,7 @@ class ApartmentView:
         self.rent_entry = ctk.CTkEntry(form, width=180)
         self.rent_entry.grid(row=2, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Size (sqft):").grid(row=2, column=2, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Size (sqft) *:", text_color="red").grid(row=2, column=2, padx=15, pady=8, sticky="e")
         self.size_entry = ctk.CTkEntry(form, width=180)
         self.size_entry.grid(row=2, column=3, padx=15, pady=8, sticky="w")
 
