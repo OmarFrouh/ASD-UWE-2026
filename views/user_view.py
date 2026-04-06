@@ -30,7 +30,7 @@ class UserView:
         self.role_combo.grid(row=3, column=1, padx=15, pady=8, sticky="w")
         self.role_combo.set("front_desk")
 
-        self.lbl_empid = ctk.CTkLabel(form, text="Employee ID:")
+        self.lbl_empid = ctk.CTkLabel(form, text="Employee ID *:", text_color="red")
         self.entry_empid = ctk.CTkEntry(form, width=250)
         self.lbl_dept = ctk.CTkLabel(form, text="Department:")
         self.entry_dept = ctk.CTkEntry(form, width=250)
