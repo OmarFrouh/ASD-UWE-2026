@@ -11,7 +11,9 @@ class LoginView:
         self.on_login_success = on_login_success
 
         self.root.title("PAMS - Login")
-        self.root.geometry("500x420")
+        w, h = 500, 420
+        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
+        self.root.geometry(f"{w}x{h}+{max(0,(sw-w)//2)}+{max(0,(sh-h)//2)}")
         self.root.resizable(False, False)
 
         frame = ctk.CTkFrame(root, corner_radius=15)
