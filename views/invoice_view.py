@@ -28,7 +28,7 @@ class InvoiceView:
         gen_frame = ctk.CTkFrame(tab_gen)
         gen_frame.pack(pady=40)
 
-        ctk.CTkLabel(gen_frame, text="Tenant ID:").grid(row=0, column=0, padx=15, pady=10, sticky="e")
+        ctk.CTkLabel(gen_frame, text="Tenant ID *:", text_color="red").grid(row=0, column=0, padx=15, pady=10, sticky="e")
         self.tenant_id_entry = ctk.CTkEntry(gen_frame, width=220)
         self.tenant_id_entry.grid(row=0, column=1, padx=15, pady=10, sticky="w")
 

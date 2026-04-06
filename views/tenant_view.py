@@ -40,17 +40,20 @@ class TenantView:
         form = ctk.CTkFrame(self.tab_register)
         form.pack(pady=30)
 
+        # Required fields are marked with *
+        required_keys = {"ni", "name", "username", "password"}
         fields = [
-            ("NI Number:", "ni"), ("Full Name:", "name"), ("Phone:", "phone"),
+            ("NI Number *:", "ni"), ("Full Name *:", "name"), ("Phone:", "phone"),
             ("Email:", "email"), ("Occupation:", "occupation"),
             ("References:", "refs"), ("Emergency Contact:", "emergency"),
             ("Apartment Requirements:", "apt_req"),
-            ("Username (login):", "username"), ("Password:", "password"),
+            ("Username (login) *:", "username"), ("Password *:", "password"),
         ]
 
         self.entries = {}
         for i, (label, key) in enumerate(fields):
-            ctk.CTkLabel(form, text=label).grid(row=i, column=0, padx=15, pady=6, sticky="e")
+            text_color = "red" if key in required_keys else None
+            ctk.CTkLabel(form, text=label, text_color=text_color).grid(row=i, column=0, padx=15, pady=6, sticky="e")
             show = "•" if key == "password" else ""
             entry = ctk.CTkEntry(form, width=280, show=show)
             entry.grid(row=i, column=1, padx=15, pady=6, sticky="w")
@@ -139,16 +142,16 @@ class TenantView:
         frame.pack(pady=30)
 
         fields = [
-            ("Tenant User ID:", "t_id"),
-            ("Apartment ID:", "apt_id"),
-            ("Lease Start (YYYY-MM-DD):", "start"),
-            ("Lease End (YYYY-MM-DD):", "end"),
-            ("Monthly Rent (£):", "rent"),
-            ("Deposit (£):", "deposit"),
+            ("Tenant User ID *:", "t_id"),
+            ("Apartment ID *:", "apt_id"),
+            ("Lease Start (YYYY-MM-DD) *:", "start"),
+            ("Lease End (YYYY-MM-DD) *:", "end"),
+            ("Monthly Rent (£) *:", "rent"),
+            ("Deposit (£) *:", "deposit"),
         ]
         self.assign_entries = {}
         for i, (label, key) in enumerate(fields):
-            ctk.CTkLabel(frame, text=label, font=("Arial", 13)).grid(row=i, column=0, padx=15, pady=8, sticky="e")
+            ctk.CTkLabel(frame, text=label, font=("Arial", 13), text_color="red").grid(row=i, column=0, padx=15, pady=8, sticky="e")
             entry = ctk.CTkEntry(frame, width=220)
             entry.grid(row=i, column=1, padx=15, pady=8, sticky="w")
             self.assign_entries[key] = entry
@@ -191,7 +194,7 @@ class TenantView:
     def register_tenant(self):
         v = {k: e.get() for k, e in self.entries.items()}
         if not v["ni"] or not v["name"] or not v["username"] or not v["password"]:
-            messagebox.showwarning("Error", "NI, Name, Username, Password are required.")
+            messagebox.showwarning("Missing Field", "NI Number, Full Name, Username, and Password are required (marked with *)")
             return
         try:
             self.tenant_manager.register_tenant(
@@ -209,36 +212,70 @@ class TenantView:
     def do_early_termination(self):
         tid = self.action_id_entry.get()
         if not tid:
-            messagebox.showwarning("Warning", "Enter Tenant ID")
+            messagebox.showwarning("Missing Field", "Please enter a Tenant ID.")
             return
-        
-        if not messagebox.askyesno("Confirm Termination", "Are you sure you want to terminate this tenant's lease? This applies a 5% penalty."):
-            return
-            
+
+        # Validate FIRST, before asking for confirmation
         try:
-            penalty = self.tenant_manager.early_termination(int(tid))
-            messagebox.showinfo("Success", f"Lease terminated. Penalty applied: £{penalty:.2f}")
-            self.refresh_list()
+            tid_int = int(tid)
         except ValueError:
-            messagebox.showerror("Error", "Invalid Tenant ID. Must be a number.")
+            messagebox.showerror("Invalid Input", "Tenant ID must be a number.")
+            return
+
+        tenant = self.db_manager.fetch_one(
+            "SELECT full_name, status, monthly_rent FROM tenants WHERE user_id=?", (tid_int,))
+        if not tenant:
+            messagebox.showerror("Not Found", f"No tenant found with ID {tid_int}.")
+            return
+        if tenant[1] in ("Terminated", "Archived"):
+            messagebox.showerror("Invalid Action", f"Tenant '{tenant[0]}' is already {tenant[1]}.")
+            return
+
+        # Now show confirmation with tenant name
+        penalty = tenant[2] * 0.05 if tenant[2] else 0
+        if not messagebox.askyesno("Confirm Termination",
+                f"Terminate lease for '{tenant[0]}'?\n\nA 5% penalty of £{penalty:.2f} will be applied."):
+            return
+
+        try:
+            penalty = self.tenant_manager.early_termination(tid_int)
+            messagebox.showinfo("Lease Terminated",
+                f"Lease for '{tenant[0]}' has been terminated.\nPenalty applied: £{penalty:.2f}")
+            self.refresh_list()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
     def do_archive(self):
         tid = self.action_id_entry.get()
         if not tid:
-            messagebox.showwarning("Warning", "Enter Tenant ID")
+            messagebox.showwarning("Missing Field", "Please enter a Tenant ID.")
             return
-            
-        if not messagebox.askyesno("Confirm Archive", "Are you sure you want to permanently archive this tenant?"):
-            return
-            
+
+        # Validate FIRST, before asking for confirmation
         try:
-            self.tenant_manager.archive_tenant(int(tid))
-            messagebox.showinfo("Success", "Tenant Archived.")
-            self.refresh_list()
+            tid_int = int(tid)
         except ValueError:
-            messagebox.showerror("Error", "Invalid Tenant ID. Must be a number.")
+            messagebox.showerror("Invalid Input", "Tenant ID must be a number.")
+            return
+
+        tenant = self.db_manager.fetch_one(
+            "SELECT full_name, status FROM tenants WHERE user_id=?", (tid_int,))
+        if not tenant:
+            messagebox.showerror("Not Found", f"No tenant found with ID {tid_int}.")
+            return
+        if tenant[1] == "Archived":
+            messagebox.showerror("Invalid Action", f"Tenant '{tenant[0]}' is already Archived.")
+            return
+
+        if not messagebox.askyesno("Confirm Archive",
+                f"Permanently archive tenant '{tenant[0]}'?\nThis cannot be undone."):
+            return
+
+        try:
+            self.tenant_manager.archive_tenant(tid_int)
+            messagebox.showinfo("Tenant Archived",
+                f"Tenant '{tenant[0]}' has been successfully archived.")
+            self.refresh_list()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 

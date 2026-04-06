@@ -33,7 +33,7 @@ class MaintenanceView:
         form = ctk.CTkFrame(tab)
         form.pack(pady=30)
 
-        ctk.CTkLabel(form, text="Apartment ID:").grid(row=0, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Apartment ID *:", text_color="red").grid(row=0, column=0, padx=15, pady=8, sticky="e")
         self.apt_id_entry = ctk.CTkEntry(form, width=250)
         self.apt_id_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
 
@@ -41,11 +41,11 @@ class MaintenanceView:
         self.tenant_id_entry = ctk.CTkEntry(form, width=250)
         self.tenant_id_entry.grid(row=1, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Description:").grid(row=2, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Description *:", text_color="red").grid(row=2, column=0, padx=15, pady=8, sticky="e")
         self.desc_entry = ctk.CTkEntry(form, width=250)
         self.desc_entry.grid(row=2, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Priority:").grid(row=3, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Priority *:", text_color="red").grid(row=3, column=0, padx=15, pady=8, sticky="e")
         self.priority_combo = ctk.CTkComboBox(form, values=["Low", "Medium", "High", "Urgent"], width=250)
         self.priority_combo.grid(row=3, column=1, padx=15, pady=8, sticky="w")
         self.priority_combo.set("Medium")
@@ -72,7 +72,7 @@ class MaintenanceView:
         # Top section: ID
         top_frame = ctk.CTkFrame(tab, fg_color="transparent")
         top_frame.pack(pady=(30, 20))
-        ctk.CTkLabel(top_frame, text="Ticket ID:", font=("Arial", 14, "bold")).pack(side="left", padx=10)
+        ctk.CTkLabel(top_frame, text="Ticket ID *:", font=("Arial", 14, "bold"), text_color="red").pack(side="left", padx=10)
         self.manage_id = ctk.CTkEntry(top_frame, width=200)
         self.manage_id.pack(side="left", padx=10)
 
