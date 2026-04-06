@@ -4,7 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from maintenance_manager import MaintenanceManager
-from views.ui_helpers import setup_treeview_scroll
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
 
 class MaintenanceView:
     def __init__(self, parent, db_manager):
@@ -222,6 +222,8 @@ class MaintenanceView:
             self.tree.insert("", "end", values=(t[0], t[1] or "N/A", t[2] or "N/A",
                 (t[3] or "")[:30], t[4], t[5], t[6], t[8] or "Unassigned", 
                 f"{t[9] or 0.0:.1f}", f"£{(t[10] or 0.0):.2f}"))
+        apply_row_stripes(self.tree)
+        autofit_columns(self.tree)
 
     def build_cost_tab(self, tab):
         """Builds the maintenance cost report tab with per-apartment and per-city breakdown."""
@@ -279,6 +281,8 @@ class MaintenanceView:
             self.cost_apt_tree.insert("", "end", values=(
                 row[0], row[1], row[2], row[3], row[4],
                 f"£{row[5]:.2f}", f"{row[6]:.1f}h", f"£{row[7]:.2f}"))
+        apply_row_stripes(self.cost_apt_tree)
+        autofit_columns(self.cost_apt_tree)
 
         # ─── Per-City Table ───
         for item in self.cost_city_tree.get_children():
@@ -287,6 +291,8 @@ class MaintenanceView:
             # city, total, cost, hours, avg
             self.cost_city_tree.insert("", "end", values=(
                 row[0], row[1], f"£{row[2]:.2f}", f"{row[3]:.1f}h", f"£{row[4]:.2f}"))
+        apply_row_stripes(self.cost_city_tree)
+        autofit_columns(self.cost_city_tree)
 
     def notify_tenant(self):
         """Handles the 'Communicate Dates' requirement from the brief."""

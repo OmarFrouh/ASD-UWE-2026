@@ -3,7 +3,7 @@
 
 import customtkinter as ctk
 from tkinter import messagebox
-from views.ui_helpers import setup_treeview_scroll
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
 
 class ApartmentView:
     def __init__(self, parent, property_manager):
@@ -76,3 +76,5 @@ class ApartmentView:
         for apt in self.property_manager.get_all_apartments():
             # Schema: id, unit, address, city, rooms, price, sqft, status
             self.tree.insert("", "end", values=(apt[0], apt[1], apt[2], apt[3], apt[4], f"£{apt[5]:.2f}", apt[6], apt[7]))
+        apply_row_stripes(self.tree)
+        autofit_columns(self.tree)

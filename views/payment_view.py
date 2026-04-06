@@ -4,7 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from payment_manager import PaymentManager
-from views.ui_helpers import setup_treeview_scroll
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
 
 class PaymentView:
     def __init__(self, parent, db_manager):
@@ -106,12 +106,16 @@ class PaymentView:
             self.sum_tree.delete(item)
         for row in self.payment_manager.get_payment_history_by_method():
             self.sum_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}", row[2]))
+        apply_row_stripes(self.sum_tree)
+        autofit_columns(self.sum_tree)
 
         # Monthly revenue
         for item in self.rev_tree.get_children():
             self.rev_tree.delete(item)
         for row in self.payment_manager.get_monthly_revenue():
             self.rev_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}"))
+        apply_row_stripes(self.rev_tree)
+        autofit_columns(self.rev_tree)
 
     def record(self):
         iid = self.inv_id_entry.get()
@@ -140,4 +144,6 @@ class PaymentView:
         for p in self.payment_manager.get_all_payments():
             self.pay_tree.insert("", "end", values=(
                 p[0], p[1], f"£{p[2]:.2f}", p[3], p[4], p[5], p[6]))
+        apply_row_stripes(self.pay_tree)
+        autofit_columns(self.pay_tree)
         self.refresh_summary()

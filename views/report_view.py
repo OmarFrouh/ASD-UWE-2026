@@ -3,7 +3,7 @@
 
 import customtkinter as ctk
 from report_manager import ReportManager
-from views.ui_helpers import setup_treeview_scroll
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
 
 
 class ReportView:
@@ -80,6 +80,8 @@ class ReportView:
         for apt in self.report_manager.get_occupancy_report(city):
             self.occ_tree.insert("", "end", values=(
                 apt[0], apt[1], apt[2], apt[3], f"£{apt[4]:.2f}", apt[5]))
+        apply_row_stripes(self.occ_tree)
+        autofit_columns(self.occ_tree)
 
     # ─── FINANCIAL SUMMARY ──────────────────────────────────
     def build_financial_tab(self, tab):
@@ -121,6 +123,8 @@ class ReportView:
         for row in self.report_manager.get_financial_breakdown():
             self.fin_tree.insert("", "end", values=(
                 row[0], f"£{row[1]:.2f}", f"£{row[2]:.2f}", f"£{row[3]:.2f}"))
+        apply_row_stripes(self.fin_tree)
+        autofit_columns(self.fin_tree)
 
     # ─── MAINTENANCE COST REPORT ────────────────────────────
     def build_maintenance_tab(self, tab):
@@ -174,3 +178,5 @@ class ReportView:
         for row in self.report_manager.get_maintenance_cost_report(city):
             self.mnt_tree.insert("", "end", values=(
                 row[0], row[1], row[2], f"£{row[3]:.2f}", f"{row[4]:.1f}h"))
+        apply_row_stripes(self.mnt_tree)
+        autofit_columns(self.mnt_tree)
