@@ -52,7 +52,7 @@ class PaymentView:
         pay_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         cols = ("ID", "Tenant", "Amount", "Date", "Method", "Ref", "Invoice")
-        self.pay_tree = setup_treeview_scroll(pay_frame, columns=cols, col_widths=[100]*7, height=15)
+        self.pay_tree = setup_treeview_scroll(pay_frame, columns=cols, height=15)
         ctk.CTkButton(tab_history, text="Refresh", command=self.refresh).pack(pady=5)
 
         self.build_summary_tab(tab_summary)

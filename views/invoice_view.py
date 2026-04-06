@@ -44,7 +44,7 @@ class InvoiceView:
         inv_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         cols = ("ID", "Tenant", "Issued", "Due", "Amount", "Status")
-        self.inv_tree = setup_treeview_scroll(inv_frame, columns=cols, col_widths=[110]*6, height=15)
+        self.inv_tree = setup_treeview_scroll(inv_frame, columns=cols, height=15)
         ctk.CTkButton(tab_list, text="Refresh", command=self.refresh).pack(pady=5)
 
         # Overdue Tab
@@ -52,7 +52,7 @@ class InvoiceView:
         od_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         od_cols = ("ID", "Tenant", "Due Date", "Amount")
-        self.od_tree = setup_treeview_scroll(od_frame, columns=od_cols, col_widths=[130]*4, height=15)
+        self.od_tree = setup_treeview_scroll(od_frame, columns=od_cols, height=15)
 
         self.build_notification_tab(tab_notif)
         self.refresh()

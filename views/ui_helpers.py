@@ -1,59 +1,145 @@
 # Shared UI helpers for PAMS views
+import tkinter as tk
 from tkinter import ttk
 
+
 def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, height=15):
-    """Create a Treeview with vertical + horizontal scrollbars, consistent alignment, and smooth scrolling."""
-    tree_frame = parent
+    """Create a dark-themed Treeview with proper scrollbars, auto-stretching columns,
+    and smooth scrolling that matches the CustomTkinter dark UI."""
 
-    tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=height)
+    # ─── Apply dark theme styling (idempotent — safe to call many times) ───
+    _apply_dark_treeview_style()
 
-    # ─── Scrollbars ───
-    v_scroll = ttk.Scrollbar(tree_frame, orient="vertical", command=tree.yview)
-    h_scroll = ttk.Scrollbar(tree_frame, orient="horizontal", command=tree.xview)
+    # ─── Container frame with grid for correct scrollbar placement ───
+    container = tk.Frame(parent, bg="#2b2b2b", highlightthickness=0)
+    container.pack(fill="both", expand=True)
+    container.grid_rowconfigure(0, weight=1)
+    container.grid_columnconfigure(0, weight=1)
+
+    tree = ttk.Treeview(container, columns=columns, show="headings",
+                        height=height, style="Dark.Treeview")
+
+    v_scroll = ttk.Scrollbar(container, orient="vertical", command=tree.yview,
+                              style="Dark.Vertical.TScrollbar")
+    h_scroll = ttk.Scrollbar(container, orient="horizontal", command=tree.xview,
+                              style="Dark.Horizontal.TScrollbar")
     tree.configure(yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set)
 
-    # ─── Column setup: consistent left-alignment for both headings and data ───
+    # ─── Grid layout: tree + scrollbars ───
+    tree.grid(row=0, column=0, sticky="nsew")
+    v_scroll.grid(row=0, column=1, sticky="ns")
+    h_scroll.grid(row=1, column=0, sticky="ew")
+
+    # ─── Column setup: auto-stretch with sensible minimums ───
+    num_cols = len(columns)
     for i, c in enumerate(columns):
-        heading = headings[i] if headings else c
-        width = col_widths[i] if col_widths else 110
-        tree.heading(c, text=heading, anchor="w", command=lambda _c=c: _treeview_sort_column(tree, _c, False))
-        tree.column(c, width=width, anchor="w", minwidth=60)
+        heading_text = headings[i] if headings else c
+        width = col_widths[i] if col_widths else max(120, 800 // num_cols)
 
-    # ─── Layout ───
-    tree.pack(side="left", fill="both", expand=True)
-    v_scroll.pack(side="right", fill="y")
-    h_scroll.pack(side="bottom", fill="x")
+        tree.heading(c, text=heading_text, anchor="w",
+                     command=lambda _c=c: _treeview_sort_column(tree, _c, False))
+        tree.column(c, width=width, minwidth=80, anchor="w", stretch=True)
 
-    # ─── Style: consistent font, row height, and alternating stripe ───
-    style = ttk.Style()
-    style.configure("Treeview", font=("Arial", 11), rowheight=28)
-    style.configure("Treeview.Heading", font=("Arial", 11, "bold"))
-
-    # ─── Smooth mousewheel / trackpad scrolling (macOS + Windows + Linux) ───
+    # ─── Smooth scrolling (macOS trackpad + mouse wheel) ───
     def _on_mousewheel(event):
-        if event.delta > 0:
-            tree.yview_scroll(-2, "units")
-        elif event.delta < 0:
-            tree.yview_scroll(2, "units")
+        # macOS trackpad gives continuous small deltas; scale them for smoothness
+        if hasattr(event, 'delta'):
+            # macOS: delta is in pixels, scroll proportionally
+            tree.yview_scroll(int(-1 * (event.delta / 3)), "units")
+
+    def _on_shift_mousewheel(event):
+        # Shift+scroll = horizontal
+        if hasattr(event, 'delta'):
+            tree.xview_scroll(int(-1 * (event.delta / 3)), "units")
 
     tree.bind("<MouseWheel>", _on_mousewheel)
-    tree.bind("<Button-4>", lambda e: tree.yview_scroll(-2, "units"))
-    tree.bind("<Button-5>", lambda e: tree.yview_scroll(2, "units"))
+    tree.bind("<Shift-MouseWheel>", _on_shift_mousewheel)
+    # Linux
+    tree.bind("<Button-4>", lambda e: tree.yview_scroll(-3, "units"))
+    tree.bind("<Button-5>", lambda e: tree.yview_scroll(3, "units"))
 
     return tree
 
+
+def _apply_dark_treeview_style():
+    """Configure ttk styles to match the dark CustomTkinter theme."""
+    style = ttk.Style()
+
+    # Prevent re-applying (check if already configured)
+    if "Dark.Treeview" in style.theme_names():
+        return
+
+    # Use 'clam' theme as base — it's the most customizable
+    try:
+        style.theme_use("clam")
+    except tk.TclError:
+        pass
+
+    # ─── Dark Treeview ───
+    style.configure("Dark.Treeview",
+        background="#333333",
+        foreground="#e0e0e0",
+        fieldbackground="#333333",
+        borderwidth=0,
+        font=("Arial", 11),
+        rowheight=30,
+    )
+
+    style.configure("Dark.Treeview.Heading",
+        background="#1f538d",
+        foreground="white",
+        font=("Arial", 11, "bold"),
+        borderwidth=1,
+        relief="flat",
+        padding=(8, 4),
+    )
+
+    style.map("Dark.Treeview",
+        background=[("selected", "#1f6aa5")],
+        foreground=[("selected", "white")],
+    )
+
+    style.map("Dark.Treeview.Heading",
+        background=[("active", "#2980b9")],
+    )
+
+    # ─── Tag for alternating row stripes ───
+    # (Applied in tree.insert calls — see _add_stripe_tags)
+
+    # ─── Scrollbar styling ───
+    style.configure("Dark.Vertical.TScrollbar",
+        background="#444444",
+        troughcolor="#2b2b2b",
+        borderwidth=0,
+        arrowsize=14,
+    )
+    style.configure("Dark.Horizontal.TScrollbar",
+        background="#444444",
+        troughcolor="#2b2b2b",
+        borderwidth=0,
+        arrowsize=14,
+    )
+    style.map("Dark.Vertical.TScrollbar",
+        background=[("active", "#555555")],
+    )
+    style.map("Dark.Horizontal.TScrollbar",
+        background=[("active", "#555555")],
+    )
+
+
 def _treeview_sort_column(tree, col, reverse):
     """Sort tree contents when a column header is clicked."""
-    l = [(tree.set(k, col), k) for k in tree.get_children('')]
+    data = [(tree.set(k, col), k) for k in tree.get_children('')]
 
-    # Try sorting numerically if possible
+    # Try numeric sort first
     try:
-        l.sort(key=lambda t: float(t[0].replace('£', '').replace(',', '').replace('h', '').strip()), reverse=reverse)
+        data.sort(key=lambda t: float(
+            t[0].replace('£', '').replace(',', '').replace('h', '').replace(' days', '').strip()
+        ), reverse=reverse)
     except ValueError:
-        l.sort(reverse=reverse)
+        data.sort(reverse=reverse)
 
-    for index, (val, k) in enumerate(l):
+    for index, (val, k) in enumerate(data):
         tree.move(k, '', index)
 
-    # Reverse sort next time
     tree.heading(col, command=lambda _c=col: _treeview_sort_column(tree, _c, not reverse))
