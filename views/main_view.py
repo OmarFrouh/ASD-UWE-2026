@@ -17,7 +17,11 @@ class MainView:
         self.notification_manager = NotificationManager(db_manager)
 
         self.root.title("PAMS - Dashboard")
-        self.root.geometry("1200x700")
+        self.root.resizable(True, True)
+        self.root.minsize(900, 580)
+        w, h = 1200, 700
+        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
+        self.root.geometry(f"{w}x{h}+{max(0,(sw-w)//2)}+{max(0,(sh-h)//2)}")
 
         # Header
         header = ctk.CTkFrame(root, height=50, corner_radius=0)
