@@ -18,7 +18,10 @@ class InvoiceManager:
         if amount is None:
             amount = tenant[0]
         if not amount or amount <= 0:
-            raise Exception("Invalid amount")
+            raise Exception(
+                "No monthly rent is set for this tenant. "
+                "Assign them to an apartment first, or enter a custom amount manually."
+            )
 
         today = datetime.now().strftime("%Y-%m-%d")
         due = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
