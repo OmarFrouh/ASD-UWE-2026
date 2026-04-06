@@ -26,7 +26,10 @@ class ApartmentView:
         self.address_entry.grid(row=0, column=3, padx=15, pady=8, sticky="w")
 
         ctk.CTkLabel(form, text="City *:", text_color="red").grid(row=1, column=0, padx=15, pady=8, sticky="e")
-        self.city_combo = ctk.CTkComboBox(form, values=["Bristol", "Cardiff", "London", "Manchester"], width=180)
+        default_cities = ["Bristol", "Cardiff", "London", "Manchester"]
+        existing = self.property_manager.get_cities()
+        city_options = sorted(set(default_cities + existing))
+        self.city_combo = ctk.CTkComboBox(form, values=city_options, width=180)
         self.city_combo.grid(row=1, column=1, padx=15, pady=8, sticky="w")
         self.city_combo.set("Bristol")
 

@@ -33,6 +33,11 @@ class PropertyManager:
     def get_vacant_apartments(self):
         return self.db_manager.fetch_all("SELECT * FROM apartments WHERE status='Vacant'")
 
+    def get_cities(self):
+        """Returns sorted list of all distinct cities currently in the database."""
+        rows = self.db_manager.fetch_all("SELECT DISTINCT city FROM apartments ORDER BY city")
+        return [row[0] for row in rows]
+
     def update_status(self, apartment_id, status):
         valid_statuses = ["Vacant", "Occupied", "Maintenance"]
         if status not in valid_statuses:
