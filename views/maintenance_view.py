@@ -69,15 +69,18 @@ class MaintenanceView:
         self.refresh_list()
 
     def build_manage_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
+        scroll.pack(fill="both", expand=True)
+
         # Top section: ID
-        top_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        top_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         top_frame.pack(pady=(30, 20))
         ctk.CTkLabel(top_frame, text="Ticket ID *:", font=("Arial", 14, "bold"), text_color="red").pack(side="left", padx=10)
         self.manage_id = ctk.CTkEntry(top_frame, width=200)
         self.manage_id.pack(side="left", padx=10)
 
         # Bottom section: 3 horizontal columns side-by-side
-        cols_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        cols_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         cols_frame.pack(pady=10, fill="x", padx=60)
         cols_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
@@ -124,7 +127,7 @@ class MaintenanceView:
         ctk.CTkButton(col3, text="Log Costs", command=self.log_costs, width=200).pack()
 
         # ─── Communicate Date to Tenant ───
-        notify_frame = ctk.CTkFrame(tab, fg_color="transparent")
+        notify_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         notify_frame.pack(pady=(10, 5))
 
         ctk.CTkLabel(notify_frame, text="── Notify Tenant ──", font=("Arial", 13, "bold")).grid(
@@ -138,10 +141,11 @@ class MaintenanceView:
                        command=self.notify_tenant, width=220).grid(
             row=2, column=0, columnspan=2, pady=8)
 
-        self.manage_result = ctk.CTkLabel(tab, text="", font=("Arial", 12))
+        self.manage_result = ctk.CTkLabel(scroll, text="", font=("Arial", 12))
         self.manage_result.pack(pady=20)
 
-        
+        scroll.after(200, lambda: enable_trackpad_scroll(scroll))
+
         # Enter key bindings for UX
         self.manage_id.bind("<Return>", lambda e: self.update_status())
         self.hours_entry.bind("<Return>", lambda e: self.log_costs())
