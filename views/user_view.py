@@ -16,15 +16,15 @@ class UserView:
 
         ctk.CTkLabel(form, text="Create New User", font=("Arial", 16, "bold")).grid(row=0, column=0, columnspan=2, pady=15)
 
-        ctk.CTkLabel(form, text="Username:").grid(row=1, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Username *:", text_color="red").grid(row=1, column=0, padx=15, pady=8, sticky="e")
         self.username_entry = ctk.CTkEntry(form, width=250)
         self.username_entry.grid(row=1, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Password:").grid(row=2, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Password *:", text_color="red").grid(row=2, column=0, padx=15, pady=8, sticky="e")
         self.password_entry = ctk.CTkEntry(form, show="•", width=250)
         self.password_entry.grid(row=2, column=1, padx=15, pady=8, sticky="w")
 
-        ctk.CTkLabel(form, text="Role:").grid(row=3, column=0, padx=15, pady=8, sticky="e")
+        ctk.CTkLabel(form, text="Role *:", text_color="red").grid(row=3, column=0, padx=15, pady=8, sticky="e")
         self.role_combo = ctk.CTkComboBox(form, values=["front_desk", "finance_manager", "maintenance", "manager", "admin"], width=250, command=self.toggle_staff_fields)
         self.role_combo.grid(row=3, column=1, padx=15, pady=8, sticky="w")
         self.role_combo.set("front_desk")

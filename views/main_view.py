@@ -65,14 +65,14 @@ class MainView:
         if role in ["admin"]:
             ctk.CTkButton(self.sidebar, text="🏠 Apartments", command=lambda: self.show_view("apartments"), width=180).pack(pady=4, padx=10)
 
-        if role in ["admin", "front_desk", "manager"]:
+        if role in ["admin", "front_desk"]:
             ctk.CTkButton(self.sidebar, text="👤 Tenants", command=lambda: self.show_view("tenants"), width=180).pack(pady=4, padx=10)
 
         if role in ["admin", "finance_manager"]:
             ctk.CTkButton(self.sidebar, text="💰 Invoices", command=lambda: self.show_view("invoices"), width=180).pack(pady=4, padx=10)
             ctk.CTkButton(self.sidebar, text="💳 Payments", command=lambda: self.show_view("payments"), width=180).pack(pady=4, padx=10)
 
-        if role in ["admin", "front_desk", "maintenance"]:
+        if role in ["admin", "maintenance"]:
             ctk.CTkButton(self.sidebar, text="🔧 Maintenance", command=lambda: self.show_view("maintenance"), width=180).pack(pady=4, padx=10)
 
         if role in ["admin", "manager"]:
@@ -82,10 +82,10 @@ class MainView:
 
     ROLE_PERMISSIONS = {
         "admin": ["dashboard", "users", "apartments", "tenants", "invoices", "payments", "maintenance", "reports"],
-        "front_desk": ["dashboard", "tenants", "maintenance"],
+        "front_desk": ["dashboard", "tenants"],
         "finance_manager": ["dashboard", "invoices", "payments"],
         "maintenance": ["dashboard", "maintenance"],
-        "manager": ["dashboard", "tenants", "reports"],
+        "manager": ["dashboard", "reports"],
     }
 
     def show_view(self, view_name):
