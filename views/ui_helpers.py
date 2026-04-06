@@ -197,30 +197,32 @@ def _apply_dark_style():
 
 
 def enable_trackpad_scroll(scrollable_frame):
-    """Enable smooth macOS/Linux trackpad scrolling for a CTkScrollableFrame.
+    """Make macOS trackpad scrolling work reliably inside a CTkScrollableFrame.
 
-    CTkScrollableFrame's internal canvas doesn't receive <MouseWheel> events from
-    child widgets by default on macOS. This function recursively binds the event to
-    every descendant so trackpad gestures work anywhere inside the frame.
+    The problem: ttk.Treeview and other widgets have CLASS-LEVEL MouseWheel
+    bindings that consume the event before CTkScrollableFrame can process it.
 
-    Call this AFTER all children have been added to the frame.
+    The fix: directly bind EVERY descendant widget (including treeviews) to
+    scroll the scrollable frame's internal canvas, and return "break" to stop
+    the event from propagating to class-level bindings.
+
+    Call this AFTER all child widgets have been created (use .after(200, ...)).
     """
     try:
         canvas = scrollable_frame._parent_canvas
     except AttributeError:
-        return  # not a CTkScrollableFrame
+        return
 
-    def _vscroll(event):
+    def _scroll(event):
         canvas.yview_scroll(int(-1 * event.delta), "units")
+        return "break"   # ← KEY: stops ttk class binding from consuming event
 
     def _bind_recursive(widget):
-        widget.bind("<MouseWheel>", _vscroll, add="+")
-        widget.bind("<Button-4>", lambda e: canvas.yview_scroll(-3, "units"), add="+")
-        widget.bind("<Button-5>", lambda e: canvas.yview_scroll( 3, "units"), add="+")
+        widget.bind("<MouseWheel>", _scroll)   # NO add="+" — replace, don't append
         for child in widget.winfo_children():
             _bind_recursive(child)
 
-    canvas.bind("<MouseWheel>", _vscroll, add="+")
+    canvas.bind("<MouseWheel>", _scroll)
     _bind_recursive(scrollable_frame)
 
 
