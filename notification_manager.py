@@ -57,3 +57,23 @@ class NotificationManager:
         overdue = len(self.get_overdue_invoices())
         expiring = len(self.get_expiring_leases())
         return overdue + expiring
+
+    def get_notifications(self):
+        """Returns all active notifications combined for popup display.
+        Returns list of dicts with 'type' and 'text' keys."""
+        results = []
+        for row in self.get_overdue_invoices():
+            # row: (invoice_id, tenant_name, due_date, total_amount, days_overdue)
+            invoice_id, name, due_date, amount, days = row
+            results.append({
+                "type": "overdue",
+                "text": f"📄 Invoice #{invoice_id}  |  {name}  |  £{float(amount):.2f}  |  Due: {due_date} ({days} days overdue)"
+            })
+        for row in self.get_expiring_leases():
+            # row: (tenant_id, name, lease_end_date, unit_number, days_remaining)
+            _, name, lease_end, unit, days = row
+            results.append({
+                "type": "expiring",
+                "text": f"🏠 Lease expiring  |  {name}  |  Unit {unit}  |  {lease_end} ({days} days left)"
+            })
+        return results
