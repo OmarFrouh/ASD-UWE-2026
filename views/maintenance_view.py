@@ -90,7 +90,7 @@ class MaintenanceView:
         self.staff_id_entry = ctk.CTkEntry(col1, width=200)
         self.staff_id_entry.pack(pady=(0, 15))
         
-        ctk.CTkLabel(col1, text="Scheduled Date *:", text_color="red").pack(anchor="w")
+        ctk.CTkLabel(col1, text="Scheduled Date (optional):").pack(anchor="w")
         self.sched_entry = ctk.CTkEntry(col1, width=200, placeholder_text="YYYY-MM-DD")
         self.sched_entry.pack(pady=(0, 25))
         
