@@ -4,7 +4,7 @@
 import customtkinter as ctk
 from tkinter import messagebox, ttk
 from tenant_manager import TenantManager
-from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes, enable_trackpad_scroll
 
 class TenantView:
     def __init__(self, parent, db_manager, role="front_desk"):
@@ -36,9 +36,10 @@ class TenantView:
             self.build_assign_tab()
 
     def build_register_tab(self):
-        # Use a standard frame so it auto-sizes perfectly without useless scrolling/truncation
-        form = ctk.CTkFrame(self.tab_register)
-        form.pack(pady=30)
+        scroll = ctk.CTkScrollableFrame(self.tab_register, fg_color="transparent")
+        scroll.pack(fill="both", expand=True)
+        form = ctk.CTkFrame(scroll)
+        form.pack(pady=20)
 
         # Required fields are marked with *
         required_keys = {"ni", "name", "username", "password"}
@@ -61,6 +62,7 @@ class TenantView:
 
         ctk.CTkButton(form, text="Register Tenant", command=self.register_tenant, width=300).grid(
             row=len(fields), column=0, columnspan=2, pady=20)
+        scroll.after(200, lambda: enable_trackpad_scroll(scroll))
 
     def build_list_tab(self):
         # ─── Search & Filter Bar ───
@@ -140,8 +142,10 @@ class TenantView:
         self.action_result.grid(row=3, column=0, columnspan=2, pady=10)
 
     def build_assign_tab(self):
-        frame = ctk.CTkFrame(self.tab_assign)
-        frame.pack(pady=30)
+        scroll = ctk.CTkScrollableFrame(self.tab_assign, fg_color="transparent")
+        scroll.pack(fill="both", expand=True)
+        frame = ctk.CTkFrame(scroll)
+        frame.pack(pady=20)
 
         fields = [
             ("Tenant User ID *:", "t_id"),
@@ -163,6 +167,7 @@ class TenantView:
 
         ctk.CTkButton(frame, text="Assign Apartment", command=self.do_assign, width=280).grid(
             row=len(fields) + 1, column=0, columnspan=2, pady=12)
+        scroll.after(200, lambda: enable_trackpad_scroll(scroll))
 
     def do_assign(self):
         try:
