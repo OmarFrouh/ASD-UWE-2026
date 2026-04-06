@@ -23,7 +23,8 @@ _COL_PAD   = 32   # extra pixels added beyond measured text per column
 _SCROLL_W  = 18   # approximate width of the vertical scrollbar
 
 
-def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, height=15):
+def setup_treeview_scroll(parent, columns, headings=None, col_widths=None,
+                          height=15, bind_scroll=True):
     """Dark-themed Treeview that:
     - Fills the container in both directions
     - Auto-fits column widths to content after data is inserted
@@ -76,16 +77,19 @@ def setup_treeview_scroll(parent, columns, headings=None, col_widths=None, heigh
     container.bind("<Configure>", _on_resize)
 
     # ─── Smooth macOS trackpad scrolling ───
-    def _vscroll(event):
-        tree.yview_scroll(int(-1 * event.delta), "units")
+    # Only bind if bind_scroll=True. Pass False when the treeview lives inside
+    # a CTkScrollableFrame — that way events bubble up to the frame's own handler.
+    if bind_scroll:
+        def _vscroll(event):
+            tree.yview_scroll(int(-1 * event.delta), "units")
 
-    def _hscroll(event):
-        tree.xview_scroll(int(-1 * event.delta), "units")
+        def _hscroll(event):
+            tree.xview_scroll(int(-1 * event.delta), "units")
 
-    tree.bind("<MouseWheel>",       _vscroll)
-    tree.bind("<Shift-MouseWheel>", _hscroll)
-    tree.bind("<Button-4>", lambda e: tree.yview_scroll(-3, "units"))
-    tree.bind("<Button-5>", lambda e: tree.yview_scroll( 3, "units"))
+        tree.bind("<MouseWheel>",       _vscroll)
+        tree.bind("<Shift-MouseWheel>", _hscroll)
+        tree.bind("<Button-4>", lambda e: tree.yview_scroll(-3, "units"))
+        tree.bind("<Button-5>", lambda e: tree.yview_scroll( 3, "units"))
 
     return tree
 
