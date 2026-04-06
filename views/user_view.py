@@ -3,6 +3,7 @@
 
 import customtkinter as ctk
 from tkinter import messagebox
+from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
 
 class UserView:
     def __init__(self, parent_frame, auth_manager):
@@ -38,6 +39,19 @@ class UserView:
 
         ctk.CTkButton(form, text="Create User", command=self.create_user, width=250).grid(row=6, column=0, columnspan=2, pady=20)
 
+        # ─── User List ───
+        list_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
+        list_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+
+        header = ctk.CTkFrame(list_frame, fg_color="transparent")
+        header.pack(fill="x", pady=(0, 6))
+        ctk.CTkLabel(header, text="All Users", font=("Arial", 15, "bold")).pack(side="left")
+        ctk.CTkButton(header, text="Refresh", command=self.refresh_list, width=90).pack(side="right")
+
+        cols = ("ID", "Username", "Role", "Employee ID", "Department", "Created", "Last Login")
+        self.tree = setup_treeview_scroll(list_frame, columns=cols, col_widths=[40, 120, 130, 110, 120, 140, 140], height=10)
+        self.refresh_list()
+
     def toggle_staff_fields(self, *args):
         role = self.role_combo.get()
         if role in ["manager", "maintenance", "front_desk", "finance_manager"]:
@@ -50,6 +64,14 @@ class UserView:
             self.entry_empid.grid_remove()
             self.lbl_dept.grid_remove()
             self.entry_dept.grid_remove()
+
+    def refresh_list(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        for row in self.auth_manager.get_all_users():
+            self.tree.insert("", "end", values=row)
+        apply_row_stripes(self.tree)
+        autofit_columns(self.tree)
 
     def create_user(self):
         username = self.username_entry.get()
@@ -66,5 +88,6 @@ class UserView:
             messagebox.showinfo("Success", f"User '{username}' created!")
             for e in [self.username_entry, self.password_entry, self.entry_empid, self.entry_dept]:
                 e.delete(0, 'end')
+            self.refresh_list()
         except Exception as e:
             messagebox.showerror("Error", str(e))
