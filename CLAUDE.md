@@ -115,26 +115,48 @@ All 4 members done. **133 automated tests, all passing.**
 - `invoice_manager` error message improved: "No monthly rent set" instead of cryptic "Invalid amount"
 - Sprint 2 test plan: `guides/sprint2/TEST_PLAN_SPRINT2.md` (~80 manual tests, 11 sections)
 
-### Sprint 3 — UPCOMING (Apr 14–18): Missing features + Testing docs
+### Sprint 3 — IN PROGRESS (Apr 14–18): Missing features + Testing docs
 
-**Missing brief requirements to implement (Omar owns all of these):**
+**Full guides in `guides/sprint3/`** — individual step-by-step for each member + git workflow + test plan.
 
-| Requirement | Brief Reference | Owner | Notes |
-|-------------|----------------|-------|-------|
-| Update tenant info (edit records) | "adding, **updating**, and removing" | Omar | Add Edit button in Active Tenants tab; pre-fill form; call `update_tenant()` in tenant_manager |
-| 1-month notice period on early termination | "they must give 1 month notice" | Omar | In `tenant_manager.early_termination()`: check if today < lease_start + 1 month; block or warn |
-| Complaint logs | "complaint logs" under Tenant Mgmt | Omar | New table `complaints` in DB; new tab in tenant_view; log/view complaints per tenant |
-| Billing/dues receipts | "generating the billing/dues receipts" | Omar | After payment recorded, show/print a formatted receipt popup with invoice + payment details |
+| Requirement | Brief Reference | Owner | Guide | Status |
+|-------------|----------------|-------|-------|--------|
+| DB + Seed + Tests foundation | — | Omar | `SPRINT3_OMAR.md` | ✅ DONE — pushed to `dev` |
+| Update tenant info (edit records) | "adding, **updating**, and removing" | Feras | `SPRINT3_FERAS.md` | ⬜ Pull `dev`, start `feature/tenant-sprint3` |
+| 1-month notice period | "they must give 1 month notice" | Feras | `SPRINT3_FERAS.md` | ⬜ Pull `dev`, start `feature/tenant-sprint3` |
+| Complaint logs | "complaint logs" under Tenant Mgmt | Feras | `SPRINT3_FERAS.md` | ⬜ Pull `dev`, start `feature/tenant-sprint3` |
+| Billing/dues receipts | "generating the billing/dues receipts" | Ahmed | `SPRINT3_AHMED.md` | ⬜ Pull `dev`, start `feature/finance-sprint3` |
+| Testing Document PDF + edge-case tests | Element 3 (10 marks) | Numair | `SPRINT3_NUMAIR.md` | ⬜ Pull `dev`, start `feature/testing-sprint3` |
 
-**Documentation tasks:**
-- Formal test case table PDF (Description / Input / Expected / Actual / Pass/Fail + screenshots) — **Numair**
-- Agile practices report PDF (Scrum evidence, sprint reviews, Git log, contribution breakdown) — **Omar**
+**What's already on `dev` (Omar — DONE):**
+- `complaints` table in `database_manager.py` (8th table, `IF NOT EXISTS` — safe for all)
+- 2 seeded test complaints in `seed_db.py` (John: Open, Sarah: Resolved)
+- `tests/test_sprint3.py` — 36 tests defining the contracts for all Sprint 3 features
+  - These tests **intentionally fail** until Feras/Ahmed implement the methods — that's the TDD contract
+  - Run `python3 -m unittest tests.test_sprint3 -v` to see which methods still need implementing
 
-**Sprint 3 approach for code features:**
-1. All 4 missing features are in Omar's files (`tenant_manager.py`, `views/tenant_view.py`, `payment_manager.py`/`views/payment_view.py`)
-2. Add DB migration for `complaints` table in `database_manager.py` (`create_tables()` — use `IF NOT EXISTS`)
-3. Write unit tests for all new manager methods before/alongside implementation
-4. Keep UI changes minimal and consistent with existing patterns
+**What Feras must implement** (`tenant_manager.py`, `views/tenant_view.py`):
+- `get_tenant_by_id(tenant_user_id)` → tuple of 15 fields
+- `update_tenant(tenant_user_id, full_name=None, phone=None, email=None, ...)` → validates Active status
+- `early_termination()` → change return from `float` to `{"penalty": float, "effective_date": str}` (30 days notice)
+- `log_complaint(tenant_id, subject, description)`, `get_all_complaints()`, `get_complaints_for_tenant(tenant_id)`, `resolve_complaint(complaint_id)`
+- UI: Edit Tenant tab (load by ID, editable fields, read-only NI/lease), Complaints tab (log/view/resolve)
+- UI: Update `do_early_termination()` to use dict return and show notice date
+
+**What Ahmed must implement** (`payment_manager.py`, `views/payment_view.py`):
+- `record_payment()` → change `return True` to `return payment_id` (capture `cursor.lastrowid`)
+- `get_receipt_data(payment_id)` → returns dict with 17 fields (tenant, property, invoice, payment)
+- UI: `show_receipt(payment_id)` popup in `PaymentView`, called from `record()` instead of messagebox
+
+**What Numair must implement** (`tests/test_numair_sprint3.py`):
+- 16 edge-case tests: complaints isolation, update field targeting, notice period boundaries
+- Testing Document PDF (Element 3, 10 marks) — see `SPRINT3_NUMAIR.md` for required format
+
+**Post-merge Omar task (Step 8):**
+- After Feras's PR merges: update `tests/test_tenant_manager.py` line:
+  `penalty = self.tenant.early_termination(user_id)` → `result = ...; penalty = result["penalty"]`
+
+**Target after all PRs merged:** ~200 automated tests total
 
 ### Sprint 4 — UPCOMING (Apr 19–22): Submission prep
 - Merge dev → main
@@ -145,38 +167,43 @@ All 4 members done. **133 automated tests, all passing.**
 
 ---
 
-## Current Dev Branch State (as of Apr 6 2026)
+## Current Dev Branch State (as of Apr 7 2026)
 
-**Branch:** `dev` — clean, all tests passing  
-**Tests:** 133/133 passing  
-**Last commit:** `05edf63` — Fix (Omar): clearer error when generating invoice with no monthly rent
+**Branch:** `dev` — Sprint 3 foundation pushed, awaiting Feras/Ahmed/Numair PRs  
+**Tests:** 133/133 existing passing + 36 Sprint 3 tests added (currently failing — expected until Feras/Ahmed implement)  
+**Last commit:** Sprint 3 (Omar): complaints table, seed data, Sprint 3 test suite (36 tests)
 
 Recent commits on dev (newest first):
 ```
+[Sprint 3 push]  Sprint 3 (Omar): complaints table, seed data, Sprint 3 test suite (36 tests)
+aba079e  Docs (Omar): update CLAUDE.md — Sprint 2 complete, Sprint 3 roadmap
 05edf63  Fix (Omar): clearer error when generating invoice with no monthly rent
 567baf7  Fix (Omar): add outer scrolling to all form-heavy views
 f393c9b  Fix (Omar): make app fully resizable with proper window sizing
 52fbf4d  Fix (Omar): missing * markers on required form fields system-wide
-6fc2c4c  Fix (Omar): USR-01 — add user list treeview to Users tab
-2fd9c54  Fix (Omar): dynamic city dropdown in apartment view
-7349ede  Fix (Omar): NOTIF-02 — wire notification badge popup to get_notifications()
 ```
+
+**Next actions for team:**
+- **Feras**: `git checkout dev && git pull origin dev && git checkout -b feature/tenant-sprint3` → read `SPRINT3_FERAS.md`
+- **Ahmed**: `git checkout dev && git pull origin dev && git checkout -b feature/finance-sprint3` → read `SPRINT3_AHMED.md`
+- **Numair**: `git checkout dev && git pull origin dev && git checkout -b feature/testing-sprint3` → read `SPRINT3_NUMAIR.md`
 
 ---
 
 ## Brief Requirements Status
 
-| Requirement | Brief Reference | Status | Sprint |
-|-------------|----------------|--------|--------|
-| Update tenant info (edit records) | "adding, **updating**, and removing" | ❌ Missing | Sprint 3 |
-| 1-month notice period on early termination | "they must give 1 month notice" | ❌ Missing | Sprint 3 |
-| Complaint logs | "complaint logs" under Tenant Mgmt | ❌ Missing | Sprint 3 |
-| Billing/dues receipts | "generating the billing/dues receipts" | ❌ Missing | Sprint 3 |
-| Notification badge (clickable, shows details) | Sprint 2 | ✅ Done | Sprint 2 |
-| Monthly revenue in Financial Summary | Sprint 2 | ✅ Done | Sprint 2 |
-| User list in Users tab | Sprint 2 QA | ✅ Done | Sprint 2 QA |
-| App resizable / fullscreen | Sprint 2 QA | ✅ Done | Sprint 2 QA |
-| Scrolling on all form views | Sprint 2 QA | ✅ Done | Sprint 2 QA |
+| Requirement | Brief Reference | Status | Sprint | Owner |
+|-------------|----------------|--------|--------|-------|
+| Update tenant info (edit records) | "adding, **updating**, and removing" | 🔜 Sprint 3 | Sprint 3 | Feras |
+| 1-month notice period on early termination | "they must give 1 month notice" | 🔜 Sprint 3 | Sprint 3 | Feras |
+| Complaint logs | "complaint logs" under Tenant Mgmt | 🔜 Sprint 3 | Sprint 3 | Feras |
+| Billing/dues receipts | "generating the billing/dues receipts" | 🔜 Sprint 3 | Sprint 3 | Ahmed |
+| Testing Document PDF | Element 3 (10 marks) | 🔜 Sprint 3 | Sprint 3 | Numair |
+| Notification badge (clickable, shows details) | Sprint 2 | ✅ Done | Sprint 2 | Omar |
+| Monthly revenue in Financial Summary | Sprint 2 | ✅ Done | Sprint 2 | Ahmed |
+| User list in Users tab | Sprint 2 QA | ✅ Done | Sprint 2 QA | Omar |
+| App resizable / fullscreen | Sprint 2 QA | ✅ Done | Sprint 2 QA | Omar |
+| Scrolling on all form views | Sprint 2 QA | ✅ Done | Sprint 2 QA | Omar |
 
 ---
 
@@ -201,7 +228,7 @@ main.py                    # Entry point — initializes all managers, launches 
 ├── database_manager.py    # SQLite wrapper, PRAGMA foreign_keys, create_tables()
 ├── auth_manager.py        # Login, user/staff creation, bcrypt hashing, get_all_users()
 ├── property_manager.py    # Apartment CRUD, vacancy tracking, get_cities()
-├── tenant_manager.py      # Registration, lease, termination, archival, search/filter
+├── tenant_manager.py      # Registration, lease, termination, archival, search/filter, complaints
 ├── maintenance_manager.py # Tickets, staff assignment, status workflow, cost logging
 ├── invoice_manager.py     # Invoice generation, overdue detection
 ├── payment_manager.py     # Payment recording with atomic transactions
@@ -229,7 +256,7 @@ main.py                    # Entry point — initializes all managers, launches 
 
 **City Dropdown**: Apartment form city dropdown is dynamic — queries `property_manager.get_cities()` merged with 4 defaults. Any new city typed into the form appears in future dropdowns.
 
-### Database Schema (7 tables)
+### Database Schema (8 tables — Sprint 3)
 - `users` — id, username, password_hash, role, created_at, last_login
 - `staff` — user_id (FK), employee_id, department
 - `apartments` — id, unit_number, address, city, number_of_rooms, rental_price, square_footage, status
@@ -237,12 +264,10 @@ main.py                    # Entry point — initializes all managers, launches 
 - `maintenance_requests` — apartment_id (FK), tenant_id (FK), staff_id (FK), description, priority, status, scheduled_date, date_reported, date_resolved, time_spent, cost
 - `invoices` — tenant_id (FK), issue_date, due_date, total_amount, status
 - `payments` — invoice_id (FK), amount, payment_date, method, transaction_ref
-
-**Sprint 3 will add:**
-- `complaints` — id, tenant_id (FK), date_logged, subject, description, status, resolved_date
+- `complaints` — id, tenant_id (FK), date_logged, subject, description, status, resolved_date *(Sprint 3)*
 
 ### Business Rules (enforced by tests)
-- Early termination: 5% of monthly rent penalty (1-month notice enforcement — Sprint 3)
+- Early termination: 5% of monthly rent penalty + 1-month notice (effective date = today+30 days) — Sprint 3 returns dict `{"penalty", "effective_date"}`
 - Terminating/archiving a tenant automatically vacates their apartment
 - Cannot assign apartment to Terminated or Archived tenant
 - Cannot invoice Terminated or Archived tenants

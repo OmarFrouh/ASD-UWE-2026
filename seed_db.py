@@ -83,6 +83,16 @@ def seed():
             (apartment_id, tenant_id, staff_id, description, priority, status, date_reported, time_spent, cost)
             VALUES (?,?,?,?,?,?,?,?,?)""", mr)
 
+    # 8. Complaints (Sprint 3 — complaint logs testing)
+    complaints = [
+        (6, today, "Noisy neighbors", "Loud music from adjacent unit every night after 11pm", "Open", None),
+        (7, thirty_ago, "Parking issue", "Unauthorized vehicle in my reserved parking spot #7", "Resolved", today),
+    ]
+    for c in complaints:
+        cursor.execute("""INSERT OR IGNORE INTO complaints
+            (tenant_id, date_logged, subject, description, status, resolved_date)
+            VALUES (?,?,?,?,?,?)""", c)
+
     conn.commit()
     conn.close()
     print("✅ Database seeded with mock data!")
