@@ -150,6 +150,20 @@ class DatabaseManager:
             );
         """)
 
+        # 8. Complaints (Sprint 3)
+        self.execute_query("""
+            CREATE TABLE IF NOT EXISTS complaints (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tenant_id INTEGER NOT NULL,
+                date_logged TEXT DEFAULT CURRENT_TIMESTAMP,
+                subject TEXT NOT NULL,
+                description TEXT NOT NULL,
+                status TEXT DEFAULT 'Open',
+                resolved_date TEXT,
+                FOREIGN KEY (tenant_id) REFERENCES tenants (user_id) ON DELETE CASCADE
+            );
+        """)
+
         print("✅ Database schema created successfully.")
 
 if __name__ == "__main__":
