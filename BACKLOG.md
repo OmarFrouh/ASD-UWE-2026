@@ -53,16 +53,43 @@
 *   [x] **Overdue Badges**: As a Finance Manager, I want to see visual overdue markers on unpaid invoices. (Ahmed)
 *   [x] **Payment Method Breakdown**: As a Finance Manager, I want to see payment totals by method (Card/Cash/Transfer). (Ahmed)
 
+### Sprint 2 QA Fixes (Omar — Complete)
+*   [x] **Notification Badge**: Clickable badge in header showing overdue invoices + expiring leases. (Omar)
+*   [x] **Dynamic City Dropdown**: Apartment form city list queries DB, not hardcoded. (Omar)
+*   [x] **User List Treeview**: USR-01 — users table added to Users tab. (Omar)
+*   [x] **Required Field Markers**: `*` on all mandatory fields system-wide. (Omar)
+*   [x] **App Resizable**: Full window resize + fullscreen support. (Omar)
+*   [x] **Form Scrolling**: CTkScrollableFrame on all form-heavy views. (Omar)
+*   [x] **Maintenance Cost Report**: Per-apartment and per-city cost tables in Maintenance tab. (Numair)
+*   [x] **Maintenance Date Communication**: Set scheduled date + show tenant contact info. (Numair)
+
+---
+
+## Sprint 3 — Missing Brief Requirements + Testing (Apr 14–18)
+
+### Tenant Updates (Sprint 3 — Feras)
+*   [ ] **Update Tenant Records**: As a Front-desk Staff, I want to edit tenant info (name, phone, email, occupation, etc.) so records stay current. (Feras)
+*   [ ] **1-Month Notice Period**: As a System, I want to enforce a 1-month notice period on early termination, setting the effective date to 30 days from request. (Feras)
+*   [ ] **Complaint Logs**: As a Front-desk Staff, I want to log, view, and resolve tenant complaints so they are tracked in the system. (Feras)
+
+### Billing Receipts (Sprint 3 — Ahmed)
+*   [ ] **Payment Receipts**: As a Finance Manager, I want to see a billing/dues receipt after recording a payment, showing tenant, invoice, and payment details. (Ahmed)
+
+### Testing & Infrastructure (Sprint 3 — Omar + Numair)
+*   [ ] **Complaints Table**: Add `complaints` table to database schema. (Omar)
+*   [ ] **Sprint 3 Seed Data**: Add complaint test data to seed_db.py. (Omar)
+*   [ ] **Sprint 3 Unit Tests**: Automated tests for update tenant, complaints, notice period, receipts. (Omar)
+*   [ ] **Testing Document PDF**: Formal test case table with screenshots of pass/fail for all sprints. (Numair)
+
 ---
 
 ## Non-Functional Requirements (All)
 *   [x] **Security**: Password hashing (bcrypt), role-based access, input validation, SQL injection prevention.
 *   [x] **Mock Data**: Seed database with realistic test data for demo.
 
-### Documentation (Sprint 3-4)
+### Documentation (Sprint 4)
 *   [ ] **Use Case Diagram**: One diagram capturing all system functionality. (Feras)
 *   [ ] **Class Diagram**: UML class diagram of the system. (Omar)
 *   [ ] **Sequence Diagram**: UML sequence diagrams for key flows. (All)
-*   [ ] **Testing Document**: Test case table with screenshots of pass/fail. (Numair)
 *   [ ] **Agile Practices Report**: PDF with Scrum evidence, Git log, sprint reviews. (Omar)
-*   [ ] **Code Headers**: All .py files must include student ID and student name. (All)
+*   [ ] **Code Headers**: All .py files must include student ID and student name → `24020879` for Omar's 10 files. (All)
