@@ -24,6 +24,8 @@ class TenantView:
         self.tab_register = self.tabview.add("Register")
         self.tab_list = self.tabview.add("Active Tenants")
         self.tab_archived = self.tabview.add("Archived / Terminated")
+        self.tab_edit = self.tabview.add("Edit Tenant")
+        self.tab_complaints = self.tabview.add("Complaints")
         self.tab_actions = self.tabview.add("Actions")
         if self.role == "admin":
             self.tab_assign = self.tabview.add("Assign Apartment")
@@ -31,6 +33,8 @@ class TenantView:
         self.build_register_tab()
         self.build_list_tab()
         self.build_archived_tab()
+        self.build_edit_tab()
+        self.build_complaints_tab()
         self.build_actions_tab()
         if self.role == "admin":
             self.build_assign_tab()
@@ -116,6 +120,220 @@ class TenantView:
             self.archived_tree.insert("", "end", values=(t[0], t[1], t[2], t[3]))
         apply_row_stripes(self.archived_tree)
         autofit_columns(self.archived_tree)
+
+    def build_edit_tab(self):
+        scroll = ctk.CTkScrollableFrame(self.tab_edit, fg_color="transparent")
+        scroll.pack(fill="both", expand=True)
+        frame = ctk.CTkFrame(scroll)
+        frame.pack(pady=20)
+
+        # ─── Load Section ───
+        ctk.CTkLabel(frame, text="Tenant ID *:", text_color="red").grid(row=0, column=0, padx=15, pady=8, sticky="e")
+        self.edit_id_entry = ctk.CTkEntry(frame, width=200)
+        self.edit_id_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
+        ctk.CTkButton(frame, text="Load Tenant", command=self.load_tenant_for_edit, width=150).grid(
+            row=0, column=2, padx=10, pady=8)
+
+        # ─── NI Number (read-only display) ───
+        ctk.CTkLabel(frame, text="NI Number:").grid(row=1, column=0, padx=15, pady=6, sticky="e")
+        self.edit_ni_label = ctk.CTkLabel(frame, text="—", font=("Arial", 13))
+        self.edit_ni_label.grid(row=1, column=1, padx=15, pady=6, sticky="w")
+
+        # ─── Editable Fields ───
+        edit_fields = [
+            ("Full Name:", "edit_name"),
+            ("Phone:", "edit_phone"),
+            ("Email:", "edit_email"),
+            ("Occupation:", "edit_occupation"),
+            ("References:", "edit_refs"),
+            ("Emergency Contact:", "edit_emergency"),
+            ("Apartment Requirements:", "edit_apt_req"),
+        ]
+        self.edit_entries = {}
+        for i, (label, key) in enumerate(edit_fields, start=2):
+            ctk.CTkLabel(frame, text=label).grid(row=i, column=0, padx=15, pady=6, sticky="e")
+            entry = ctk.CTkEntry(frame, width=280)
+            entry.grid(row=i, column=1, padx=15, pady=6, sticky="w")
+            self.edit_entries[key] = entry
+
+        # ─── Lease Info (read-only display) ───
+        info_row = len(edit_fields) + 2
+        ctk.CTkLabel(frame, text="── Lease Info (read-only) ──", font=("Arial", 11),
+                     text_color="gray").grid(row=info_row, column=0, columnspan=3, pady=(10, 5))
+        self.edit_lease_label = ctk.CTkLabel(frame, text="Load a tenant to see lease details",
+                                              font=("Arial", 12), text_color="gray")
+        self.edit_lease_label.grid(row=info_row + 1, column=0, columnspan=3, pady=5)
+
+        # ─── Save Button ───
+        ctk.CTkButton(frame, text="Save Changes", command=self.save_tenant_edit, width=280,
+                       fg_color="green", hover_color="darkgreen").grid(
+            row=info_row + 2, column=0, columnspan=3, pady=15)
+
+        self.edit_result = ctk.CTkLabel(frame, text="", font=("Arial", 12))
+        self.edit_result.grid(row=info_row + 3, column=0, columnspan=3, pady=5)
+
+        scroll.after(200, lambda: enable_trackpad_scroll(scroll))
+
+    def load_tenant_for_edit(self):
+        """Loads tenant data into the edit form."""
+        tid = self.edit_id_entry.get()
+        if not tid:
+            messagebox.showwarning("Missing Field", "Please enter a Tenant ID.")
+            return
+        try:
+            tid_int = int(tid)
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Tenant ID must be a number.")
+            return
+
+        tenant = self.tenant_manager.get_tenant_by_id(tid_int)
+        if not tenant:
+            messagebox.showerror("Not Found", f"No tenant found with ID {tid_int}.")
+            return
+        if tenant[14] in ("Terminated", "Archived"):
+            messagebox.showerror("Invalid Action", f"Tenant is {tenant[14]} — cannot edit.")
+            return
+
+        # Populate NI (read-only)
+        self.edit_ni_label.configure(text=tenant[1] or "N/A")
+
+        # Populate editable fields
+        # Indices: 2=name, 3=phone, 4=email, 5=occupation, 6=refs, 7=emergency, 8=apt_req
+        field_map = {
+            "edit_name": tenant[2] or "",
+            "edit_phone": tenant[3] or "",
+            "edit_email": tenant[4] or "",
+            "edit_occupation": tenant[5] or "",
+            "edit_refs": tenant[6] or "",
+            "edit_emergency": tenant[7] or "",
+            "edit_apt_req": tenant[8] or "",
+        }
+        for key, val in field_map.items():
+            self.edit_entries[key].delete(0, "end")
+            self.edit_entries[key].insert(0, val)
+
+        # Populate lease info (read-only)
+        apt_id = tenant[9]
+        lease_start = tenant[10] or "N/A"
+        lease_end = tenant[11] or "N/A"
+        rent = f"£{tenant[12]:.2f}" if tenant[12] else "N/A"
+        deposit = f"£{tenant[13]:.2f}" if tenant[13] else "N/A"
+        self.edit_lease_label.configure(
+            text=f"Apt: {apt_id or 'None'}  |  Lease: {lease_start} → {lease_end}  |  Rent: {rent}  |  Deposit: {deposit}",
+            text_color="white")
+        self.edit_result.configure(text=f"Loaded tenant: {tenant[2]}", text_color="cyan")
+
+    def save_tenant_edit(self):
+        """Saves edited tenant fields."""
+        tid = self.edit_id_entry.get()
+        if not tid:
+            messagebox.showwarning("Missing Field", "Load a tenant first.")
+            return
+
+        try:
+            tid_int = int(tid)
+            self.tenant_manager.update_tenant(
+                tid_int,
+                full_name=self.edit_entries["edit_name"].get() or None,
+                phone=self.edit_entries["edit_phone"].get() or None,
+                email=self.edit_entries["edit_email"].get() or None,
+                occupation=self.edit_entries["edit_occupation"].get() or None,
+                references=self.edit_entries["edit_refs"].get() or None,
+                emergency_contact=self.edit_entries["edit_emergency"].get() or None,
+                apt_requirements=self.edit_entries["edit_apt_req"].get() or None,
+            )
+            messagebox.showinfo("Success", "Tenant updated successfully!")
+            self.edit_result.configure(text="Changes saved!", text_color="green")
+            self.refresh_list()
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def build_complaints_tab(self):
+        # ─── Log New Complaint ───
+        log_frame = ctk.CTkFrame(self.tab_complaints)
+        log_frame.pack(fill="x", padx=10, pady=10)
+
+        ctk.CTkLabel(log_frame, text="📋 Log New Complaint", font=("Arial", 14, "bold")).grid(
+            row=0, column=0, columnspan=2, pady=(10, 5))
+
+        ctk.CTkLabel(log_frame, text="Tenant ID *:", text_color="red").grid(row=1, column=0, padx=15, pady=6, sticky="e")
+        self.complaint_tid_entry = ctk.CTkEntry(log_frame, width=200)
+        self.complaint_tid_entry.grid(row=1, column=1, padx=15, pady=6, sticky="w")
+
+        ctk.CTkLabel(log_frame, text="Subject *:", text_color="red").grid(row=2, column=0, padx=15, pady=6, sticky="e")
+        self.complaint_subject_entry = ctk.CTkEntry(log_frame, width=300)
+        self.complaint_subject_entry.grid(row=2, column=1, padx=15, pady=6, sticky="w")
+
+        ctk.CTkLabel(log_frame, text="Description *:", text_color="red").grid(row=3, column=0, padx=15, pady=6, sticky="ne")
+        self.complaint_desc_entry = ctk.CTkEntry(log_frame, width=300, placeholder_text="Describe the complaint...")
+        self.complaint_desc_entry.grid(row=3, column=1, padx=15, pady=6, sticky="w")
+
+        ctk.CTkButton(log_frame, text="Log Complaint", command=self.do_log_complaint, width=200).grid(
+            row=4, column=0, columnspan=2, pady=10)
+
+        # ─── All Complaints Table ───
+        tree_frame = ctk.CTkFrame(self.tab_complaints, fg_color="transparent")
+        tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        cols = ("ID", "Tenant", "Subject", "Date", "Status", "Description")
+        self.complaints_tree = setup_treeview_scroll(tree_frame, columns=cols, height=10)
+
+        # ─── Action Buttons ───
+        btn_frame = ctk.CTkFrame(self.tab_complaints, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=10, pady=(0, 10))
+
+        ctk.CTkButton(btn_frame, text="Resolve Selected", command=self.do_resolve_complaint,
+                       width=180, fg_color="green", hover_color="darkgreen").pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="Refresh", command=self.refresh_complaints, width=100).pack(side="left", padx=10)
+
+        self.refresh_complaints()
+
+    def do_log_complaint(self):
+        tid = self.complaint_tid_entry.get()
+        subject = self.complaint_subject_entry.get()
+        desc = self.complaint_desc_entry.get()
+
+        if not tid:
+            messagebox.showwarning("Missing Field", "Tenant ID is required.")
+            return
+        try:
+            self.tenant_manager.log_complaint(int(tid), subject, desc)
+            messagebox.showinfo("Success", "Complaint logged!")
+            self.complaint_tid_entry.delete(0, "end")
+            self.complaint_subject_entry.delete(0, "end")
+            self.complaint_desc_entry.delete(0, "end")
+            self.refresh_complaints()
+        except ValueError:
+            messagebox.showerror("Error", "Tenant ID must be a number.")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def do_resolve_complaint(self):
+        selected = self.complaints_tree.selection()
+        if not selected:
+            messagebox.showwarning("No Selection", "Select a complaint from the table first.")
+            return
+        item = self.complaints_tree.item(selected[0])
+        complaint_id = item["values"][0]
+
+        if not messagebox.askyesno("Confirm", f"Resolve complaint #{complaint_id}?"):
+            return
+        try:
+            self.tenant_manager.resolve_complaint(int(complaint_id))
+            messagebox.showinfo("Success", f"Complaint #{complaint_id} resolved!")
+            self.refresh_complaints()
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def refresh_complaints(self):
+        for item in self.complaints_tree.get_children():
+            self.complaints_tree.delete(item)
+        for c in self.tenant_manager.get_all_complaints():
+            # (id, tenant_name, subject, date_logged, status, description)
+            self.complaints_tree.insert("", "end", values=(
+                c[0], c[1], c[2], c[3], c[4], c[5] or ""))
+        apply_row_stripes(self.complaints_tree)
+        autofit_columns(self.complaints_tree)
 
     def reset_filters(self):
         self.search_entry.delete(0, "end")
@@ -241,13 +459,17 @@ class TenantView:
         # Now show confirmation with tenant name
         penalty = tenant[2] * 0.05 if tenant[2] else 0
         if not messagebox.askyesno("Confirm Termination",
-                f"Terminate lease for '{tenant[0]}'?\n\nA 5% penalty of £{penalty:.2f} will be applied."):
+                f"Terminate lease for '{tenant[0]}'?\n\n"
+                f"A 1-month notice period will apply.\n"
+                f"A 5% penalty of £{penalty:.2f} will be applied."):
             return
 
         try:
-            penalty = self.tenant_manager.early_termination(tid_int)
+            result = self.tenant_manager.early_termination(tid_int)
             messagebox.showinfo("Lease Terminated",
-                f"Lease for '{tenant[0]}' has been terminated.\nPenalty applied: £{penalty:.2f}")
+                f"Lease for '{tenant[0]}' has been terminated.\n\n"
+                f"1-month notice period ends: {result['effective_date']}\n"
+                f"Penalty applied: £{result['penalty']:.2f}")
             self.refresh_list()
         except Exception as e:
             messagebox.showerror("Error", str(e))
