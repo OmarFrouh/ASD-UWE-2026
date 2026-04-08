@@ -50,9 +50,9 @@ class TestTenantManager(BaseTest):
         user_id = self.db.fetch_one("SELECT id FROM users")[0]
         self.tenant.assign_apartment(user_id, self.apt_id, "2026-01-01", "2026-12-31", 1000.0, 500.0)
 
-        penalty = self.tenant.early_termination(user_id)
+        result = self.tenant.early_termination(user_id)
         # 5% of 1000 is 50
-        self.assertEqual(penalty, 50.0)
+        self.assertEqual(result["penalty"], 50.0)
 
         t = self.db.fetch_one("SELECT status FROM tenants WHERE user_id=?", (user_id,))
         self.assertEqual(t[0], "Terminated")
