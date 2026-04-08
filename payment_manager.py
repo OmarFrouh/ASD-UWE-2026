@@ -36,7 +36,6 @@ class PaymentManager:
                 INSERT INTO payments (invoice_id, amount, payment_date, method, transaction_ref)
                 VALUES (?, ?, ?, ?, ?)
             """, (invoice_id, amount, today, method, transaction_ref))
-            payment_id = cursor.lastrowid
 
             # Check within same transaction if now fully paid
             cursor.execute("SELECT SUM(amount) FROM payments WHERE invoice_id=?", (invoice_id,))
@@ -45,12 +44,13 @@ class PaymentManager:
                 cursor.execute("UPDATE invoices SET status='Paid' WHERE id=?", (invoice_id,))
 
             conn.commit()
-            return payment_id
         except Exception as e:
             conn.rollback()
             raise e
         finally:
             conn.close()
+
+        return True
 
     def get_all_payments(self):
         return self.db_manager.fetch_all("""
@@ -103,32 +103,3 @@ class PaymentManager:
             ORDER BY month DESC
             LIMIT 6
         """)
-
-    def get_receipt_data(self, payment_id):
-        """Retrieves receipt details for a specific payment.
-        Returns a dict with tenant, invoice, and payment details.
-        """
-        data = self.db_manager.fetch_one("""
-            SELECT t.full_name, p.amount, p.method, p.transaction_ref,
-                   i.id, i.total_amount, i.status, a.unit_number, a.city
-            FROM payments p
-            JOIN invoices i ON p.invoice_id = i.id
-            JOIN tenants t ON i.tenant_id = t.user_id
-            JOIN apartments a ON t.apartment_id = a.id
-            WHERE p.id = ?
-        """, (payment_id,))
-
-        if not data:
-            raise Exception("Payment receipt not found")
-
-        return {
-            "tenant_name": data[0],
-            "amount": data[1],
-            "method": data[2],
-            "reference": data[3] if data[3] else "N/A",
-            "invoice_id": data[4],
-            "invoice_total": data[5],
-            "invoice_status": data[6],
-            "unit": data[7],
-            "city": data[8],
-        }
