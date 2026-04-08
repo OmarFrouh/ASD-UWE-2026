@@ -122,9 +122,9 @@ All 4 members done. **133 automated tests, all passing.**
 | Requirement | Brief Reference | Owner | Guide | Status |
 |-------------|----------------|-------|-------|--------|
 | DB + Seed + Tests foundation | — | Omar | `SPRINT3_OMAR.md` | ✅ DONE — pushed to `dev` |
-| Update tenant info (edit records) | "adding, **updating**, and removing" | Feras | `SPRINT3_FERAS.md` | ⬜ Pull `dev`, start `feature/tenant-sprint3` |
-| 1-month notice period | "they must give 1 month notice" | Feras | `SPRINT3_FERAS.md` | ⬜ Pull `dev`, start `feature/tenant-sprint3` |
-| Complaint logs | "complaint logs" under Tenant Mgmt | Feras | `SPRINT3_FERAS.md` | ⬜ Pull `dev`, start `feature/tenant-sprint3` |
+| Update tenant info (edit records) | "adding, **updating**, and removing" | Feras | `SPRINT3_FERAS.md` | ✅ DONE — `feature/tenant-sprint3` reviewed & approved |
+| 1-month notice period | "they must give 1 month notice" | Feras | `SPRINT3_FERAS.md` | ✅ DONE — `feature/tenant-sprint3` reviewed & approved |
+| Complaint logs | "complaint logs" under Tenant Mgmt | Feras | `SPRINT3_FERAS.md` | ✅ DONE — `feature/tenant-sprint3` reviewed & approved |
 | Billing/dues receipts | "generating the billing/dues receipts" | Ahmed | `SPRINT3_AHMED.md` | ⬜ Pull `dev`, start `feature/finance-sprint3` |
 | Testing Document PDF + edge-case tests | Element 3 (10 marks) | Numair | `SPRINT3_NUMAIR.md` | ⬜ Pull `dev`, start `feature/testing-sprint3` |
 
@@ -135,13 +135,12 @@ All 4 members done. **133 automated tests, all passing.**
   - These tests **intentionally fail** until Feras/Ahmed implement the methods — that's the TDD contract
   - Run `python3 -m unittest tests.test_sprint3 -v` to see which methods still need implementing
 
-**What Feras must implement** (`tenant_manager.py`, `views/tenant_view.py`):
-- `get_tenant_by_id(tenant_user_id)` → tuple of 15 fields
-- `update_tenant(tenant_user_id, full_name=None, phone=None, email=None, ...)` → validates Active status
-- `early_termination()` → change return from `float` to `{"penalty": float, "effective_date": str}` (30 days notice)
-- `log_complaint(tenant_id, subject, description)`, `get_all_complaints()`, `get_complaints_for_tenant(tenant_id)`, `resolve_complaint(complaint_id)`
-- UI: Edit Tenant tab (load by ID, editable fields, read-only NI/lease), Complaints tab (log/view/resolve)
-- UI: Update `do_early_termination()` to use dict return and show notice date
+**Feras — DONE ✅** (`feature/tenant-sprint3` reviewed & approved by Omar on 8 Apr, ready to merge):
+- `get_tenant_by_id()`, `update_tenant()`, modified `early_termination()` → dict return with 30-day notice
+- `log_complaint()`, `get_all_complaints()`, `get_complaints_for_tenant()`, `resolve_complaint()`
+- UI: Edit Tenant tab + Complaints tab added to `TenantView`
+- `tests/test_tenant_manager.py` Step 8 fix already included (dict return)
+- **27/31 Sprint 3 tests pass** — 5 billing receipt tests fail (expected, Ahmed's job)
 
 **What Ahmed must implement** (`payment_manager.py`, `views/payment_view.py`):
 - `record_payment()` → change `return True` to `return payment_id` (capture `cursor.lastrowid`)
@@ -152,9 +151,7 @@ All 4 members done. **133 automated tests, all passing.**
 - 16 edge-case tests: complaints isolation, update field targeting, notice period boundaries
 - Testing Document PDF (Element 3, 10 marks) — see `SPRINT3_NUMAIR.md` for required format
 
-**Post-merge Omar task (Step 8):**
-- After Feras's PR merges: update `tests/test_tenant_manager.py` line:
-  `penalty = self.tenant.early_termination(user_id)` → `result = ...; penalty = result["penalty"]`
+**Post-merge Omar task (Step 8): ✅ Already done by Feras in his PR** — no action needed after merge.
 
 **Target after all PRs merged:** ~200 automated tests total
 
@@ -167,24 +164,14 @@ All 4 members done. **133 automated tests, all passing.**
 
 ---
 
-## Current Dev Branch State (as of Apr 7 2026)
+## Current Dev Branch State (as of Apr 8 2026)
 
-**Branch:** `dev` — Sprint 3 foundation pushed, awaiting Feras/Ahmed/Numair PRs  
-**Tests:** 133/133 existing passing + 36 Sprint 3 tests added (currently failing — expected until Feras/Ahmed implement)  
-**Last commit:** Sprint 3 (Omar): complaints table, seed data, Sprint 3 test suite (36 tests)
-
-Recent commits on dev (newest first):
-```
-[Sprint 3 push]  Sprint 3 (Omar): complaints table, seed data, Sprint 3 test suite (36 tests)
-aba079e  Docs (Omar): update CLAUDE.md — Sprint 2 complete, Sprint 3 roadmap
-05edf63  Fix (Omar): clearer error when generating invoice with no monthly rent
-567baf7  Fix (Omar): add outer scrolling to all form-heavy views
-f393c9b  Fix (Omar): make app fully resizable with proper window sizing
-52fbf4d  Fix (Omar): missing * markers on required form fields system-wide
-```
+**Branch:** `dev` — Sprint 3 foundation on `dev`; Feras's PR reviewed & approved, awaiting Ahmed + Numair  
+**Tests on `dev`:** 133/133 existing passing + 36 Sprint 3 tests (27 will pass after Feras merges, 5 billing fail until Ahmed merges)  
+**`feature/tenant-sprint3`:** ✅ Reviewed, approved, ready to merge
 
 **Next actions for team:**
-- **Feras**: `git checkout dev && git pull origin dev && git checkout -b feature/tenant-sprint3` → read `SPRINT3_FERAS.md`
+- **Omar**: Merge `feature/tenant-sprint3` → `dev` when ready (no conflicts expected)
 - **Ahmed**: `git checkout dev && git pull origin dev && git checkout -b feature/finance-sprint3` → read `SPRINT3_AHMED.md`
 - **Numair**: `git checkout dev && git pull origin dev && git checkout -b feature/testing-sprint3` → read `SPRINT3_NUMAIR.md`
 
@@ -194,9 +181,9 @@ f393c9b  Fix (Omar): make app fully resizable with proper window sizing
 
 | Requirement | Brief Reference | Status | Sprint | Owner |
 |-------------|----------------|--------|--------|-------|
-| Update tenant info (edit records) | "adding, **updating**, and removing" | 🔜 Sprint 3 | Sprint 3 | Feras |
-| 1-month notice period on early termination | "they must give 1 month notice" | 🔜 Sprint 3 | Sprint 3 | Feras |
-| Complaint logs | "complaint logs" under Tenant Mgmt | 🔜 Sprint 3 | Sprint 3 | Feras |
+| Update tenant info (edit records) | "adding, **updating**, and removing" | ✅ Done | Sprint 3 | Feras |
+| 1-month notice period on early termination | "they must give 1 month notice" | ✅ Done | Sprint 3 | Feras |
+| Complaint logs | "complaint logs" under Tenant Mgmt | ✅ Done | Sprint 3 | Feras |
 | Billing/dues receipts | "generating the billing/dues receipts" | 🔜 Sprint 3 | Sprint 3 | Ahmed |
 | Testing Document PDF | Element 3 (10 marks) | 🔜 Sprint 3 | Sprint 3 | Numair |
 | Notification badge (clickable, shows details) | Sprint 2 | ✅ Done | Sprint 2 | Omar |
