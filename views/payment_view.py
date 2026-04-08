@@ -117,6 +117,65 @@ class PaymentView:
         apply_row_stripes(self.rev_tree)
         autofit_columns(self.rev_tree)
 
+    def show_receipt(self, payment_id):
+        """Shows a formatted billing/dues receipt popup after recording a payment.
+        This is the brief's 'generating the billing/dues receipts' requirement."""
+        try:
+            r = self.payment_manager.get_receipt_data(payment_id)
+        except Exception:
+            return  # Silently skip if receipt data unavailable
+
+        popup = ctk.CTkToplevel()
+        popup.title("Payment Receipt")
+        popup.geometry("460x520")
+        popup.grab_set()
+
+        # ─── Header ───
+        ctk.CTkLabel(popup, text="PAMS — Payment Receipt",
+                     font=("Arial", 18, "bold")).pack(pady=(20, 3))
+        ctk.CTkLabel(popup, text="Paragon Apartment Management System",
+                     font=("Arial", 11), text_color="gray").pack(pady=(0, 10))
+        ctk.CTkLabel(popup, text="━" * 45, text_color="gray").pack()
+
+        # ─── Receipt Body ───
+        lines = [
+            ("Receipt #:", f"PAY-{r['payment_id']}"),
+            ("Date:", r["payment_date"]),
+            ("", ""),
+            ("Tenant:", r["tenant_name"]),
+            ("NI:", r["ni_number"]),
+            ("Email:", r["email"]),
+            ("Phone:", r["phone"]),
+            ("Property:", f"Unit {r['unit']}, {r['address']}"),
+            ("City:", r["city"]),
+            ("", ""),
+            ("Invoice #:", f"INV-{r['invoice_id']}"),
+            ("Invoice Total:", f"£{r['invoice_total']:.2f}"),
+            ("Amount Paid:", f"£{r['amount']:.2f}"),
+            ("Method:", r["method"]),
+            ("Reference:", r["reference"]),
+            ("", ""),
+            ("Invoice Status:", r["invoice_status"]),
+        ]
+
+        body_frame = ctk.CTkFrame(popup, fg_color="transparent")
+        body_frame.pack(fill="x", padx=30, pady=5)
+
+        for label, value in lines:
+            if not label and not value:
+                ctk.CTkLabel(body_frame, text="").pack()
+                continue
+            row = ctk.CTkFrame(body_frame, fg_color="transparent")
+            row.pack(fill="x")
+            ctk.CTkLabel(row, text=label, font=("Arial", 12), text_color="gray",
+                         width=120, anchor="e").pack(side="left")
+            ctk.CTkLabel(row, text=value, font=("Arial", 12, "bold"),
+                         anchor="w").pack(side="left", padx=(10, 0))
+
+        # ─── Footer ───
+        ctk.CTkLabel(popup, text="━" * 45, text_color="gray").pack(pady=(10, 0))
+        ctk.CTkButton(popup, text="Close", command=popup.destroy, width=120).pack(pady=15)
+
     def record(self):
         iid = self.inv_id_entry.get()
         amt = self.pay_amount_entry.get()
@@ -128,11 +187,11 @@ class PaymentView:
             return
 
         try:
-            self.payment_manager.record_payment(int(iid), float(amt), method, ref)
-            messagebox.showinfo("Success", "Payment recorded!")
+            payment_id = self.payment_manager.record_payment(int(iid), float(amt), method, ref)
             for e in [self.inv_id_entry, self.pay_amount_entry, self.ref_entry]:
                 e.delete(0, 'end')
             self.refresh()
+            self.show_receipt(payment_id)
         except ValueError:
             messagebox.showerror("Error", "Invoice ID and Amount must be valid numbers.")
         except Exception as e:
