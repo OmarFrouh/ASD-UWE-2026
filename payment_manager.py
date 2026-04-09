@@ -36,6 +36,7 @@ class PaymentManager:
                 INSERT INTO payments (invoice_id, amount, payment_date, method, transaction_ref)
                 VALUES (?, ?, ?, ?, ?)
             """, (invoice_id, amount, today, method, transaction_ref))
+            payment_id = cursor.lastrowid
 
             # Check within same transaction if now fully paid
             cursor.execute("SELECT SUM(amount) FROM payments WHERE invoice_id=?", (invoice_id,))
@@ -50,7 +51,7 @@ class PaymentManager:
         finally:
             conn.close()
 
-        return True
+        return payment_id
 
     def get_all_payments(self):
         return self.db_manager.fetch_all("""
@@ -103,3 +104,40 @@ class PaymentManager:
             ORDER BY month DESC
             LIMIT 6
         """)
+
+    def get_receipt_data(self, payment_id):
+        """Returns formatted receipt data for a payment.
+        Brief: 'generating the billing/dues receipts'
+        Returns: dict with all fields needed for a receipt popup."""
+        row = self.db_manager.fetch_one("""
+            SELECT p.id, p.amount, p.payment_date, p.method, p.transaction_ref,
+                   i.id, i.total_amount, i.issue_date, i.due_date, i.status,
+                   t.full_name, t.ni_number, t.email, t.phone_number,
+                   a.unit_number, a.address, a.city
+            FROM payments p
+            JOIN invoices i ON p.invoice_id = i.id
+            JOIN tenants t ON i.tenant_id = t.user_id
+            LEFT JOIN apartments a ON t.apartment_id = a.id
+            WHERE p.id=?
+        """, (payment_id,))
+        if not row:
+            raise Exception("Payment not found")
+        return {
+            "payment_id": row[0],
+            "amount": row[1],
+            "payment_date": row[2],
+            "method": row[3],
+            "reference": row[4] or "N/A",
+            "invoice_id": row[5],
+            "invoice_total": row[6],
+            "issue_date": row[7],
+            "due_date": row[8],
+            "invoice_status": row[9],
+            "tenant_name": row[10],
+            "ni_number": row[11],
+            "email": row[12] or "N/A",
+            "phone": row[13] or "N/A",
+            "unit": row[14] or "N/A",
+            "address": row[15] or "N/A",
+            "city": row[16] or "N/A",
+        }
