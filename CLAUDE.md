@@ -125,35 +125,31 @@ All 4 members done. **133 automated tests, all passing.**
 | Update tenant info (edit records) | "adding, **updating**, and removing" | Feras | `SPRINT3_FERAS.md` | ✅ DONE — `feature/tenant-sprint3` reviewed & approved |
 | 1-month notice period | "they must give 1 month notice" | Feras | `SPRINT3_FERAS.md` | ✅ DONE — `feature/tenant-sprint3` reviewed & approved |
 | Complaint logs | "complaint logs" under Tenant Mgmt | Feras | `SPRINT3_FERAS.md` | ✅ DONE — `feature/tenant-sprint3` reviewed & approved |
-| Billing/dues receipts | "generating the billing/dues receipts" | Ahmed | `SPRINT3_AHMED.md` | ⬜ Pull `dev`, start `feature/finance-sprint3` |
+| Billing/dues receipts | "generating the billing/dues receipts" | Ahmed | `SPRINT3_AHMED.md` | ✅ DONE — `feature/finance-sprint3` merged to `dev` (9 Apr) |
 | Testing Document PDF + edge-case tests | Element 3 (10 marks) | Numair | `SPRINT3_NUMAIR.md` | ⬜ Pull `dev`, start `feature/testing-sprint3` |
 
-**What's already on `dev` (Omar — DONE):**
-- `complaints` table in `database_manager.py` (8th table, `IF NOT EXISTS` — safe for all)
-- 2 seeded test complaints in `seed_db.py` (John: Open, Sarah: Resolved)
-- `tests/test_sprint3.py` — 36 tests defining the contracts for all Sprint 3 features
-  - These tests **intentionally fail** until Feras/Ahmed implement the methods — that's the TDD contract
-  - Run `python3 -m unittest tests.test_sprint3 -v` to see which methods still need implementing
+**What's on `dev` (fully merged as of 9 Apr):**
+- `complaints` table + seed data + `tests/test_sprint3.py` (Omar) ✅
+- Edit Tenant tab, Complaints tab, 1-month notice, all complaint methods (Feras — merged 8 Apr) ✅
+- Billing receipt popup, `get_receipt_data()`, `record_payment()` → payment_id, 8 Ahmed tests (Ahmed — merged 9 Apr) ✅
+- `tests/test_sprint3.py`: **all 32 Sprint 3 tests now passing** ✅
 
-**Feras — DONE ✅** (`feature/tenant-sprint3` reviewed & approved by Omar on 8 Apr, ready to merge):
+**Feras — DONE ✅** (merged to `dev` 8 Apr):
 - `get_tenant_by_id()`, `update_tenant()`, modified `early_termination()` → dict return with 30-day notice
 - `log_complaint()`, `get_all_complaints()`, `get_complaints_for_tenant()`, `resolve_complaint()`
-- UI: Edit Tenant tab + Complaints tab added to `TenantView`
-- `tests/test_tenant_manager.py` Step 8 fix already included (dict return)
-- **27/31 Sprint 3 tests pass** — 5 billing receipt tests fail (expected, Ahmed's job)
+- UI: Edit Tenant tab + Complaints tab in `TenantView`; `test_tenant_manager.py` Step 8 fix included
 
-**What Ahmed must implement** (`payment_manager.py`, `views/payment_view.py`):
-- `record_payment()` → change `return True` to `return payment_id` (capture `cursor.lastrowid`)
-- `get_receipt_data(payment_id)` → returns dict with 17 fields (tenant, property, invoice, payment)
-- UI: `show_receipt(payment_id)` popup in `PaymentView`, called from `record()` instead of messagebox
+**Ahmed — DONE ✅** (merged to `dev` 9 Apr):
+- `record_payment()` → returns `payment_id`; `get_receipt_data()` → 17-field dict with LEFT JOIN
+- UI: `show_receipt()` popup replaces success messagebox in `record()`
+- `tests/test_ahmed_sprint3.py` — 8 edge-case tests
 
 **What Numair must implement** (`tests/test_numair_sprint3.py`):
 - 16 edge-case tests: complaints isolation, update field targeting, notice period boundaries
 - Testing Document PDF (Element 3, 10 marks) — see `SPRINT3_NUMAIR.md` for required format
 
-**Post-merge Omar task (Step 8): ✅ Already done by Feras in his PR** — no action needed after merge.
-
-**Target after all PRs merged:** ~200 automated tests total
+**Current test count on `dev`:** 133 existing + 32 Sprint 3 + 8 Ahmed = **~173 tests passing**  
+**Target after Numair merges:** ~189 tests (173 + 16 edge-case)
 
 ### Sprint 4 — UPCOMING (Apr 19–22): Submission prep
 - Merge dev → main
@@ -164,16 +160,15 @@ All 4 members done. **133 automated tests, all passing.**
 
 ---
 
-## Current Dev Branch State (as of Apr 8 2026)
+## Current Dev Branch State (as of Apr 9 2026)
 
-**Branch:** `dev` — Sprint 3 foundation on `dev`; Feras's PR reviewed & approved, awaiting Ahmed + Numair  
-**Tests on `dev`:** 133/133 existing passing + 36 Sprint 3 tests (27 will pass after Feras merges, 5 billing fail until Ahmed merges)  
-**`feature/tenant-sprint3`:** ✅ Reviewed, approved, ready to merge
+**Branch:** `dev` — Feras + Ahmed both merged; waiting on Numair only  
+**Tests on `dev`:** ~173 passing (133 existing + 32 Sprint 3 + 8 Ahmed edge-cases)  
+**Last merges:** PR #26 (Feras, 8 Apr) + PR #27 (Ahmed, 9 Apr)
 
 **Next actions for team:**
-- **Omar**: Merge `feature/tenant-sprint3` → `dev` when ready (no conflicts expected)
-- **Ahmed**: `git checkout dev && git pull origin dev && git checkout -b feature/finance-sprint3` → read `SPRINT3_AHMED.md`
 - **Numair**: `git checkout dev && git pull origin dev && git checkout -b feature/testing-sprint3` → read `SPRINT3_NUMAIR.md`
+- **Omar**: Review + merge `feature/testing-sprint3` when Numair pushes, then merge `dev` → `main`
 
 ---
 
@@ -184,7 +179,7 @@ All 4 members done. **133 automated tests, all passing.**
 | Update tenant info (edit records) | "adding, **updating**, and removing" | ✅ Done | Sprint 3 | Feras |
 | 1-month notice period on early termination | "they must give 1 month notice" | ✅ Done | Sprint 3 | Feras |
 | Complaint logs | "complaint logs" under Tenant Mgmt | ✅ Done | Sprint 3 | Feras |
-| Billing/dues receipts | "generating the billing/dues receipts" | 🔜 Sprint 3 | Sprint 3 | Ahmed |
+| Billing/dues receipts | "generating the billing/dues receipts" | ✅ Done | Sprint 3 | Ahmed |
 | Testing Document PDF | Element 3 (10 marks) | 🔜 Sprint 3 | Sprint 3 | Numair |
 | Notification badge (clickable, shows details) | Sprint 2 | ✅ Done | Sprint 2 | Omar |
 | Monthly revenue in Financial Summary | Sprint 2 | ✅ Done | Sprint 2 | Ahmed |
