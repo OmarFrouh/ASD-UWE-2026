@@ -2,10 +2,9 @@
 # Student ID: 24026758
 
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from tests.test_base import BaseTest
 from tenant_manager import TenantManager
-from payment_manager import PaymentManager
 import bcrypt
 
 
@@ -181,6 +180,12 @@ class TestEarlyTerminationNoticeEdgeCases(BaseTest):
         self.assertIsInstance(result, dict)
         self.assertIsInstance(result["penalty"], float)
         self.assertIsInstance(result["effective_date"], str)
+
+    def test_effective_date_is_30_days_from_today(self):
+        """Notice period effective date must be exactly 30 days from today."""
+        result = self.tm.early_termination(1)
+        expected = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+        self.assertEqual(result["effective_date"], expected)
 
 
 if __name__ == "__main__":
