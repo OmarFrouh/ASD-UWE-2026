@@ -1,5 +1,5 @@
-# Shared UI helpers for PAMS views
-# Student: Omar Alfrouh
+# Student Name: Omar Alfrouh
+# Student ID: 24020879
 
 import tkinter as tk
 from tkinter import ttk
