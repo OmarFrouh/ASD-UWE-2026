@@ -147,10 +147,10 @@ All 4 members done. **189 tests total, all passing.** Guides in `guides/sprint3/
 | 2 | Fix 10 `[YOUR_ID]` headers on Omar root/view files | Element 2 requirement | Omar | ✅ DONE — 13 Apr (PR #29) |
 | 3 | Fix 7 missing headers on `tests/*.py` + correct Ahmed/Numair test headers | Element 2 requirement | Omar | ✅ DONE — 13 Apr (PR #29) |
 | 4 | Update root `README.md` (full team, setup, test accounts) | Element 2 | Omar | ✅ DONE — 13 Apr (PR #29) |
-| 5 | Write `README.txt` with run instructions + passwords | Element 2 | Omar | ⬜ TODO |
+| 5 | Write `README.txt` with run instructions + passwords | Element 2 | Omar | ✅ DONE — 16 Apr |
 | 6 | Refresh `requirements.txt` from venv | Element 2 | Omar | ✅ DONE — 13 Apr (PR #29) |
 | 7 | Regenerate `pams.db` via `seed_db.py` | Element 2 | Omar | ⬜ Do just before ZIP |
-| 8 | Merge `feature/sprint4-submission` → `dev` → `main`, tag `submission-final` | Process | Omar | ⬜ TODO (after Step 5) |
+| 8 | Merge `feature/sprint4-submission` → `dev` → `main`, tag `submission-final` | Process | Omar | ⬜ TODO — PR #29 ready to merge |
 | 9 | Build submission ZIP `Group28_<StudentID>.zip` | Process | Omar | ⬜ TODO |
 | 10 | **Testing Document PDF** (test case table + screenshots) | Element 3 (10 marks) | Numair | ⬜ TODO |
 | 11 | **Agile Practices Report PDF** (methodology + contributions) | Element 2 | Omar compiles + all 4 write own section | ⬜ TODO |
@@ -175,13 +175,13 @@ Note: `tests/test_ahmed_sprint2.py` and `tests/test_numair_sprint2.py` were also
 
 ---
 
-## Current Dev Branch State (as of Apr 13 2026)
+## Current Dev Branch State (as of Apr 16 2026)
 
-**Branch:** `feature/sprint4-submission` (open PR → `dev`) — Sprint 4 in progress  
+**Branch:** `feature/sprint4-submission` (open PR #29 → `dev`) — 2 commits ahead of dev  
 **Tests:** 189 passing on `dev`  
-**Sprint 4 progress:** Steps 2, 3, 4, 6 done (PR #29 open). Step 1 (diagrams) next for Omar.  
+**Sprint 4 progress:** Steps 2, 3, 4, 5, 6 done. Step 1 (diagrams) is next — `pmas.asta` ready to open in Astah.  
 **Last merges:** PR #26 (Feras), PR #27 (Ahmed), PR #28 (Numair)  
-**Pending PRs:** PR #29 `feature/sprint4-submission` → `dev` (open, awaiting Omar merge)
+**Pending PRs:** PR #29 `feature/sprint4-submission` → `dev` (ready to merge — all Sprint 4 file work done)
 
 ---
 
@@ -202,9 +202,9 @@ Note: `tests/test_ahmed_sprint2.py` and `tests/test_numair_sprint2.py` were also
 | **UML diagrams PDF** (use case + class + ≥3 sequence) | Element 1 (35 marks) | 🔜 Sprint 4 | Sprint 4 | Omar |
 | **Testing Document PDF** (manual cases + screenshots + automated results) | Element 3 (10 marks) | 🔜 Sprint 4 | Sprint 4 | Numair |
 | **Agile Practices Report PDF** (methodology + contributions + git evidence) | Element 2 | 🔜 Sprint 4 | Sprint 4 | Omar compiles + team writes own sections |
-| Student ID headers on all `.py` files | Element 2 | 🔜 Sprint 4 | Sprint 4 | Omar |
-| `README.txt` with run instructions + test passwords | Element 2 | 🔜 Sprint 4 | Sprint 4 | Omar |
-| `requirements.txt` refreshed from `pip list` | Element 2 | 🔜 Sprint 4 | Sprint 4 | Omar |
+| Student ID headers on all `.py` files | Element 2 | ✅ Done — 13 Apr | Sprint 4 | Omar |
+| `README.txt` with run instructions + test passwords | Element 2 | ✅ Done — 16 Apr | Sprint 4 | Omar |
+| `requirements.txt` refreshed from `pip list` | Element 2 | ✅ Done — 13 Apr | Sprint 4 | Omar |
 | Merge `dev` → `main`, tag `submission-final` | Process | 🔜 Sprint 4 | Sprint 4 | Omar |
 | Submission ZIP `Group28_<StudentID>.zip` + individual Blackboard upload | Process | 🔜 Sprint 4 | Sprint 4 | All 4 |
 | Demo/viva rehearsal | Task 2 (25 marks) | 🔜 Sprint 4 | Sprint 4 | All 4 |
@@ -214,10 +214,10 @@ Note: `tests/test_ahmed_sprint2.py` and `tests/test_numair_sprint2.py` were also
 ## Submission Checklist (from brief.md)
 
 - [ ] **ONE PDF** with all UML diagrams (use case + class + ≥3 sequence) — exported from `pmas.asta`
-- [ ] All `.py` source files with **student name + ID** at top of each file ← 10 Omar files still need `24020879`
-- [ ] `requirements.txt` (output of `pip list`)
-- [ ] `README.txt` — run instructions and all test passwords
-- [ ] `pams.db` — SQLite database with mock/seed data (run `seed_db.py` before packaging)
+- [x] All `.py` source files with **student name + ID** at top — ✅ done 13 Apr
+- [x] `requirements.txt` (bcrypt, customtkinter, darkdetect, packaging) — ✅ done 13 Apr
+- [x] `README.txt` — run instructions and all test passwords — ✅ done 16 Apr
+- [ ] `pams.db` — SQLite database with mock/seed data (run `seed_db.py` just before packaging)
 - [ ] **Testing document PDF** — test case table (Description / Input / Actual / Expected) + automated test screenshots
 - [ ] **Agile practices report PDF** — Scrum evidence, sprint reviews, Git log, contribution breakdown
 
