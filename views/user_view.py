@@ -2,67 +2,116 @@
 # Student ID: 24020879
 
 import customtkinter as ctk
-from tkinter import messagebox
-from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes, enable_trackpad_scroll
+from views import theme as T
+from views.ui_helpers import (
+    setup_treeview_scroll, autofit_columns, apply_row_stripes,
+    enable_trackpad_scroll, create_page_header, create_card, create_card_fill,
+    create_primary_button, create_secondary_button, create_ghost_button,
+    show_success, show_error, show_warning,
+)
+
 
 class UserView:
     def __init__(self, parent_frame, auth_manager):
         self.parent = parent_frame
         self.auth_manager = auth_manager
+        self._root = parent_frame.winfo_toplevel()
 
-        scroll = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent")
+        scroll = ctk.CTkScrollableFrame(parent_frame, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
         scroll.pack(fill="both", expand=True)
 
-        ctk.CTkLabel(scroll, text="👥 User Management", font=("Arial", 22, "bold")).pack(pady=20)
+        create_page_header(scroll, "👥 Users",
+                            subtitle="Manage staff and admin accounts")
 
-        form = ctk.CTkFrame(scroll)
-        form.pack(pady=15)
+        # ── Add User card ──
+        form_inner = create_card(scroll, title="Add User")
+        form_inner.grid_columnconfigure(1, weight=1)
 
-        ctk.CTkLabel(form, text="Create New User", font=("Arial", 16, "bold")).grid(row=0, column=0, columnspan=2, pady=15)
+        ctk.CTkLabel(form_inner, text="Username *", font=T.FONT_BODY,
+                      text_color=T.DANGER).grid(row=0, column=0, padx=(0, T.SP_M),
+                                                 pady=T.SP_S, sticky="e")
+        self.username_entry = ctk.CTkEntry(form_inner, width=280,
+                                            height=T.INPUT_HEIGHT,
+                                            fg_color=T.SURFACE_3,
+                                            border_color=T.BORDER,
+                                            text_color=T.TEXT)
+        self.username_entry.grid(row=0, column=1, pady=T.SP_S, sticky="w")
 
-        ctk.CTkLabel(form, text="Username *:", text_color="red").grid(row=1, column=0, padx=15, pady=8, sticky="e")
-        self.username_entry = ctk.CTkEntry(form, width=250)
-        self.username_entry.grid(row=1, column=1, padx=15, pady=8, sticky="w")
+        ctk.CTkLabel(form_inner, text="Password *", font=T.FONT_BODY,
+                      text_color=T.DANGER).grid(row=1, column=0, padx=(0, T.SP_M),
+                                                 pady=T.SP_S, sticky="e")
+        self.password_entry = ctk.CTkEntry(form_inner, show="•", width=280,
+                                            height=T.INPUT_HEIGHT,
+                                            fg_color=T.SURFACE_3,
+                                            border_color=T.BORDER,
+                                            text_color=T.TEXT)
+        self.password_entry.grid(row=1, column=1, pady=T.SP_S, sticky="w")
 
-        ctk.CTkLabel(form, text="Password *:", text_color="red").grid(row=2, column=0, padx=15, pady=8, sticky="e")
-        self.password_entry = ctk.CTkEntry(form, show="•", width=250)
-        self.password_entry.grid(row=2, column=1, padx=15, pady=8, sticky="w")
-
-        ctk.CTkLabel(form, text="Role *:", text_color="red").grid(row=3, column=0, padx=15, pady=8, sticky="e")
-        self.role_combo = ctk.CTkComboBox(form, values=["front_desk", "finance_manager", "maintenance", "manager", "admin"], width=250, command=self.toggle_staff_fields)
-        self.role_combo.grid(row=3, column=1, padx=15, pady=8, sticky="w")
+        ctk.CTkLabel(form_inner, text="Role *", font=T.FONT_BODY,
+                      text_color=T.DANGER).grid(row=2, column=0, padx=(0, T.SP_M),
+                                                  pady=T.SP_S, sticky="e")
+        self.role_combo = ctk.CTkComboBox(
+            form_inner,
+            values=["front_desk", "finance_manager", "maintenance", "manager", "admin"],
+            width=280, height=T.INPUT_HEIGHT,
+            fg_color=T.SURFACE_3, border_color=T.BORDER,
+            button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
+            text_color=T.TEXT,
+            command=self.toggle_staff_fields
+        )
+        self.role_combo.grid(row=2, column=1, pady=T.SP_S, sticky="w")
         self.role_combo.set("front_desk")
 
-        self.lbl_empid = ctk.CTkLabel(form, text="Employee ID *:", text_color="red")
-        self.entry_empid = ctk.CTkEntry(form, width=250)
-        self.lbl_dept = ctk.CTkLabel(form, text="Department:")
-        self.entry_dept = ctk.CTkEntry(form, width=250)
-
+        self.lbl_empid  = ctk.CTkLabel(form_inner, text="Employee ID *",
+                                        font=T.FONT_BODY, text_color=T.DANGER)
+        self.entry_empid = ctk.CTkEntry(form_inner, width=280,
+                                         height=T.INPUT_HEIGHT,
+                                         fg_color=T.SURFACE_3,
+                                         border_color=T.BORDER,
+                                         text_color=T.TEXT)
+        self.lbl_dept   = ctk.CTkLabel(form_inner, text="Department",
+                                        font=T.FONT_BODY, text_color=T.TEXT_MUTED)
+        self.entry_dept  = ctk.CTkEntry(form_inner, width=280,
+                                         height=T.INPUT_HEIGHT,
+                                         fg_color=T.SURFACE_3,
+                                         border_color=T.BORDER,
+                                         text_color=T.TEXT)
         self.toggle_staff_fields()
 
-        ctk.CTkButton(form, text="Create User", command=self.create_user, width=250).grid(row=6, column=0, columnspan=2, pady=20)
+        btn = create_primary_button(form_inner, "Create User",
+                                     self.create_user, width=280)
+        btn.grid(row=6, column=0, columnspan=2, pady=T.SP_L)
 
-        # ─── User List ───
-        list_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        list_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        # ── All Users card ──
+        list_inner = create_card_fill(scroll, title="All Users")
 
-        header = ctk.CTkFrame(list_frame, fg_color="transparent")
-        header.pack(fill="x", pady=(0, 6))
-        ctk.CTkLabel(header, text="All Users", font=("Arial", 15, "bold")).pack(side="left")
-        ctk.CTkButton(header, text="Refresh", command=self.refresh_list, width=90).pack(side="right")
+        toolbar = ctk.CTkFrame(list_inner, fg_color="transparent")
+        toolbar.pack(fill="x", pady=(0, T.SP_S))
+        refresh_btn = create_ghost_button(toolbar, "⟳  Refresh", self.refresh_list)
+        refresh_btn.pack(side="right")
 
         cols = ("ID", "Username", "Role", "Employee ID", "Department", "Created", "Last Login")
-        self.tree = setup_treeview_scroll(list_frame, columns=cols, col_widths=[40, 120, 130, 110, 120, 140, 140], height=10)
+        self.tree = setup_treeview_scroll(
+            list_inner, columns=cols,
+            col_widths=[40, 120, 130, 110, 120, 140, 140],
+            height=10,
+            status_columns=["Role"],
+        )
         self.refresh_list()
         scroll.after(200, lambda: enable_trackpad_scroll(scroll))
 
+        # Ctrl+F focuses search (no search bar here, focuses username instead)
+        scroll.winfo_toplevel().bind("<Control-f>",
+                                     lambda e: self.username_entry.focus_set())
+
     def toggle_staff_fields(self, *args):
         role = self.role_combo.get()
-        if role in ["manager", "maintenance", "front_desk", "finance_manager"]:
-            self.lbl_empid.grid(row=4, column=0, padx=15, pady=8, sticky="e")
-            self.entry_empid.grid(row=4, column=1, padx=15, pady=8, sticky="w")
-            self.lbl_dept.grid(row=5, column=0, padx=15, pady=8, sticky="e")
-            self.entry_dept.grid(row=5, column=1, padx=15, pady=8, sticky="w")
+        if role in ("manager", "maintenance", "front_desk", "finance_manager"):
+            self.lbl_empid.grid(row=3, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
+            self.entry_empid.grid(row=3, column=1, pady=T.SP_S, sticky="w")
+            self.lbl_dept.grid(row=4, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
+            self.entry_dept.grid(row=4, column=1, pady=T.SP_S, sticky="w")
         else:
             self.lbl_empid.grid_remove()
             self.entry_empid.grid_remove()
@@ -78,20 +127,21 @@ class UserView:
         autofit_columns(self.tree)
 
     def create_user(self):
-        username = self.username_entry.get()
-        password = self.password_entry.get()
-        role = self.role_combo.get()
+        username   = self.username_entry.get()
+        password   = self.password_entry.get()
+        role       = self.role_combo.get()
         employee_id = self.entry_empid.get()
-        department = self.entry_dept.get()
+        department  = self.entry_dept.get()
 
         if not username or not password:
-            messagebox.showwarning("Error", "Username and password required.")
+            show_warning(self._root, "Username and password are required.")
             return
         try:
             self.auth_manager.create_user(username, password, role, employee_id, department)
-            messagebox.showinfo("Success", f"User '{username}' created!")
-            for e in [self.username_entry, self.password_entry, self.entry_empid, self.entry_dept]:
-                e.delete(0, 'end')
+            show_success(self._root, f"User '{username}' created successfully.")
+            for e in [self.username_entry, self.password_entry,
+                      self.entry_empid, self.entry_dept]:
+                e.delete(0, "end")
             self.refresh_list()
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+        except Exception as ex:
+            show_error(self._root, str(ex))
