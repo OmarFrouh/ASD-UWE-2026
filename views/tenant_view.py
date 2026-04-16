@@ -11,7 +11,7 @@ from views.ui_helpers import (
     create_page_header, create_card, create_card_fill,
     create_primary_button, create_secondary_button,
     create_danger_button, create_warning_button, create_success_button,
-    create_ghost_button, create_section_divider,
+    create_ghost_button,
     show_success, show_error, show_warning,
     confirm_dialog,
 )
@@ -142,22 +142,32 @@ class TenantView:
         inner.grid_columnconfigure(0, minsize=160)
         inner.grid_columnconfigure(1, weight=1)
 
+        def _grid_section(label, grid_row):
+            """Grid-compatible section header — spans both columns."""
+            ctk.CTkLabel(inner, text=label, font=T.FONT_CAPTION_B,
+                          text_color=T.TEXT_SUBTLE).grid(
+                row=grid_row, column=0, columnspan=2,
+                padx=T.SP_M, pady=(T.SP_L, T.SP_XS), sticky="w")
+            tk.Frame(inner, bg=T.BORDER, height=1).grid(
+                row=grid_row + 1, column=0, columnspan=2,
+                sticky="ew", padx=T.SP_M, pady=(0, T.SP_XS))
+
         required_keys = {"ni", "name", "username", "password"}
         fields = [
-            ("NI Number",              "ni"),
-            ("Full Name",              "name"),
-            ("Phone",                  "phone"),
-            ("Email",                  "email"),
-            ("Occupation",             "occupation"),
-            ("References",             "refs"),
-            ("Emergency Contact",      "emergency"),
-            ("Apt. Requirements",      "apt_req"),
+            ("NI Number",         "ni"),
+            ("Full Name",         "name"),
+            ("Phone",             "phone"),
+            ("Email",             "email"),
+            ("Occupation",        "occupation"),
+            ("References",        "refs"),
+            ("Emergency Contact", "emergency"),
+            ("Apt. Requirements", "apt_req"),
         ]
 
         self.entries = {}
         row = 0
 
-        create_section_divider(inner, "Personal Information")
+        _grid_section("Personal Information", row); row += 2
 
         for label, key in fields:
             req = key in required_keys
@@ -172,7 +182,7 @@ class TenantView:
             self.entries[key] = e
             row += 1
 
-        create_section_divider(inner, "Account")
+        _grid_section("Account", row); row += 2
 
         for label, key in [("Username (login)", "username"), ("Password", "password")]:
             ctk.CTkLabel(inner, text=label + " *", font=T.FONT_BODY,
@@ -190,6 +200,7 @@ class TenantView:
         btn.grid(row=row, column=0, columnspan=2, pady=T.SP_L, padx=T.SP_M, sticky="ew")
 
         scroll.after(200, lambda: enable_trackpad_scroll(scroll))
+
 
     # ── Edit Tenant ───────────────────────────────────────────────────────────
 
