@@ -8,7 +8,7 @@ from views import theme as T
 from views.ui_helpers import (
     setup_treeview_scroll, autofit_columns, apply_row_stripes,
     enable_trackpad_scroll,
-    create_page_header, create_card, create_card_fill,
+    create_page_header, create_card, create_card_fill, create_tabview,
     create_primary_button, create_secondary_button,
     create_danger_button, create_warning_button, create_success_button,
     create_ghost_button,
@@ -30,16 +30,7 @@ class TenantView:
         create_page_header(self.frame, "👤 Tenants",
                             subtitle="Register, manage, and archive tenants")
 
-        self.tabview = ctk.CTkTabview(self.frame,
-                                       fg_color=T.SURFACE,
-                                       segmented_button_fg_color=T.SURFACE_2,
-                                       segmented_button_selected_color=T.PRIMARY,
-                                       segmented_button_selected_hover_color=T.PRIMARY_HOVER,
-                                       segmented_button_unselected_color=T.SURFACE_2,
-                                       segmented_button_unselected_hover_color=T.SURFACE_3,
-                                       text_color=T.TEXT)
-        self.tabview.pack(fill="both", expand=True,
-                          padx=T.SP_XL, pady=(0, T.SP_XL))
+        self.tabview = create_tabview(self.frame)
 
         self.tab_list      = self.tabview.add("Active Tenants")
         self.tab_archived  = self.tabview.add("Archived / Terminated")

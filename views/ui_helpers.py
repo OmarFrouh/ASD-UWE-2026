@@ -412,6 +412,39 @@ def create_card_fill(parent, title=None, padding=None):
     return inner
 
 
+def create_tabview(parent, **kwargs):
+    """
+    Card-wrapped CTkTabview.
+
+    Wraps the native CTkTabview in a bordered card shell so tab groups have the
+    same visual weight as the rest of the card-based UI. Returns the CTkTabview
+    so callers can call .add() and .tab() on it exactly as before.
+    """
+    card = ctk.CTkFrame(parent,
+                        fg_color=T.SURFACE,
+                        corner_radius=T.RADIUS_MD,
+                        border_width=1,
+                        border_color=T.BORDER)
+    card.pack(fill="both", expand=True, padx=T.SP_XL, pady=T.SP_M)
+
+    tv = ctk.CTkTabview(
+        card,
+        fg_color=T.SURFACE,
+        segmented_button_fg_color=T.SURFACE_2,
+        segmented_button_selected_color=T.PRIMARY,
+        segmented_button_selected_hover_color=T.PRIMARY_HOVER,
+        segmented_button_unselected_color=T.SURFACE_2,
+        segmented_button_unselected_hover_color=T.SURFACE_3,
+        text_color=T.TEXT,
+        text_color_disabled=T.TEXT_SUBTLE,
+        **kwargs,
+    )
+    tv.pack(fill="both", expand=True, padx=T.SP_XS, pady=T.SP_XS)
+    return tv
+
+
+
+
 def create_kpi_tile(parent, label, value, kind="neutral"):
     """Dashboard/report KPI tile. kind: neutral|primary|success|warning|danger|info."""
     color_map = {

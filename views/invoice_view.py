@@ -8,7 +8,7 @@ from invoice_manager import InvoiceManager
 from views import theme as T
 from views.ui_helpers import (
     setup_treeview_scroll, autofit_columns, apply_row_stripes,
-    create_page_header, create_card, create_card_fill,
+    create_page_header, create_card, create_card_fill, create_tabview,
     create_primary_button, create_ghost_button,
     show_success, show_error, show_warning,
     create_empty_state,
@@ -27,15 +27,7 @@ class InvoiceView:
         create_page_header(frame, "💰 Invoices",
                             subtitle="Generate and track tenant invoices")
 
-        self.tabview = ctk.CTkTabview(frame,
-                                       fg_color=T.SURFACE,
-                                       segmented_button_fg_color=T.SURFACE_2,
-                                       segmented_button_selected_color=T.PRIMARY,
-                                       segmented_button_selected_hover_color=T.PRIMARY_HOVER,
-                                       segmented_button_unselected_color=T.SURFACE_2,
-                                       segmented_button_unselected_hover_color=T.SURFACE_3,
-                                       text_color=T.TEXT)
-        self.tabview.pack(fill="both", expand=True, padx=T.SP_XL, pady=(0, T.SP_XL))
+        self.tabview = create_tabview(frame)
 
         tab_gen    = self.tabview.add("Generate Invoice")
         tab_list   = self.tabview.add("All Invoices")
