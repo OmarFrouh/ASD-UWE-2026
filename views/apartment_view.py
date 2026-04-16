@@ -10,6 +10,8 @@ from views.ui_helpers import (
     show_success, show_error,
 )
 
+_LBL_W = 110
+
 
 class ApartmentView:
     def __init__(self, parent, property_manager):
@@ -25,41 +27,51 @@ class ApartmentView:
 
         # ── Add Apartment card ──
         inner = create_card(frame, title="Add Apartment")
-        inner.grid_columnconfigure((1, 3), weight=1)
+        # 4-col grid: lbl | entry | lbl | entry  both entry cols expand equally
+        inner.grid_columnconfigure(0, minsize=_LBL_W)
+        inner.grid_columnconfigure(1, weight=1)
+        inner.grid_columnconfigure(2, minsize=_LBL_W)
+        inner.grid_columnconfigure(3, weight=1)
 
-        def _entry(parent, row, col, placeholder=""):
-            e = ctk.CTkEntry(parent, width=200, height=T.INPUT_HEIGHT,
+        def _lbl(text, row, col, req=False):
+            ctk.CTkLabel(inner, text=text + (" *" if req else ""),
+                          font=T.FONT_BODY,
+                          text_color=T.DANGER if req else T.TEXT_MUTED,
+                          anchor="e").grid(
+                row=row, column=col, padx=(T.SP_M, T.SP_S),
+                pady=T.SP_S, sticky="e")
+
+        def _entry(row, col, placeholder=""):
+            e = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
                               fg_color=T.SURFACE_3, border_color=T.BORDER,
-                              text_color=T.TEXT,
-                              placeholder_text=placeholder)
-            e.grid(row=row, column=col, padx=(0, T.SP_L), pady=T.SP_S, sticky="w")
+                              text_color=T.TEXT, placeholder_text=placeholder)
+            e.grid(row=row, column=col, padx=(0, T.SP_M),
+                   pady=T.SP_S, sticky="ew")
             return e
 
-        def _lbl(parent, text, row, col, required=False):
-            ctk.CTkLabel(parent, text=text + (" *" if required else ""),
-                          font=T.FONT_BODY,
-                          text_color=T.DANGER if required else T.TEXT_MUTED).grid(
-                row=row, column=col, padx=(0, T.SP_S), pady=T.SP_S, sticky="e")
+        _lbl("Unit #",     0, 0, True); self.unit_entry    = _entry(0, 1)
+        _lbl("Address",    0, 2, True); self.address_entry = _entry(0, 3)
 
-        _lbl(inner, "Unit #",   0, 0, True);  self.unit_entry    = _entry(inner, 0, 1)
-        _lbl(inner, "Address",  0, 2, True);  self.address_entry = _entry(inner, 0, 3)
-        _lbl(inner, "City",     1, 0, True)
+        _lbl("City",       1, 0, True)
         default_cities = ["Bristol", "Cardiff", "London", "Manchester"]
         existing = self.property_manager.get_cities()
         city_options = sorted(set(default_cities + existing))
         self.city_combo = ctk.CTkComboBox(
-            inner, values=city_options, width=200, height=T.INPUT_HEIGHT,
+            inner, values=city_options, height=T.INPUT_HEIGHT,
             fg_color=T.SURFACE_3, border_color=T.BORDER,
             button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
             text_color=T.TEXT)
-        self.city_combo.grid(row=1, column=1, padx=(0, T.SP_L), pady=T.SP_S, sticky="w")
+        self.city_combo.grid(row=1, column=1, padx=(0, T.SP_M),
+                              pady=T.SP_S, sticky="ew")
         self.city_combo.set("Bristol")
-        _lbl(inner, "Rooms",    1, 2);        self.rooms_entry   = _entry(inner, 1, 3, "e.g. 2")
-        _lbl(inner, "Rent (£)", 2, 0, True);  self.rent_entry    = _entry(inner, 2, 1, "e.g. 850")
-        _lbl(inner, "Size (sqft)", 2, 2, True); self.size_entry  = _entry(inner, 2, 3, "e.g. 650")
 
-        btn = create_primary_button(inner, "Add Apartment", self.submit_apartment, width=220)
-        btn.grid(row=3, column=0, columnspan=4, pady=T.SP_L)
+        _lbl("Rooms",      1, 2);       self.rooms_entry  = _entry(1, 3, "e.g. 2")
+        _lbl("Rent (£)",   2, 0, True); self.rent_entry   = _entry(2, 1, "e.g. 850")
+        _lbl("Size (sqft)",2, 2, True); self.size_entry   = _entry(2, 3, "e.g. 650")
+
+        btn = create_primary_button(inner, "Add Apartment", self.submit_apartment)
+        btn.grid(row=3, column=0, columnspan=4, pady=T.SP_L,
+                  padx=T.SP_M, sticky="ew")
 
         # ── Apartments table ──
         list_inner = create_card_fill(frame, title="Apartments")
@@ -84,8 +96,7 @@ class ApartmentView:
             self.property_manager.add_apartment(
                 self.unit_entry.get(), self.address_entry.get(),
                 self.rent_entry.get(), self.size_entry.get(),
-                self.city_combo.get(), self.rooms_entry.get() or "1"
-            )
+                self.city_combo.get(), self.rooms_entry.get() or "1")
             show_success(self._root, "Apartment added successfully.")
             for e in [self.unit_entry, self.address_entry,
                       self.rooms_entry, self.rent_entry, self.size_entry]:

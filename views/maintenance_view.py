@@ -53,19 +53,20 @@ class MaintenanceView:
                                          scrollbar_button_color=T.SURFACE_3)
         scroll.pack(fill="both", expand=True)
         inner = create_card(scroll, title="Submit Ticket")
+        inner.grid_columnconfigure(0, minsize=120)
         inner.grid_columnconfigure(1, weight=1)
 
         def _lbl(text, row, req=False):
             ctk.CTkLabel(inner, text=text + (" *" if req else ""),
-                          font=T.FONT_BODY,
+                          font=T.FONT_BODY, anchor="e",
                           text_color=T.DANGER if req else T.TEXT_MUTED).grid(
-                row=row, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
+                row=row, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
 
         def _entry(row, placeholder=""):
-            e = ctk.CTkEntry(inner, width=280, height=T.INPUT_HEIGHT,
+            e = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
                               fg_color=T.SURFACE_3, border_color=T.BORDER,
                               text_color=T.TEXT, placeholder_text=placeholder)
-            e.grid(row=row, column=1, pady=T.SP_S, sticky="w")
+            e.grid(row=row, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
             return e
 
         _lbl("Apartment ID", 0, True); self.apt_id_entry    = _entry(0)
@@ -75,16 +76,15 @@ class MaintenanceView:
 
         self.priority_combo = ctk.CTkComboBox(
             inner, values=["Low", "Medium", "High", "Urgent"],
-            width=280, height=T.INPUT_HEIGHT,
+            height=T.INPUT_HEIGHT,
             fg_color=T.SURFACE_3, border_color=T.BORDER,
             button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
             text_color=T.TEXT)
-        self.priority_combo.grid(row=3, column=1, pady=T.SP_S, sticky="w")
+        self.priority_combo.grid(row=3, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
         self.priority_combo.set("Medium")
 
-        btn = create_primary_button(inner, "Submit Ticket",
-                                     self.submit_ticket, width=280)
-        btn.grid(row=4, column=0, columnspan=2, pady=T.SP_L)
+        btn = create_primary_button(inner, "Submit Ticket", self.submit_ticket)
+        btn.grid(row=4, column=0, columnspan=2, pady=T.SP_L, padx=T.SP_M, sticky="ew")
 
         for e in [self.apt_id_entry, self.tenant_id_entry, self.desc_entry]:
             e.bind("<Return>", lambda ev: self.submit_ticket())

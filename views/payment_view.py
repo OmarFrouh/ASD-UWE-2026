@@ -51,36 +51,37 @@ class PaymentView:
                                          scrollbar_button_color=T.SURFACE_3)
         scroll.pack(fill="both", expand=True)
         inner = create_card(scroll, title="Record Payment")
+        inner.grid_columnconfigure(0, minsize=120)
         inner.grid_columnconfigure(1, weight=1)
 
         def _lbl(t, row, req=False):
             ctk.CTkLabel(inner, text=t + (" *" if req else ""),
-                          font=T.FONT_BODY,
+                          font=T.FONT_BODY, anchor="e",
                           text_color=T.DANGER if req else T.TEXT_MUTED).grid(
-                row=row, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
+                row=row, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
 
         def _entry(row, placeholder=""):
-            e = ctk.CTkEntry(inner, width=260, height=T.INPUT_HEIGHT,
+            e = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
                               fg_color=T.SURFACE_3, border_color=T.BORDER,
                               text_color=T.TEXT, placeholder_text=placeholder)
-            e.grid(row=row, column=1, pady=T.SP_S, sticky="w")
+            e.grid(row=row, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
             return e
 
-        _lbl("Invoice ID",  0, True);   self.inv_id_entry      = _entry(0)
-        _lbl("Amount (£)", 1, True);   self.pay_amount_entry  = _entry(1, "e.g. 850.00")
+        _lbl("Invoice ID",  0, True);  self.inv_id_entry     = _entry(0)
+        _lbl("Amount (£)", 1, True);  self.pay_amount_entry = _entry(1, "e.g. 850.00")
         _lbl("Method",     2, True)
         self.method_combo = ctk.CTkComboBox(
             inner, values=["Card", "Cash", "Bank Transfer"],
-            width=260, height=T.INPUT_HEIGHT,
+            height=T.INPUT_HEIGHT,
             fg_color=T.SURFACE_3, border_color=T.BORDER,
             button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
             text_color=T.TEXT)
-        self.method_combo.grid(row=2, column=1, pady=T.SP_S, sticky="w")
+        self.method_combo.grid(row=2, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
         self.method_combo.set("Card")
-        _lbl("Reference",  3);          self.ref_entry          = _entry(3, "Optional")
+        _lbl("Reference",  3);         self.ref_entry        = _entry(3, "Optional")
 
-        btn = create_primary_button(inner, "Record Payment", self.record, width=260)
-        btn.grid(row=4, column=0, columnspan=2, pady=T.SP_L)
+        btn = create_primary_button(inner, "Record Payment", self.record)
+        btn.grid(row=4, column=0, columnspan=2, pady=T.SP_L, padx=T.SP_M, sticky="ew")
 
         for e in [self.inv_id_entry, self.pay_amount_entry, self.ref_entry]:
             e.bind("<Return>", lambda ev: self.record())

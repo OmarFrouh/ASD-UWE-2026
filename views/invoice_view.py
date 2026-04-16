@@ -55,27 +55,30 @@ class InvoiceView:
                                          scrollbar_button_color=T.SURFACE_3)
         scroll.pack(fill="both", expand=True)
         inner = create_card(scroll, title="Generate Invoice")
+        inner.grid_columnconfigure(0, minsize=140)
         inner.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(inner, text="Tenant ID *", font=T.FONT_BODY,
-                      text_color=T.DANGER).grid(row=0, column=0,
-                                                 padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-        self.tenant_id_entry = ctk.CTkEntry(inner, width=260, height=T.INPUT_HEIGHT,
+                      text_color=T.DANGER, anchor="e").grid(
+            row=0, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+        self.tenant_id_entry = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
                                              fg_color=T.SURFACE_3, border_color=T.BORDER,
                                              text_color=T.TEXT)
-        self.tenant_id_entry.grid(row=0, column=1, pady=T.SP_S, sticky="w")
+        self.tenant_id_entry.grid(row=0, column=1, pady=T.SP_S,
+                                   padx=(0, T.SP_M), sticky="ew")
 
         ctk.CTkLabel(inner, text="Amount (optional)", font=T.FONT_BODY,
-                      text_color=T.TEXT_MUTED).grid(row=1, column=0,
-                                                     padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-        self.amount_entry = ctk.CTkEntry(inner, width=260, height=T.INPUT_HEIGHT,
+                      text_color=T.TEXT_MUTED, anchor="e").grid(
+            row=1, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+        self.amount_entry = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
                                           fg_color=T.SURFACE_3, border_color=T.BORDER,
                                           text_color=T.TEXT,
                                           placeholder_text="Uses monthly rent if blank")
-        self.amount_entry.grid(row=1, column=1, pady=T.SP_S, sticky="w")
+        self.amount_entry.grid(row=1, column=1, pady=T.SP_S,
+                                padx=(0, T.SP_M), sticky="ew")
 
-        btn = create_primary_button(inner, "Generate Invoice", self.generate, width=260)
-        btn.grid(row=2, column=0, columnspan=2, pady=T.SP_L)
+        btn = create_primary_button(inner, "Generate Invoice", self.generate)
+        btn.grid(row=2, column=0, columnspan=2, pady=T.SP_L, padx=T.SP_M, sticky="ew")
 
         self.tenant_id_entry.bind("<Return>", lambda e: self.generate())
         self.amount_entry.bind("<Return>",    lambda e: self.generate())
