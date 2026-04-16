@@ -139,18 +139,19 @@ class TenantView:
         scroll.pack(fill="both", expand=True)
 
         inner = create_card(scroll, title="Tenant Details")
+        inner.grid_columnconfigure(0, minsize=160)
         inner.grid_columnconfigure(1, weight=1)
 
         required_keys = {"ni", "name", "username", "password"}
         fields = [
-            ("NI Number",            "ni"),
-            ("Full Name",            "name"),
-            ("Phone",                "phone"),
-            ("Email",                "email"),
-            ("Occupation",           "occupation"),
-            ("References",           "refs"),
-            ("Emergency Contact",    "emergency"),
-            ("Apartment Requirements", "apt_req"),
+            ("NI Number",              "ni"),
+            ("Full Name",              "name"),
+            ("Phone",                  "phone"),
+            ("Email",                  "email"),
+            ("Occupation",             "occupation"),
+            ("References",             "refs"),
+            ("Emergency Contact",      "emergency"),
+            ("Apt. Requirements",      "apt_req"),
         ]
 
         self.entries = {}
@@ -160,35 +161,33 @@ class TenantView:
 
         for label, key in fields:
             req = key in required_keys
-            lbl_color = T.DANGER if req else T.TEXT_MUTED
             ctk.CTkLabel(inner, text=label + (" *" if req else ""),
-                          font=T.FONT_BODY, text_color=lbl_color).grid(
-                row=row, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-            e = ctk.CTkEntry(inner, width=300, height=T.INPUT_HEIGHT,
+                          font=T.FONT_BODY, anchor="e",
+                          text_color=T.DANGER if req else T.TEXT_MUTED).grid(
+                row=row, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+            e = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
                               fg_color=T.SURFACE_3, border_color=T.BORDER,
                               text_color=T.TEXT)
-            e.grid(row=row, column=1, pady=T.SP_S, sticky="w")
+            e.grid(row=row, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
             self.entries[key] = e
             row += 1
 
         create_section_divider(inner, "Account")
 
         for label, key in [("Username (login)", "username"), ("Password", "password")]:
-            req = key in required_keys
             ctk.CTkLabel(inner, text=label + " *", font=T.FONT_BODY,
-                          text_color=T.DANGER).grid(
-                row=row, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-            show = "•" if key == "password" else ""
-            e = ctk.CTkEntry(inner, width=300, height=T.INPUT_HEIGHT,
+                          text_color=T.DANGER, anchor="e").grid(
+                row=row, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+            show = "\u2022" if key == "password" else ""
+            e = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
                               fg_color=T.SURFACE_3, border_color=T.BORDER,
                               text_color=T.TEXT, show=show)
-            e.grid(row=row, column=1, pady=T.SP_S, sticky="w")
+            e.grid(row=row, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
             self.entries[key] = e
             row += 1
 
-        btn = create_primary_button(inner, "Register Tenant",
-                                     self.register_tenant, width=300)
-        btn.grid(row=row, column=0, columnspan=2, pady=T.SP_L)
+        btn = create_primary_button(inner, "Register Tenant", self.register_tenant)
+        btn.grid(row=row, column=0, columnspan=2, pady=T.SP_L, padx=T.SP_M, sticky="ew")
 
         scroll.after(200, lambda: enable_trackpad_scroll(scroll))
 
@@ -220,25 +219,26 @@ class TenantView:
 
         # Editable fields
         edit_inner = create_card(scroll, title="Editable Fields")
+        edit_inner.grid_columnconfigure(0, minsize=160)
         edit_inner.grid_columnconfigure(1, weight=1)
         edit_fields = [
-            ("Full Name",            "edit_name"),
-            ("Phone",                "edit_phone"),
-            ("Email",                "edit_email"),
-            ("Occupation",           "edit_occupation"),
-            ("References",           "edit_refs"),
-            ("Emergency Contact",    "edit_emergency"),
-            ("Apartment Requirements","edit_apt_req"),
+            ("Full Name",              "edit_name"),
+            ("Phone",                  "edit_phone"),
+            ("Email",                  "edit_email"),
+            ("Occupation",             "edit_occupation"),
+            ("References",             "edit_refs"),
+            ("Emergency Contact",      "edit_emergency"),
+            ("Apt. Requirements",      "edit_apt_req"),
         ]
         self.edit_entries = {}
         for i, (label, key) in enumerate(edit_fields):
             ctk.CTkLabel(edit_inner, text=label, font=T.FONT_BODY,
-                          text_color=T.TEXT_MUTED).grid(
-                row=i, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-            e = ctk.CTkEntry(edit_inner, width=300, height=T.INPUT_HEIGHT,
+                          text_color=T.TEXT_MUTED, anchor="e").grid(
+                row=i, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+            e = ctk.CTkEntry(edit_inner, height=T.INPUT_HEIGHT,
                               fg_color=T.SURFACE_3, border_color=T.BORDER,
                               text_color=T.TEXT)
-            e.grid(row=i, column=1, pady=T.SP_S, sticky="w")
+            e.grid(row=i, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
             self.edit_entries[key] = e
 
         # Lease info
@@ -270,40 +270,42 @@ class TenantView:
         log_inner = create_card(frame, title="Log New Complaint")
         log_inner.grid_columnconfigure(1, weight=1)
 
+        log_inner.grid_columnconfigure(0, minsize=120)
+        log_inner.grid_columnconfigure(1, weight=1)
+
         ctk.CTkLabel(log_inner, text="Tenant ID *", font=T.FONT_BODY,
-                      text_color=T.DANGER).grid(
-            row=0, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-        self.complaint_tid_entry = ctk.CTkEntry(log_inner, width=220,
-                                                 height=T.INPUT_HEIGHT,
+                      text_color=T.DANGER, anchor="e").grid(
+            row=0, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+        self.complaint_tid_entry = ctk.CTkEntry(log_inner, height=T.INPUT_HEIGHT,
                                                  fg_color=T.SURFACE_3,
                                                  border_color=T.BORDER,
                                                  text_color=T.TEXT)
-        self.complaint_tid_entry.grid(row=0, column=1, pady=T.SP_S, sticky="w")
+        self.complaint_tid_entry.grid(row=0, column=1, pady=T.SP_S,
+                                      padx=(0, T.SP_M), sticky="ew")
 
         ctk.CTkLabel(log_inner, text="Subject *", font=T.FONT_BODY,
-                      text_color=T.DANGER).grid(
-            row=1, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-        self.complaint_subject_entry = ctk.CTkEntry(log_inner, width=300,
-                                                     height=T.INPUT_HEIGHT,
+                      text_color=T.DANGER, anchor="e").grid(
+            row=1, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+        self.complaint_subject_entry = ctk.CTkEntry(log_inner, height=T.INPUT_HEIGHT,
                                                      fg_color=T.SURFACE_3,
                                                      border_color=T.BORDER,
                                                      text_color=T.TEXT)
-        self.complaint_subject_entry.grid(row=1, column=1, pady=T.SP_S, sticky="w")
+        self.complaint_subject_entry.grid(row=1, column=1, pady=T.SP_S,
+                                          padx=(0, T.SP_M), sticky="ew")
 
         ctk.CTkLabel(log_inner, text="Description *", font=T.FONT_BODY,
-                      text_color=T.DANGER).grid(
-            row=2, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-        self.complaint_desc_entry = ctk.CTkEntry(log_inner, width=300,
-                                                  height=T.INPUT_HEIGHT,
+                      text_color=T.DANGER, anchor="e").grid(
+            row=2, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+        self.complaint_desc_entry = ctk.CTkEntry(log_inner, height=T.INPUT_HEIGHT,
                                                   fg_color=T.SURFACE_3,
                                                   border_color=T.BORDER,
                                                   text_color=T.TEXT,
                                                   placeholder_text="Describe the complaint…")
-        self.complaint_desc_entry.grid(row=2, column=1, pady=T.SP_S, sticky="w")
+        self.complaint_desc_entry.grid(row=2, column=1, pady=T.SP_S,
+                                       padx=(0, T.SP_M), sticky="ew")
 
-        create_primary_button(log_inner, "Log Complaint",
-                               self.do_log_complaint, width=220).grid(
-            row=3, column=0, columnspan=2, pady=T.SP_L)
+        btn = create_primary_button(log_inner, "Log Complaint", self.do_log_complaint)
+        btn.grid(row=3, column=0, columnspan=2, pady=T.SP_L, padx=T.SP_M, sticky="ew")
 
         # Table + action toolbar
         tbl_inner = create_card_fill(frame, title="All Complaints")
@@ -399,11 +401,12 @@ class TenantView:
         scroll.pack(fill="both", expand=True)
 
         inner = create_card(scroll, title="Assign Apartment to Tenant")
+        inner.grid_columnconfigure(0, minsize=180)
         inner.grid_columnconfigure(1, weight=1)
 
         fields = [
-            ("Tenant User ID",          "t_id"),
-            ("Apartment ID",            "apt_id"),
+            ("Tenant User ID",           "t_id"),
+            ("Apartment ID",             "apt_id"),
             ("Lease Start (YYYY-MM-DD)", "start"),
             ("Lease End (YYYY-MM-DD)",   "end"),
             ("Monthly Rent (£)",         "rent"),
@@ -412,21 +415,21 @@ class TenantView:
         self.assign_entries = {}
         for i, (label, key) in enumerate(fields):
             ctk.CTkLabel(inner, text=label + " *", font=T.FONT_BODY,
-                          text_color=T.DANGER).grid(
-                row=i, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
-            e = ctk.CTkEntry(inner, width=240, height=T.INPUT_HEIGHT,
+                          text_color=T.DANGER, anchor="e").grid(
+                row=i, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
+            e = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
                               fg_color=T.SURFACE_3, border_color=T.BORDER,
                               text_color=T.TEXT)
-            e.grid(row=i, column=1, pady=T.SP_S, sticky="w")
+            e.grid(row=i, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
             self.assign_entries[key] = e
 
         self.assign_result = ctk.CTkLabel(inner, text="", font=T.FONT_BODY,
                                            text_color=T.TEXT_MUTED)
         self.assign_result.grid(row=len(fields), column=0, columnspan=2, pady=T.SP_S)
 
-        create_primary_button(inner, "Assign Apartment",
-                               self.do_assign, width=280).grid(
-            row=len(fields) + 1, column=0, columnspan=2, pady=T.SP_L)
+        btn = create_primary_button(inner, "Assign Apartment", self.do_assign)
+        btn.grid(row=len(fields) + 1, column=0, columnspan=2,
+                  pady=T.SP_L, padx=T.SP_M, sticky="ew")
 
         scroll.after(200, lambda: enable_trackpad_scroll(scroll))
 
