@@ -29,30 +29,27 @@ Every `.py` file must have the correct student name and ID at the top — this i
 
 **Do not modify files you don't own** unless it is a cross-cutting fix authorized by Omar (the lead). Omar has made cross-cutting fixes to all team member files throughout Sprint 2 — this is authorised.
 
-Files currently missing their student ID header (needs fixing before submission):
-- All Omar-owned files still showing `[YOUR_ID]` must be updated to `24020879`:
-  `main.py`, `database_manager.py`, `auth_manager.py`, `property_manager.py`, `seed_db.py`,
-  `views/login_view.py`, `views/main_view.py`, `views/user_view.py`, `views/apartment_view.py`, `views/ui_helpers.py`
+All student ID headers fixed as of 13 Apr (Sprint 4 Step 1). All files verified clean — `grep -rn "YOUR_ID" --include="*.py" .` returns zero hits.
 
 ---
 
 ## Commands
 
 ```bash
-# Run application
-python3 main.py
+# Run application (always use project venv)
+./venv/bin/python3 main.py
 
 # Reset database with test data
-python3 seed_db.py
+./venv/bin/python3 seed_db.py
 
-# Run all tests
-python3 -m unittest discover -s tests -v
+# Run all tests (must use venv — system python3 has no bcrypt)
+./venv/bin/python3 -m unittest discover -s tests -v
 
 # Run single test file
-python3 -m unittest tests.test_tenant_manager -v
+./venv/bin/python3 -m unittest tests.test_tenant_manager -v
 
-# Install dependencies
-pip install -r requirements.txt
+# Install / refresh dependencies
+source venv/bin/activate && pip install -r requirements.txt
 ```
 
 **Test Logins** (after `seed_db.py`):
@@ -147,13 +144,13 @@ All 4 members done. **189 tests total, all passing.** Guides in `guides/sprint3/
 | # | Deliverable | Brief Element | Owner | Status |
 |---|-------------|---------------|-------|--------|
 | 1 | UML diagrams PDF (use case + class + ≥3 sequence) exported from `pmas.asta` | Element 1 (35 marks) | Omar | ⬜ TODO |
-| 2 | Fix 10 `[YOUR_ID]` headers on Omar root/view files | Element 2 requirement | Omar | ⬜ TODO |
-| 3 | Fix 7 missing headers on `tests/*.py` files | Element 2 requirement | Omar | ⬜ TODO |
-| 4 | Update root `README.md` (remove placeholder names) | Element 2 | Omar | ⬜ TODO |
+| 2 | Fix 10 `[YOUR_ID]` headers on Omar root/view files | Element 2 requirement | Omar | ✅ DONE — 13 Apr (PR #29) |
+| 3 | Fix 7 missing headers on `tests/*.py` + correct Ahmed/Numair test headers | Element 2 requirement | Omar | ✅ DONE — 13 Apr (PR #29) |
+| 4 | Update root `README.md` (full team, setup, test accounts) | Element 2 | Omar | ✅ DONE — 13 Apr (PR #29) |
 | 5 | Write `README.txt` with run instructions + passwords | Element 2 | Omar | ⬜ TODO |
-| 6 | Refresh `requirements.txt` from `pip list` | Element 2 | Omar | ⬜ TODO |
-| 7 | Regenerate `pams.db` via `seed_db.py` | Element 2 | Omar | ⬜ TODO |
-| 8 | Merge `dev` → `main`, tag `submission-final` | Process | Omar | ⬜ TODO |
+| 6 | Refresh `requirements.txt` from venv | Element 2 | Omar | ✅ DONE — 13 Apr (PR #29) |
+| 7 | Regenerate `pams.db` via `seed_db.py` | Element 2 | Omar | ⬜ Do just before ZIP |
+| 8 | Merge `feature/sprint4-submission` → `dev` → `main`, tag `submission-final` | Process | Omar | ⬜ TODO (after Step 5) |
 | 9 | Build submission ZIP `Group28_<StudentID>.zip` | Process | Omar | ⬜ TODO |
 | 10 | **Testing Document PDF** (test case table + screenshots) | Element 3 (10 marks) | Numair | ⬜ TODO |
 | 11 | **Agile Practices Report PDF** (methodology + contributions) | Element 2 | Omar compiles + all 4 write own section | ⬜ TODO |
@@ -171,23 +168,20 @@ All 4 members done. **189 tests total, all passing.** Guides in `guides/sprint3/
 - `GIT_WORKFLOW.md` — Sprint 4 git progress tracker
 - `README_TEMPLATE.txt` — starter for `README.txt`
 
-**Student ID header status (as of 13 Apr — needs fixing in Sprint 4):**
+**Student ID header status: ✅ ALL FIXED (13 Apr, PR #29)**
 
-| File | Header State |
-|:-----|:-------------|
-| `main.py`, `database_manager.py`, `auth_manager.py`, `property_manager.py`, `seed_db.py` | `[YOUR_ID]` ❌ |
-| `views/login_view.py`, `main_view.py`, `user_view.py`, `apartment_view.py` | `[YOUR_ID]` ❌ |
-| `views/ui_helpers.py` | Missing `Student ID:` line ❌ |
-| `tests/test_auth_manager.py`, `test_base.py`, `test_finance.py`, `test_maintenance.py`, `test_property_manager.py`, `test_reports_notifications.py`, `test_tenant_manager.py` | No header at all ❌ |
-| Everything else | ✅ Correct |
+All 17 files corrected. `grep -rn "YOUR_ID" --include="*.py" .` → zero hits.
+Note: `tests/test_ahmed_sprint2.py` and `tests/test_numair_sprint2.py` were also corrected (had wrong Omar ID — fixed to Ahmed 24046227 and Numair 24026758 respectively).
 
 ---
 
 ## Current Dev Branch State (as of Apr 13 2026)
 
-**Branch:** `dev` — Sprint 3 complete, 189 tests passing
-**Last merges:** PR #26 (Feras), PR #27 (Ahmed), PR #28 (Numair)
-**Next:** Sprint 4 = submission prep (see table above)
+**Branch:** `feature/sprint4-submission` (open PR → `dev`) — Sprint 4 in progress  
+**Tests:** 189 passing on `dev`  
+**Sprint 4 progress:** Steps 2, 3, 4, 6 done (PR #29 open). Step 1 (diagrams) next for Omar.  
+**Last merges:** PR #26 (Feras), PR #27 (Ahmed), PR #28 (Numair)  
+**Pending PRs:** PR #29 `feature/sprint4-submission` → `dev` (open, awaiting Omar merge)
 
 ---
 
