@@ -94,7 +94,10 @@ class PaymentView:
         toolbar.pack(fill="x", padx=T.SP_L, pady=T.SP_S)
         create_ghost_button(toolbar, "⟳  Refresh", self.refresh).pack(side="right")
         cols = ("ID", "Tenant", "Amount", "Date", "Method", "Ref", "Invoice")
-        self.pay_tree = setup_treeview_scroll(frame, columns=cols, height=15)
+        self.pay_tree = setup_treeview_scroll(
+            frame, columns=cols, height=15,
+            empty_message="No payments recorded yet",
+        )
 
     # ── Summary tab ───────────────────────────────────────────────────────────
 
@@ -111,12 +114,16 @@ class PaymentView:
         bd_inner = create_card_fill(scroll, title="Payment Method Breakdown")
         cols = ("Payment Method", "Total Amount", "Transaction Count")
         self.sum_tree = setup_treeview_scroll(bd_inner, columns=cols,
-                                               col_widths=[180, 150, 150], height=4)
+                                               col_widths=[180, 150, 150], height=4,
+                                               empty_message="No payment data yet",
+                                               )
 
         rev_inner = create_card_fill(scroll, title="Monthly Revenue (Last 6 Months)")
         rev_cols = ("Month", "Total Collected")
         self.rev_tree = setup_treeview_scroll(rev_inner, columns=rev_cols,
-                                               col_widths=[200, 200], height=6)
+                                               col_widths=[200, 200], height=6,
+                                               empty_message="No revenue data for the last 6 months",
+                                               )
 
     # ── Receipt popup ─────────────────────────────────────────────────────────
 

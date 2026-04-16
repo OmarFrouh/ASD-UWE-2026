@@ -74,6 +74,7 @@ class ApartmentView:
             col_widths=[50, 100, 100, 100, 80, 100, 100, 100],
             height=10,
             status_columns=["status"],
+            empty_message="No apartments registered yet",
         )
         self.refresh_list()
         frame.after(200, lambda: enable_trackpad_scroll(frame))

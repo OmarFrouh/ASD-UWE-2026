@@ -73,7 +73,9 @@ class ReportView:
         cols = ("Unit", "Address", "City", "Rooms", "Rent", "Status")
         self.occ_tree = setup_treeview_scroll(
             tbl_inner, columns=cols, height=12,
-            status_columns=["Status"])
+            status_columns=["Status"],
+            empty_message="No apartments found for the selected city",
+        )
         self.refresh_occupancy()
 
     def refresh_occupancy(self):
@@ -119,7 +121,10 @@ class ReportView:
 
         tbl_inner = create_card_fill(scroll, title="Per-Tenant Financial Breakdown")
         cols = ("Tenant", "Total Invoiced", "Total Paid", "Outstanding")
-        self.fin_tree = setup_treeview_scroll(tbl_inner, columns=cols, height=12)
+        self.fin_tree = setup_treeview_scroll(
+            tbl_inner, columns=cols, height=12,
+            empty_message="No financial data yet",
+        )
         self.refresh_financial()
 
     def refresh_financial(self):
@@ -171,7 +176,10 @@ class ReportView:
 
         tbl_inner = create_card_fill(scroll, title="Maintenance Cost by Apartment")
         cols = ("Unit", "City", "Tickets", "Total Cost", "Total Hours")
-        self.mnt_tree = setup_treeview_scroll(tbl_inner, columns=cols, height=12)
+        self.mnt_tree = setup_treeview_scroll(
+            tbl_inner, columns=cols, height=12,
+            empty_message="No maintenance data for the selected city",
+        )
         self.refresh_maintenance()
 
     def refresh_maintenance(self):

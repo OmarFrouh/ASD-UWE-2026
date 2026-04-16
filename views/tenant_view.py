@@ -106,7 +106,9 @@ class TenantView:
                 "Apt", "Start Date", "End Date", "Rent", "Status")
         self.tree = setup_treeview_scroll(
             frame, columns=cols, height=15,
-            status_columns=["Status"])
+            status_columns=["Status"],
+            empty_message="No tenants match the current filter",
+        )
         self.refresh_list()
 
         self._root.bind("<Control-f>",
@@ -124,7 +126,9 @@ class TenantView:
         cols = ("ID", "NI", "Name", "Status")
         self.archived_tree = setup_treeview_scroll(
             frame, columns=cols, height=15,
-            status_columns=["Status"])
+            status_columns=["Status"],
+            empty_message="No archived or terminated tenants",
+        )
         self.refresh_archived()
 
     # ── Register ──────────────────────────────────────────────────────────────
@@ -313,7 +317,9 @@ class TenantView:
         cols = ("ID", "Tenant", "Subject", "Date", "Status", "Description")
         self.complaints_tree = setup_treeview_scroll(
             tbl_inner, columns=cols, height=10,
-            status_columns=["Status"])
+            status_columns=["Status"],
+            empty_message="No complaints logged yet",
+        )
         self.refresh_complaints()
 
     # ── Actions ───────────────────────────────────────────────────────────────

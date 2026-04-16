@@ -91,12 +91,43 @@ def setup_treeview_scroll(parent, columns, headings=None, col_widths=None,
         tree.tag_configure(tag_name, foreground=fg, background=bg)
 
     # Hover highlight
+    tree.tag_configure("hover", background=T.SURFACE_3)
     _last_hover = [None]
     def _on_motion(event):
         row = tree.identify_row(event.y)
-        if row and row != _last_hover[0]:
-            _last_hover[0] = row
+        if row == _last_hover[0]:
+            return
+        # Remove hover from previous row
+        if _last_hover[0]:
+            try:
+                tags = list(tree.item(_last_hover[0], "tags"))
+                if "hover" in tags:
+                    tags.remove("hover")
+                tree.item(_last_hover[0], tags=tuple(tags))
+            except Exception:
+                pass
+        # Add hover to current row
+        _last_hover[0] = row
+        if row:
+            try:
+                tags = list(tree.item(row, "tags"))
+                if "hover" not in tags:
+                    tags.append("hover")
+                tree.item(row, tags=tuple(tags))
+            except Exception:
+                pass
+    def _on_leave(event):
+        if _last_hover[0]:
+            try:
+                tags = list(tree.item(_last_hover[0], "tags"))
+                if "hover" in tags:
+                    tags.remove("hover")
+                tree.item(_last_hover[0], tags=tuple(tags))
+            except Exception:
+                pass
+            _last_hover[0] = None
     tree.bind("<Motion>", _on_motion)
+    tree.bind("<Leave>", _on_leave)
 
     # Column headings
     hfont = tkfont.Font(family="Arial", size=11, weight="bold")
