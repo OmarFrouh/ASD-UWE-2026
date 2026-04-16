@@ -97,6 +97,7 @@ class UserView:
             col_widths=[40, 120, 130, 110, 120, 140, 140],
             height=10,
             status_columns=["Role"],
+            empty_message="No users found",
         )
         self.refresh_list()
         scroll.after(200, lambda: enable_trackpad_scroll(scroll))

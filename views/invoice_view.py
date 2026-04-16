@@ -94,6 +94,7 @@ class InvoiceView:
         self.inv_tree = setup_treeview_scroll(
             frame, columns=cols, height=15,
             status_columns=["Status"],
+            empty_message="No invoices yet — generate one from the first tab",
         )
 
     # ── Overdue tab ───────────────────────────────────────────────────────────
@@ -110,7 +111,10 @@ class InvoiceView:
             anchor="w", padx=T.SP_M, pady=T.SP_S)
 
         od_cols = ("ID", "Tenant", "Due Date", "Amount")
-        self.od_tree = setup_treeview_scroll(frame, columns=od_cols, height=15)
+        self.od_tree = setup_treeview_scroll(
+            frame, columns=od_cols, height=15,
+            empty_message="✓  No overdue invoices",
+        )
 
     # ── Late Notifications tab ─────────────────────────────────────────────────
 
@@ -129,6 +133,7 @@ class InvoiceView:
         self.notif_tree = setup_treeview_scroll(
             frame, columns=cols, height=12,
             status_columns=["Days Overdue"],
+            empty_message="✓  No late payment notifications",
         )
         for c in cols:
             self.notif_tree.heading(c, text=c)

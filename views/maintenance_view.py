@@ -102,7 +102,9 @@ class MaintenanceView:
                 "Reported", "Scheduled", "Assigned To", "Hours", "Cost (£)")
         self.tree = setup_treeview_scroll(
             frame, columns=cols, height=15,
-            status_columns=["Priority", "Status"])
+            status_columns=["Priority", "Status"],
+            empty_message="No maintenance tickets yet",
+        )
         self.refresh_list()
 
     # ── Manage ────────────────────────────────────────────────────────────────
@@ -247,7 +249,9 @@ class MaintenanceView:
         cols = ("Unit", "City", "Total Tickets", "Open", "Resolved",
                 "Total Cost", "Total Hours", "Avg Cost")
         self.cost_apt_tree = setup_treeview_scroll(
-            apt_inner, columns=cols, height=6, bind_scroll=False)
+            apt_inner, columns=cols, height=6, bind_scroll=False,
+            empty_message="No cost data by apartment",
+        )
         for c in cols:
             self.cost_apt_tree.column(c, width=90)
 
@@ -255,7 +259,9 @@ class MaintenanceView:
         city_inner = create_card_fill(scroll, title="Cost by City")
         city_cols = ("City", "Total Tickets", "Total Cost", "Total Hours", "Avg Cost")
         self.cost_city_tree = setup_treeview_scroll(
-            city_inner, columns=city_cols, height=5, bind_scroll=False)
+            city_inner, columns=city_cols, height=5, bind_scroll=False,
+            empty_message="No cost data by city",
+        )
         for c in city_cols:
             self.cost_city_tree.column(c, width=120)
 

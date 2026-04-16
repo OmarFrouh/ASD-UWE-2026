@@ -42,9 +42,10 @@ class MainView:
         self.content_frame.pack(side="right", expand=True, fill="both")
 
         # Global keybindings
-        self.root.bind("<F11>",    self._toggle_fullscreen)
+        self.root.bind("<F11>",       self._toggle_fullscreen)
         self.root.bind("<Control-l>", lambda e: self.logout())
         self.root.bind("<Control-r>", lambda e: self._refresh_current_view())
+        self.root.bind("<Escape>",    lambda e: self._focus_content())
 
         self.show_view("dashboard")
 
@@ -437,3 +438,7 @@ class MainView:
     def _toggle_fullscreen(self, _event=None):
         current = self.root.attributes("-fullscreen")
         self.root.attributes("-fullscreen", not current)
+
+    def _focus_content(self):
+        """Escape: move focus away from any entry widget back to the content frame."""
+        self.content_frame.focus_set()
