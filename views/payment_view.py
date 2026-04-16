@@ -2,202 +2,224 @@
 # Student ID: 24046227
 
 import customtkinter as ctk
-from tkinter import messagebox
+import tkinter as tk
 from payment_manager import PaymentManager
-from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
+from views import theme as T
+from views.ui_helpers import (
+    setup_treeview_scroll, autofit_columns, apply_row_stripes,
+    create_page_header, create_card, create_card_fill,
+    create_primary_button, create_ghost_button, create_kpi_tile_l,
+    show_success, show_error, show_warning,
+)
+
 
 class PaymentView:
     def __init__(self, parent, db_manager):
-        self.db_manager = db_manager
+        self.db_manager      = db_manager
         self.payment_manager = PaymentManager(db_manager)
+        self._root = parent.winfo_toplevel()
 
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="both", expand=True, padx=20, pady=20)
+        frame = ctk.CTkFrame(parent, fg_color=T.BG)
+        frame.pack(fill="both", expand=True)
 
-        ctk.CTkLabel(frame, text="💳 Payment Processing", font=("Arial", 22, "bold")).pack(pady=(0, 10))
+        create_page_header(frame, "💳 Payments",
+                            subtitle="Record payments and view financial data")
 
-        self.tabview = ctk.CTkTabview(frame)
-        self.tabview.pack(fill="both", expand=True)
+        self.tabview = ctk.CTkTabview(frame,
+                                       fg_color=T.SURFACE,
+                                       segmented_button_fg_color=T.SURFACE_2,
+                                       segmented_button_selected_color=T.PRIMARY,
+                                       segmented_button_selected_hover_color=T.PRIMARY_HOVER,
+                                       segmented_button_unselected_color=T.SURFACE_2,
+                                       segmented_button_unselected_hover_color=T.SURFACE_3,
+                                       text_color=T.TEXT)
+        self.tabview.pack(fill="both", expand=True, padx=T.SP_XL, pady=(0, T.SP_XL))
 
-        tab_record = self.tabview.add("Record Payment")
+        tab_record  = self.tabview.add("Record Payment")
         tab_history = self.tabview.add("Payment History")
         tab_summary = self.tabview.add("Financial Summary")
 
-        # Record Tab
-        rec_frame = ctk.CTkFrame(tab_record)
-        rec_frame.pack(pady=30)
-
-        ctk.CTkLabel(rec_frame, text="Invoice ID *:", text_color="red").grid(row=0, column=0, padx=15, pady=8, sticky="e")
-        self.inv_id_entry = ctk.CTkEntry(rec_frame, width=220)
-        self.inv_id_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
-
-        ctk.CTkLabel(rec_frame, text="Amount (£) *:", text_color="red").grid(row=1, column=0, padx=15, pady=8, sticky="e")
-        self.pay_amount_entry = ctk.CTkEntry(rec_frame, width=220)
-        self.pay_amount_entry.grid(row=1, column=1, padx=15, pady=8, sticky="w")
-
-        ctk.CTkLabel(rec_frame, text="Method *:", text_color="red").grid(row=2, column=0, padx=15, pady=8, sticky="e")
-        self.method_combo = ctk.CTkComboBox(rec_frame, values=["Card", "Cash", "Bank Transfer"], width=220)
-        self.method_combo.grid(row=2, column=1, padx=15, pady=8, sticky="w")
-        self.method_combo.set("Card")
-
-        ctk.CTkLabel(rec_frame, text="Reference:").grid(row=3, column=0, padx=15, pady=8, sticky="e")
-        self.ref_entry = ctk.CTkEntry(rec_frame, width=220, placeholder_text="Optional")
-        self.ref_entry.grid(row=3, column=1, padx=15, pady=8, sticky="w")
-
-        ctk.CTkButton(rec_frame, text="Record Payment", command=self.record, width=250).grid(
-            row=4, column=0, columnspan=2, pady=20)
-
-        # History Tab
-        pay_frame = ctk.CTkFrame(tab_history, fg_color="transparent")
-        pay_frame.pack(fill="both", expand=True, padx=10, pady=10)
-
-        cols = ("ID", "Tenant", "Amount", "Date", "Method", "Ref", "Invoice")
-        self.pay_tree = setup_treeview_scroll(pay_frame, columns=cols, height=15)
-        ctk.CTkButton(tab_history, text="Refresh", command=self.refresh).pack(pady=5)
-
-        self.build_summary_tab(tab_summary)
+        self._build_record_tab(tab_record)
+        self._build_history_tab(tab_history)
+        self._build_summary_tab(tab_summary)
         self.refresh()
 
-    def build_summary_tab(self, tab):
-        """Builds the Financial Summary tab showing collected vs pending."""
-        # Summary cards
-        self.sum_card_frame = ctk.CTkFrame(tab)
-        self.sum_card_frame.pack(fill="x", padx=10, pady=10)
+    # ── Record tab ────────────────────────────────────────────────────────────
 
-        # Payment method breakdown
-        ctk.CTkLabel(tab, text="Payment Method Breakdown", font=("Arial", 13, "bold")).pack(anchor="w", padx=15)
-        tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        tree_frame.pack(fill="x", padx=10, pady=(0, 5))
+    def _build_record_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
+        scroll.pack(fill="both", expand=True)
+        inner = create_card(scroll, title="Record Payment")
+        inner.grid_columnconfigure(1, weight=1)
 
+        def _lbl(t, row, req=False):
+            ctk.CTkLabel(inner, text=t + (" *" if req else ""),
+                          font=T.FONT_BODY,
+                          text_color=T.DANGER if req else T.TEXT_MUTED).grid(
+                row=row, column=0, padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
+
+        def _entry(row, placeholder=""):
+            e = ctk.CTkEntry(inner, width=260, height=T.INPUT_HEIGHT,
+                              fg_color=T.SURFACE_3, border_color=T.BORDER,
+                              text_color=T.TEXT, placeholder_text=placeholder)
+            e.grid(row=row, column=1, pady=T.SP_S, sticky="w")
+            return e
+
+        _lbl("Invoice ID",  0, True);   self.inv_id_entry      = _entry(0)
+        _lbl("Amount (£)", 1, True);   self.pay_amount_entry  = _entry(1, "e.g. 850.00")
+        _lbl("Method",     2, True)
+        self.method_combo = ctk.CTkComboBox(
+            inner, values=["Card", "Cash", "Bank Transfer"],
+            width=260, height=T.INPUT_HEIGHT,
+            fg_color=T.SURFACE_3, border_color=T.BORDER,
+            button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
+            text_color=T.TEXT)
+        self.method_combo.grid(row=2, column=1, pady=T.SP_S, sticky="w")
+        self.method_combo.set("Card")
+        _lbl("Reference",  3);          self.ref_entry          = _entry(3, "Optional")
+
+        btn = create_primary_button(inner, "Record Payment", self.record, width=260)
+        btn.grid(row=4, column=0, columnspan=2, pady=T.SP_L)
+
+        for e in [self.inv_id_entry, self.pay_amount_entry, self.ref_entry]:
+            e.bind("<Return>", lambda ev: self.record())
+
+    # ── History tab ───────────────────────────────────────────────────────────
+
+    def _build_history_tab(self, tab):
+        frame = ctk.CTkFrame(tab, fg_color=T.BG)
+        frame.pack(fill="both", expand=True)
+        toolbar = ctk.CTkFrame(frame, fg_color="transparent")
+        toolbar.pack(fill="x", padx=T.SP_L, pady=T.SP_S)
+        create_ghost_button(toolbar, "⟳  Refresh", self.refresh).pack(side="right")
+        cols = ("ID", "Tenant", "Amount", "Date", "Method", "Ref", "Invoice")
+        self.pay_tree = setup_treeview_scroll(frame, columns=cols, height=15)
+
+    # ── Summary tab ───────────────────────────────────────────────────────────
+
+    def _build_summary_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
+        scroll.pack(fill="both", expand=True)
+
+        # KPI tiles row
+        self.kpi_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        self.kpi_frame.pack(fill="x", padx=T.SP_XL, pady=(T.SP_M, 0))
+
+        # Breakdown tables
+        bd_inner = create_card_fill(scroll, title="Payment Method Breakdown")
         cols = ("Payment Method", "Total Amount", "Transaction Count")
-        self.sum_tree = setup_treeview_scroll(tree_frame, columns=cols, col_widths=[180, 150, 150], height=4)
+        self.sum_tree = setup_treeview_scroll(bd_inner, columns=cols,
+                                               col_widths=[180, 150, 150], height=4)
 
-        # Monthly revenue (last 6 months)
-        ctk.CTkLabel(tab, text="Monthly Revenue (Last 6 Months)", font=("Arial", 13, "bold")).pack(anchor="w", padx=15, pady=(5, 0))
-        rev_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        rev_frame.pack(fill="both", expand=True, padx=10, pady=(0, 5))
-
+        rev_inner = create_card_fill(scroll, title="Monthly Revenue (Last 6 Months)")
         rev_cols = ("Month", "Total Collected")
-        self.rev_tree = setup_treeview_scroll(rev_frame, columns=rev_cols, col_widths=[200, 200], height=6)
+        self.rev_tree = setup_treeview_scroll(rev_inner, columns=rev_cols,
+                                               col_widths=[200, 200], height=6)
 
-    def refresh_summary(self):
-        """Refreshes the Financial Summary tab data."""
-        if not hasattr(self, 'sum_card_frame'):
-            return
-
-        # Summary cards
-        for w in self.sum_card_frame.winfo_children():
-            w.destroy()
-        summary = self.payment_manager.get_collected_vs_pending()
-        cards = [
-            ("Collected", f"£{summary['collected']:.2f}"),
-            ("Pending", f"£{summary['pending']:.2f}"),
-            ("Total Invoiced", f"£{summary['total']:.2f}"),
-        ]
-        for i, (label, val) in enumerate(cards):
-            card = ctk.CTkFrame(self.sum_card_frame, corner_radius=10)
-            card.grid(row=0, column=i, padx=15, pady=10, sticky="nsew")
-            self.sum_card_frame.grid_columnconfigure(i, weight=1)
-            ctk.CTkLabel(card, text=val, font=("Arial", 28, "bold")).pack(pady=(15, 3))
-            ctk.CTkLabel(card, text=label, font=("Arial", 12), text_color="gray").pack(pady=(0, 15))
-
-        # Payment method breakdown
-        for item in self.sum_tree.get_children():
-            self.sum_tree.delete(item)
-        for row in self.payment_manager.get_payment_history_by_method():
-            self.sum_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}", row[2]))
-        apply_row_stripes(self.sum_tree)
-        autofit_columns(self.sum_tree)
-
-        # Monthly revenue
-        for item in self.rev_tree.get_children():
-            self.rev_tree.delete(item)
-        for row in self.payment_manager.get_monthly_revenue():
-            self.rev_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}"))
-        apply_row_stripes(self.rev_tree)
-        autofit_columns(self.rev_tree)
+    # ── Receipt popup ─────────────────────────────────────────────────────────
 
     def show_receipt(self, payment_id):
-        """Shows a formatted billing/dues receipt popup after recording a payment.
-        This is the brief's 'generating the billing/dues receipts' requirement."""
         try:
             r = self.payment_manager.get_receipt_data(payment_id)
         except Exception:
-            return  # Silently skip if receipt data unavailable
+            return
 
         popup = ctk.CTkToplevel()
         popup.title("Payment Receipt")
-        popup.geometry("460x520")
+        popup.geometry("480x600")
+        popup.resizable(False, False)
         popup.grab_set()
+        popup.configure(fg_color=T.SURFACE)
 
-        # ─── Header ───
-        ctk.CTkLabel(popup, text="PAMS — Payment Receipt",
-                     font=("Arial", 18, "bold")).pack(pady=(20, 3))
-        ctk.CTkLabel(popup, text="Paragon Apartment Management System",
-                     font=("Arial", 11), text_color="gray").pack(pady=(0, 10))
-        ctk.CTkLabel(popup, text="━" * 45, text_color="gray").pack()
+        # Brand band
+        band = ctk.CTkFrame(popup, fg_color=T.PRIMARY_MUTED, corner_radius=0)
+        band.pack(fill="x")
+        ctk.CTkLabel(band, text="🏢  PAMS", font=T.FONT_H2,
+                      text_color=T.TEXT).pack(pady=(T.SP_L, T.SP_XS))
+        ctk.CTkLabel(band, text="Payment Receipt", font=T.FONT_H3,
+                      text_color=T.TEXT_MUTED).pack(pady=(0, T.SP_L))
 
-        # ─── Receipt Body ───
-        lines = [
-            ("Receipt #:", f"PAY-{r['payment_id']}"),
-            ("Date:", r["payment_date"]),
-            ("", ""),
-            ("Tenant:", r["tenant_name"]),
-            ("NI:", r["ni_number"]),
-            ("Email:", r["email"]),
-            ("Phone:", r["phone"]),
-            ("Property:", f"Unit {r['unit']}, {r['address']}"),
-            ("City:", r["city"]),
-            ("", ""),
-            ("Invoice #:", f"INV-{r['invoice_id']}"),
-            ("Invoice Total:", f"£{r['invoice_total']:.2f}"),
-            ("Amount Paid:", f"£{r['amount']:.2f}"),
-            ("Method:", r["method"]),
-            ("Reference:", r["reference"]),
-            ("", ""),
-            ("Invoice Status:", r["invoice_status"]),
+        tk.Frame(popup, bg=T.BORDER, height=1).pack(fill="x")
+
+        body = ctk.CTkScrollableFrame(popup, fg_color="transparent",
+                                       scrollbar_button_color=T.SURFACE_3)
+        body.pack(fill="both", expand=True, padx=T.SP_XL, pady=T.SP_L)
+
+        sections = [
+            ("Tenant", [
+                ("Receipt #", f"PAY-{r['payment_id']}"),
+                ("Date", r["payment_date"]),
+                ("Tenant", r["tenant_name"]),
+                ("NI", r["ni_number"]),
+                ("Email", r["email"]),
+                ("Phone", r["phone"]),
+            ]),
+            ("Property", [
+                ("Unit", f"Unit {r['unit']}"),
+                ("Address", r["address"]),
+                ("City", r["city"]),
+            ]),
+            ("Invoice", [
+                ("Invoice #", f"INV-{r['invoice_id']}"),
+                ("Invoice Total", f"£{r['invoice_total']:.2f}"),
+            ]),
+            ("Payment", [
+                ("Amount Paid", f"£{r['amount']:.2f}"),
+                ("Method", r["method"]),
+                ("Reference", r["reference"]),
+                ("Status", r["invoice_status"]),
+            ]),
         ]
 
-        body_frame = ctk.CTkFrame(popup, fg_color="transparent")
-        body_frame.pack(fill="x", padx=30, pady=5)
+        for (section_title, fields) in sections:
+            sec = ctk.CTkFrame(body, fg_color=T.SURFACE_2,
+                                corner_radius=T.RADIUS_SM)
+            sec.pack(fill="x", pady=(0, T.SP_S))
+            ctk.CTkLabel(sec, text=section_title, font=T.FONT_CAPTION_B,
+                          text_color=T.TEXT_SUBTLE).pack(
+                anchor="w", padx=T.SP_M, pady=(T.SP_S, 0))
+            for label, value in fields:
+                row = ctk.CTkFrame(sec, fg_color="transparent")
+                row.pack(fill="x", padx=T.SP_M, pady=T.SP_XS)
+                ctk.CTkLabel(row, text=label, font=T.FONT_CAPTION,
+                              text_color=T.TEXT_MUTED, width=120, anchor="e").pack(side="left")
+                ctk.CTkLabel(row, text=str(value) if value else "—",
+                              font=T.FONT_CAPTION_B, text_color=T.TEXT,
+                              anchor="w").pack(side="left", padx=(T.SP_S, 0))
+            ctk.CTkFrame(sec, height=T.SP_XS, fg_color="transparent").pack()
 
-        for label, value in lines:
-            if not label and not value:
-                ctk.CTkLabel(body_frame, text="").pack()
-                continue
-            row = ctk.CTkFrame(body_frame, fg_color="transparent")
-            row.pack(fill="x")
-            ctk.CTkLabel(row, text=label, font=("Arial", 12), text_color="gray",
-                         width=120, anchor="e").pack(side="left")
-            ctk.CTkLabel(row, text=value, font=("Arial", 12, "bold"),
-                         anchor="w").pack(side="left", padx=(10, 0))
+        tk.Frame(popup, bg=T.BORDER, height=1).pack(fill="x")
+        create_primary_button(popup, "Close", popup.destroy, width=120).pack(pady=T.SP_L)
+        popup.bind("<Return>", lambda e: popup.destroy())
+        popup.bind("<Escape>", lambda e: popup.destroy())
 
-        # ─── Footer ───
-        ctk.CTkLabel(popup, text="━" * 45, text_color="gray").pack(pady=(10, 0))
-        ctk.CTkButton(popup, text="Close", command=popup.destroy, width=120).pack(pady=15)
+    # ── Actions ───────────────────────────────────────────────────────────────
 
     def record(self):
         iid = self.inv_id_entry.get()
         amt = self.pay_amount_entry.get()
         method = self.method_combo.get()
-        ref = self.ref_entry.get()
+        ref    = self.ref_entry.get()
 
         if not iid or not amt:
-            messagebox.showwarning("Error", "Invoice ID and Amount required.")
+            show_warning(self._root, "Invoice ID and Amount are required.")
             return
-
         try:
-            payment_id = self.payment_manager.record_payment(int(iid), float(amt), method, ref)
+            payment_id = self.payment_manager.record_payment(
+                int(iid), float(amt), method, ref)
             for e in [self.inv_id_entry, self.pay_amount_entry, self.ref_entry]:
-                e.delete(0, 'end')
+                e.delete(0, "end")
             self.refresh()
             self.show_receipt(payment_id)
         except ValueError:
-            messagebox.showerror("Error", "Invoice ID and Amount must be valid numbers.")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+            show_error(self._root, "Invoice ID and Amount must be valid numbers.")
+        except Exception as ex:
+            show_error(self._root, str(ex))
 
     def refresh(self):
+        # Payment History
         for item in self.pay_tree.get_children():
             self.pay_tree.delete(item)
         for p in self.payment_manager.get_all_payments():
@@ -205,4 +227,36 @@ class PaymentView:
                 p[0], p[1], f"£{p[2]:.2f}", p[3], p[4], p[5], p[6]))
         apply_row_stripes(self.pay_tree)
         autofit_columns(self.pay_tree)
-        self.refresh_summary()
+        self._refresh_summary()
+
+    def _refresh_summary(self):
+        if not hasattr(self, "kpi_frame"):
+            return
+        for w in self.kpi_frame.winfo_children():
+            w.destroy()
+
+        summary = self.payment_manager.get_collected_vs_pending()
+        kpi_data = [
+            ("Collected",     f"£{summary['collected']:.2f}", "success"),
+            ("Pending",       f"£{summary['pending']:.2f}",   "warning"),
+            ("Total Invoiced",f"£{summary['total']:.2f}",     "primary"),
+        ]
+        for i, (label, val, kind) in enumerate(kpi_data):
+            tile = create_kpi_tile_l(self.kpi_frame, label=label, value=val, kind=kind)
+            tile.grid(row=0, column=i, padx=T.SP_M, pady=T.SP_S, sticky="nsew")
+            self.kpi_frame.grid_columnconfigure(i, weight=1)
+
+        # Breakdown
+        for item in self.sum_tree.get_children():
+            self.sum_tree.delete(item)
+        for row in self.payment_manager.get_payment_history_by_method():
+            self.sum_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}", row[2]))
+        apply_row_stripes(self.sum_tree)
+        autofit_columns(self.sum_tree)
+
+        for item in self.rev_tree.get_children():
+            self.rev_tree.delete(item)
+        for row in self.payment_manager.get_monthly_revenue():
+            self.rev_tree.insert("", "end", values=(row[0], f"£{row[1]:.2f}"))
+        apply_row_stripes(self.rev_tree)
+        autofit_columns(self.rev_tree)
