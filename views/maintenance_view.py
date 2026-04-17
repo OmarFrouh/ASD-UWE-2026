@@ -2,327 +2,539 @@
 # Student ID: 24026758
 
 import customtkinter as ctk
-from tkinter import messagebox
+import tkinter as tk
 from maintenance_manager import MaintenanceManager
-from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes, enable_trackpad_scroll
+from views import theme as T
+from views.ui_helpers import (
+    setup_treeview_scroll, autofit_columns, apply_row_stripes,
+    enable_trackpad_scroll,
+    create_page_header, create_card, create_card_fill, create_kpi_tile_l, create_tabview,
+    create_primary_button, create_ghost_button, create_success_button,
+    show_success, show_error, show_warning,
+    confirm_dialog, export_table_to_csv,
+)
+
 
 class MaintenanceView:
     def __init__(self, parent, db_manager):
         self.db_manager = db_manager
-        self.manager = MaintenanceManager(db_manager)
+        self.manager    = MaintenanceManager(db_manager)
+        self._root = parent.winfo_toplevel()
 
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="both", expand=True, padx=20, pady=20)
+        frame = ctk.CTkFrame(parent, fg_color=T.BG)
+        frame.pack(fill="both", expand=True)
 
-        ctk.CTkLabel(frame, text="🔧 Maintenance Management", font=("Arial", 22, "bold")).pack(pady=(0, 10))
+        create_page_header(frame, "🔧 Maintenance",
+                            subtitle="Manage tickets, staff, costs and tenant notifications")
 
-        self.tabview = ctk.CTkTabview(frame)
-        self.tabview.pack(fill="both", expand=True)
+        self.tabview = create_tabview(frame)
 
-        tab_new = self.tabview.add("New Ticket")
-        tab_list = self.tabview.add("All Tickets")
+        tab_new    = self.tabview.add("New Ticket")
+        tab_list   = self.tabview.add("All Tickets")
         tab_manage = self.tabview.add("Manage")
-        tab_costs = self.tabview.add("Cost Report")
+        tab_costs  = self.tabview.add("Cost Report")
 
-        self.build_new_tab(tab_new)
-        self.build_list_tab(tab_list)
-        self.build_manage_tab(tab_manage)
-        self.build_cost_tab(tab_costs)
+        self._build_new_tab(tab_new)
+        self._build_list_tab(tab_list)
+        self._build_manage_tab(tab_manage)
+        self._build_cost_tab(tab_costs)
 
-    def build_new_tab(self, tab):
-        form = ctk.CTkFrame(tab)
-        form.pack(pady=30)
+    # ── New Ticket ────────────────────────────────────────────────────────────
 
-        ctk.CTkLabel(form, text="Apartment ID *:", text_color="red").grid(row=0, column=0, padx=15, pady=8, sticky="e")
-        self.apt_id_entry = ctk.CTkEntry(form, width=250)
-        self.apt_id_entry.grid(row=0, column=1, padx=15, pady=8, sticky="w")
+    def _build_new_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
+        scroll.pack(fill="both", expand=True)
+        inner = create_card(scroll, title="Submit Ticket")
+        inner.grid_columnconfigure(0, minsize=120)
+        inner.grid_columnconfigure(1, weight=1)
 
-        ctk.CTkLabel(form, text="Tenant ID (optional):").grid(row=1, column=0, padx=15, pady=8, sticky="e")
-        self.tenant_id_entry = ctk.CTkEntry(form, width=250)
-        self.tenant_id_entry.grid(row=1, column=1, padx=15, pady=8, sticky="w")
+        def _lbl(text, row, req=False):
+            ctk.CTkLabel(inner, text=text + (" *" if req else ""),
+                          font=T.FONT_BODY, anchor="e",
+                          text_color=T.DANGER if req else T.TEXT_MUTED).grid(
+                row=row, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_S, sticky="e")
 
-        ctk.CTkLabel(form, text="Description *:", text_color="red").grid(row=2, column=0, padx=15, pady=8, sticky="e")
-        self.desc_entry = ctk.CTkEntry(form, width=250)
-        self.desc_entry.grid(row=2, column=1, padx=15, pady=8, sticky="w")
+        def _entry(row, placeholder=""):
+            e = ctk.CTkEntry(inner, height=T.INPUT_HEIGHT,
+                              fg_color=T.SURFACE_3, border_color=T.BORDER,
+                              text_color=T.TEXT, placeholder_text=placeholder)
+            e.grid(row=row, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
+            return e
 
-        ctk.CTkLabel(form, text="Priority *:", text_color="red").grid(row=3, column=0, padx=15, pady=8, sticky="e")
-        self.priority_combo = ctk.CTkComboBox(form, values=["Low", "Medium", "High", "Urgent"], width=250)
-        self.priority_combo.grid(row=3, column=1, padx=15, pady=8, sticky="w")
+        _lbl("Apartment ID", 0, True); self.apt_id_entry    = _entry(0)
+        _lbl("Tenant ID",    1);       self.tenant_id_entry = _entry(1, "Optional")
+        _lbl("Description",  2, True); self.desc_entry      = _entry(2)
+        _lbl("Priority",     3, True)
+
+        self.priority_combo = ctk.CTkComboBox(
+            inner, values=["Low", "Medium", "High", "Urgent"],
+            height=T.INPUT_HEIGHT,
+            fg_color=T.SURFACE_3, border_color=T.BORDER,
+            button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
+            text_color=T.TEXT)
+        self.priority_combo.grid(row=3, column=1, pady=T.SP_S, padx=(0, T.SP_M), sticky="ew")
         self.priority_combo.set("Medium")
 
-        btn = ctk.CTkButton(form, text="Submit Ticket", command=self.submit_ticket, width=250)
-        btn.grid(row=4, column=0, columnspan=2, pady=20)
-        
-        # UX bindings
-        def on_enter(e): self.submit_ticket()
-        for widget in [self.apt_id_entry, self.tenant_id_entry, self.desc_entry]:
-            widget.bind("<Return>", on_enter)
+        btn = create_primary_button(inner, "Submit Ticket", self.submit_ticket)
+        btn.grid(row=4, column=0, columnspan=2, pady=T.SP_L, padx=T.SP_M, sticky="ew")
 
-    def build_list_tab(self, tab):
-        tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        for e in [self.apt_id_entry, self.tenant_id_entry, self.desc_entry]:
+            e.bind("<Return>", lambda ev: self.submit_ticket())
 
-        cols = ("ID", "Unit", "Tenant", "Issue", "Priority", "Status", "Reported", "Scheduled", "Assigned To", "Hours", "Cost (£)")
-        self.tree = setup_treeview_scroll(tree_frame, columns=cols, height=15)
+    # ── All Tickets ───────────────────────────────────────────────────────────
 
-        ctk.CTkButton(tab, text="Refresh", command=self.refresh_list).pack(pady=5)
+    def _build_list_tab(self, tab):
+        frame = ctk.CTkFrame(tab, fg_color=T.BG)
+        frame.pack(fill="both", expand=True)
+        toolbar = ctk.CTkFrame(frame, fg_color="transparent")
+        toolbar.pack(fill="x", padx=T.SP_L, pady=T.SP_S)
+        create_ghost_button(toolbar, "⟳  Refresh", self.refresh_list).pack(side="right")
+        create_ghost_button(toolbar, "⬇  Export CSV",
+                             self._export_tickets_csv).pack(side="right", padx=(0, T.SP_S))
+
+        self._tkt_del_btn = ctk.CTkButton(
+            toolbar, text="🗑  Delete", width=80, height=28,
+            fg_color=T.DANGER_MUTED, hover_color=T.DANGER,
+            text_color=T.TEXT_MUTED, font=T.FONT_CAPTION_B,
+            corner_radius=T.RADIUS_SM, state="disabled",
+            command=self._delete_selected_ticket)
+        self._tkt_del_btn.pack(side="right", padx=(0, T.SP_S))
+
+        self._tkt_detail_btn = ctk.CTkButton(
+            toolbar, text="🔍  View Details", width=120, height=28,
+            fg_color=T.SURFACE_3, hover_color=T.SURFACE_2,
+            text_color=T.TEXT_MUTED, font=T.FONT_CAPTION_B,
+            corner_radius=T.RADIUS_SM, state="disabled",
+            command=self._show_ticket_detail)
+        self._tkt_detail_btn.pack(side="right", padx=(0, T.SP_S))
+
+        cols = ("ID", "Unit", "Tenant", "Issue", "Priority", "Status",
+                "Reported", "Scheduled", "Assigned To", "Hours", "Cost (£)")
+        self.tree = setup_treeview_scroll(
+            frame, columns=cols, height=15,
+            status_columns=["Priority", "Status"],
+            empty_message="No maintenance tickets yet",
+        )
+        self.tree.bind("<<TreeviewSelect>>", self._on_ticket_select)
         self.refresh_list()
 
-    def build_manage_tab(self, tab):
-        scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
+    # ── Manage ────────────────────────────────────────────────────────────────
+
+    def _build_manage_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
         scroll.pack(fill="both", expand=True)
 
-        # Top section: ID
-        top_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        top_frame.pack(pady=(30, 20))
-        ctk.CTkLabel(top_frame, text="Ticket ID *:", font=("Arial", 14, "bold"), text_color="red").pack(side="left", padx=10)
-        self.manage_id = ctk.CTkEntry(top_frame, width=200)
-        self.manage_id.pack(side="left", padx=10)
+        # Ticket ID lookup row
+        lookup_inner = create_card(scroll)
+        ctk.CTkLabel(lookup_inner, text="Ticket ID *", font=T.FONT_BODY_B,
+                      text_color=T.DANGER).pack(side="left", padx=(0, T.SP_M))
+        self.manage_id = ctk.CTkEntry(lookup_inner, width=200, height=T.INPUT_HEIGHT,
+                                       fg_color=T.SURFACE_3, border_color=T.BORDER,
+                                       text_color=T.TEXT)
+        self.manage_id.pack(side="left")
 
-        # Bottom section: 3 horizontal columns side-by-side
-        cols_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        cols_frame.pack(pady=10, fill="x", padx=60)
-        cols_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        # 3-column cards row
+        cols_outer = ctk.CTkFrame(scroll, fg_color="transparent")
+        cols_outer.pack(fill="x", padx=T.SP_XL, pady=T.SP_M)
+        cols_outer.grid_columnconfigure((0, 1, 2), weight=1)
 
-        # ---- COL 1: ASSIGN ----
-        col1 = ctk.CTkFrame(cols_frame, fg_color="transparent")
-        col1.grid(row=0, column=0, padx=20, pady=10, sticky="n")
-        ctk.CTkLabel(col1, text="Assign Staff", text_color="#1f6aa5", font=("Arial", 16, "bold")).pack(pady=(0, 20))
-        
-        ctk.CTkLabel(col1, text="Staff User ID:").pack(anchor="w")
-        self.staff_id_entry = ctk.CTkEntry(col1, width=200)
-        self.staff_id_entry.pack(pady=(0, 15))
-        
-        ctk.CTkLabel(col1, text="Scheduled Date (optional):").pack(anchor="w")
-        self.sched_entry = ctk.CTkEntry(col1, width=200, placeholder_text="YYYY-MM-DD")
-        self.sched_entry.pack(pady=(0, 25))
-        
-        ctk.CTkButton(col1, text="Assign", command=self.assign, width=200).pack()
+        # Assign card
+        assign = ctk.CTkFrame(cols_outer, fg_color=T.SURFACE,
+                               corner_radius=T.RADIUS_MD,
+                               border_width=1, border_color=T.BORDER)
+        assign.grid(row=0, column=0, padx=(0, T.SP_S), sticky="nsew")
+        ctk.CTkLabel(assign, text="Assign Staff", font=T.FONT_H3,
+                      text_color=T.PRIMARY).pack(
+            anchor="w", padx=T.SP_L, pady=(T.SP_L, T.SP_S))
+        tk.Frame(assign, bg=T.BORDER, height=1).pack(fill="x")
+        a_inner = ctk.CTkFrame(assign, fg_color="transparent")
+        a_inner.pack(padx=T.SP_L, pady=T.SP_L, fill="x")
+        ctk.CTkLabel(a_inner, text="Staff User ID", font=T.FONT_BODY,
+                      text_color=T.TEXT_MUTED).pack(anchor="w")
+        self.staff_id_entry = ctk.CTkEntry(a_inner, width=180, height=T.INPUT_HEIGHT,
+                                            fg_color=T.SURFACE_3, border_color=T.BORDER,
+                                            text_color=T.TEXT)
+        self.staff_id_entry.pack(pady=(T.SP_XS, T.SP_M), fill="x")
+        ctk.CTkLabel(a_inner, text="Scheduled Date (YYYY-MM-DD)",
+                      font=T.FONT_BODY, text_color=T.TEXT_MUTED).pack(anchor="w")
+        self.sched_entry = ctk.CTkEntry(a_inner, width=180, height=T.INPUT_HEIGHT,
+                                         fg_color=T.SURFACE_3, border_color=T.BORDER,
+                                         text_color=T.TEXT,
+                                         placeholder_text="optional")
+        self.sched_entry.pack(pady=(T.SP_XS, T.SP_L), fill="x")
+        create_primary_button(a_inner, "Assign", self.assign).pack(fill="x")
 
-        # ---- COL 2: STATUS ----
-        col2 = ctk.CTkFrame(cols_frame, fg_color="transparent")
-        col2.grid(row=0, column=1, padx=20, pady=10, sticky="n")
-        ctk.CTkLabel(col2, text="Update Status", text_color="#1f6aa5", font=("Arial", 16, "bold")).pack(pady=(0, 20))
-        
-        ctk.CTkLabel(col2, text="New Status:").pack(anchor="w")
-        self.status_combo = ctk.CTkComboBox(col2, values=["Open", "Assigned", "In Progress", "Fixed", "Closed"], width=200)
-        self.status_combo.pack(pady=(0, 25))
+        # Status card
+        status_card = ctk.CTkFrame(cols_outer, fg_color=T.SURFACE,
+                                    corner_radius=T.RADIUS_MD,
+                                    border_width=1, border_color=T.BORDER)
+        status_card.grid(row=0, column=1, padx=T.SP_XS, sticky="nsew")
+        ctk.CTkLabel(status_card, text="Update Status", font=T.FONT_H3,
+                      text_color=T.PRIMARY).pack(
+            anchor="w", padx=T.SP_L, pady=(T.SP_L, T.SP_S))
+        tk.Frame(status_card, bg=T.BORDER, height=1).pack(fill="x")
+        s_inner = ctk.CTkFrame(status_card, fg_color="transparent")
+        s_inner.pack(padx=T.SP_L, pady=T.SP_L, fill="x")
+        ctk.CTkLabel(s_inner, text="New Status", font=T.FONT_BODY,
+                      text_color=T.TEXT_MUTED).pack(anchor="w")
+        self.status_combo = ctk.CTkComboBox(
+            s_inner, values=["Open", "Assigned", "In Progress", "Fixed", "Closed"],
+            width=180, height=T.INPUT_HEIGHT,
+            fg_color=T.SURFACE_3, border_color=T.BORDER,
+            button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
+            text_color=T.TEXT)
+        self.status_combo.pack(pady=(T.SP_XS, T.SP_L), fill="x")
         self.status_combo.set("In Progress")
-        
-        ctk.CTkButton(col2, text="Update Status", command=self.update_status, width=200).pack()
+        create_primary_button(s_inner, "Update Status",
+                               self.update_status).pack(fill="x")
 
-        # ---- COL 3: COSTS ----
-        col3 = ctk.CTkFrame(cols_frame, fg_color="transparent")
-        col3.grid(row=0, column=2, padx=20, pady=10, sticky="n")
-        ctk.CTkLabel(col3, text="Log Costs", text_color="#1f6aa5", font=("Arial", 16, "bold")).pack(pady=(0, 20))
-        
-        ctk.CTkLabel(col3, text="Hours Spent:").pack(anchor="w")
-        self.hours_entry = ctk.CTkEntry(col3, width=200)
-        self.hours_entry.pack(pady=(0, 15))
-        
-        ctk.CTkLabel(col3, text="Cost (£):").pack(anchor="w")
-        self.cost_entry = ctk.CTkEntry(col3, width=200)
-        self.cost_entry.pack(pady=(0, 25))
-        
-        ctk.CTkButton(col3, text="Log Costs", command=self.log_costs, width=200).pack()
+        # Costs card
+        costs_card = ctk.CTkFrame(cols_outer, fg_color=T.SURFACE,
+                                   corner_radius=T.RADIUS_MD,
+                                   border_width=1, border_color=T.BORDER)
+        costs_card.grid(row=0, column=2, padx=(T.SP_S, 0), sticky="nsew")
+        ctk.CTkLabel(costs_card, text="Log Costs", font=T.FONT_H3,
+                      text_color=T.PRIMARY).pack(
+            anchor="w", padx=T.SP_L, pady=(T.SP_L, T.SP_S))
+        tk.Frame(costs_card, bg=T.BORDER, height=1).pack(fill="x")
+        c_inner = ctk.CTkFrame(costs_card, fg_color="transparent")
+        c_inner.pack(padx=T.SP_L, pady=T.SP_L, fill="x")
+        ctk.CTkLabel(c_inner, text="Hours Spent", font=T.FONT_BODY,
+                      text_color=T.TEXT_MUTED).pack(anchor="w")
+        self.hours_entry = ctk.CTkEntry(c_inner, width=180, height=T.INPUT_HEIGHT,
+                                         fg_color=T.SURFACE_3, border_color=T.BORDER,
+                                         text_color=T.TEXT)
+        self.hours_entry.pack(pady=(T.SP_XS, T.SP_M), fill="x")
+        ctk.CTkLabel(c_inner, text="Cost (£)", font=T.FONT_BODY,
+                      text_color=T.TEXT_MUTED).pack(anchor="w")
+        self.cost_entry = ctk.CTkEntry(c_inner, width=180, height=T.INPUT_HEIGHT,
+                                        fg_color=T.SURFACE_3, border_color=T.BORDER,
+                                        text_color=T.TEXT)
+        self.cost_entry.pack(pady=(T.SP_XS, T.SP_L), fill="x")
+        create_primary_button(c_inner, "Log Costs", self.log_costs).pack(fill="x")
 
-        # ─── Communicate Date to Tenant ───
-        notify_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        notify_frame.pack(pady=(10, 5))
+        # Notify Tenant card (full width)
+        notify_inner = create_card(scroll, title="📧 Notify Tenant")
+        notify_inner.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(notify_inner, text="Maintenance Date *", font=T.FONT_BODY,
+                      text_color=T.DANGER).grid(row=0, column=0,
+                                                 padx=(0, T.SP_M), pady=T.SP_S, sticky="e")
+        self.notify_date_entry = ctk.CTkEntry(notify_inner, width=220,
+                                               height=T.INPUT_HEIGHT,
+                                               fg_color=T.SURFACE_3,
+                                               border_color=T.BORDER,
+                                               text_color=T.TEXT,
+                                               placeholder_text="YYYY-MM-DD")
+        self.notify_date_entry.grid(row=0, column=1, pady=T.SP_S, sticky="w")
+        create_primary_button(notify_inner, "Set Date & Notify Tenant",
+                               self.notify_tenant, width=260).grid(
+            row=1, column=0, columnspan=2, pady=T.SP_L)
 
-        ctk.CTkLabel(notify_frame, text="── Notify Tenant ──", font=("Arial", 13, "bold")).grid(
-            row=0, column=0, columnspan=2, pady=(5, 10))
-
-        ctk.CTkLabel(notify_frame, text="Maintenance Date *:", text_color="red").grid(row=1, column=0, padx=10, pady=8, sticky="e")
-        self.notify_date_entry = ctk.CTkEntry(notify_frame, width=200, placeholder_text="YYYY-MM-DD")
-        self.notify_date_entry.grid(row=1, column=1, padx=10, pady=8)
-
-        ctk.CTkButton(notify_frame, text="📧 Set Date & Notify Tenant",
-                       command=self.notify_tenant, width=220).grid(
-            row=2, column=0, columnspan=2, pady=8)
-
-        self.manage_result = ctk.CTkLabel(scroll, text="", font=("Arial", 12))
-        self.manage_result.pack(pady=20)
+        self.manage_result = ctk.CTkLabel(scroll, text="", font=T.FONT_BODY,
+                                           text_color=T.TEXT_MUTED)
+        self.manage_result.pack(pady=T.SP_M)
 
         scroll.after(200, lambda: enable_trackpad_scroll(scroll))
 
-        # Enter key bindings for UX
-        self.manage_id.bind("<Return>", lambda e: self.update_status())
-        self.hours_entry.bind("<Return>", lambda e: self.log_costs())
-        self.cost_entry.bind("<Return>", lambda e: self.log_costs())
-        self.staff_id_entry.bind("<Return>", lambda e: self.assign())
-        self.sched_entry.bind("<Return>", lambda e: self.assign())
+        # Bindings
+        self.manage_id.bind("<Return>",       lambda e: self.update_status())
+        self.hours_entry.bind("<Return>",     lambda e: self.log_costs())
+        self.cost_entry.bind("<Return>",      lambda e: self.log_costs())
+        self.staff_id_entry.bind("<Return>",  lambda e: self.assign())
+        self.sched_entry.bind("<Return>",     lambda e: self.assign())
+
+    # ── Cost Report tab ───────────────────────────────────────────────────────
+
+    def _build_cost_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
+        scroll.pack(fill="both", expand=True)
+
+        # KPI tiles frame
+        self.cost_kpi_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        self.cost_kpi_frame.pack(fill="x", padx=T.SP_XL, pady=(T.SP_S, 0))
+
+        # Per-apartment table
+        apt_inner = create_card_fill(scroll, title="Cost by Apartment")
+        cols = ("Unit", "City", "Total Tickets", "Open", "Resolved",
+                "Total Cost", "Total Hours", "Avg Cost")
+        self.cost_apt_tree = setup_treeview_scroll(
+            apt_inner, columns=cols, height=6, bind_scroll=False,
+            empty_message="No cost data by apartment",
+        )
+        for c in cols:
+            self.cost_apt_tree.column(c, width=90)
+
+        # Per-city table
+        city_inner = create_card_fill(scroll, title="Cost by City")
+        city_cols = ("City", "Total Tickets", "Total Cost", "Total Hours", "Avg Cost")
+        self.cost_city_tree = setup_treeview_scroll(
+            city_inner, columns=city_cols, height=5, bind_scroll=False,
+            empty_message="No cost data by city",
+        )
+        for c in city_cols:
+            self.cost_city_tree.column(c, width=120)
+
+        create_ghost_button(scroll, "⟳  Refresh Report",
+                             self.refresh_cost_report).pack(pady=T.SP_M)
+        self.refresh_cost_report()
+        scroll.after(200, lambda: enable_trackpad_scroll(scroll))
+
+    # ── Actions ───────────────────────────────────────────────────────────────
 
     def submit_ticket(self):
         apt_id = self.apt_id_entry.get()
-        tid = self.tenant_id_entry.get()
-        desc = self.desc_entry.get()
+        tid    = self.tenant_id_entry.get()
+        desc   = self.desc_entry.get()
         priority = self.priority_combo.get()
-
         if not apt_id or not desc:
-            messagebox.showwarning("Error", "Apartment ID and description required.")
+            show_warning(self._root, "Apartment ID and description are required.")
             return
         try:
             self.manager.create_ticket(int(apt_id), int(tid) if tid else None, desc, priority)
-            messagebox.showinfo("Success", "Ticket created!")
+            show_success(self._root, "Ticket created successfully.")
             for e in [self.apt_id_entry, self.tenant_id_entry, self.desc_entry]:
-                e.delete(0, 'end')
+                e.delete(0, "end")
             self.priority_combo.set("Medium")
             self.refresh_list()
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+        except Exception as ex:
+            show_error(self._root, str(ex))
 
     def assign(self):
         tid = self.manage_id.get()
         sid = self.staff_id_entry.get()
         sched = self.sched_entry.get()
         if not tid or not sid:
-            messagebox.showwarning("Error", "Ticket ID and Staff ID required.")
+            show_warning(self._root, "Ticket ID and Staff ID are required.")
             return
         try:
             self.manager.assign_staff(int(tid), int(sid), sched or None)
-            self.manage_result.configure(text="Staff assigned!", text_color="green")
+            self.manage_result.configure(text="✓ Staff assigned.", text_color=T.SUCCESS)
             self.refresh_list()
         except ValueError:
-            messagebox.showerror("Error", "Ticket ID and Staff ID must be valid numbers.")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+            show_error(self._root, "Ticket ID and Staff ID must be numbers.")
+        except Exception as ex:
+            show_error(self._root, str(ex))
 
     def update_status(self):
         tid = self.manage_id.get()
         if not tid:
-            messagebox.showwarning("Error", "Enter ticket ID.")
+            show_warning(self._root, "Enter a Ticket ID first.")
             return
         try:
-            self.manager.update_status(int(tid), self.status_combo.get())
-            messagebox.showinfo("Success", f"Ticket {tid} status updated to '{self.status_combo.get()}'!")
+            new_status = self.status_combo.get()
+            self.manager.update_status(int(tid), new_status)
+            self.manage_result.configure(
+                text=f"✓ Ticket {tid} → {new_status}",
+                text_color=T.SUCCESS)
             self.refresh_list()
         except ValueError:
-            messagebox.showerror("Error", "Ticket ID must be a valid number.")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+            show_error(self._root, "Ticket ID must be a number.")
+        except Exception as ex:
+            show_error(self._root, str(ex))
 
     def log_costs(self):
-        tid = self.manage_id.get()
+        tid   = self.manage_id.get()
         hours = self.hours_entry.get()
-        cost = self.cost_entry.get()
+        cost  = self.cost_entry.get()
         if not tid or not hours or not cost:
-            messagebox.showwarning("Error", "All fields required.")
+            show_warning(self._root, "All fields required.")
             return
         try:
             self.manager.log_costs(int(tid), hours, cost)
-            messagebox.showinfo("Success", f"Costs logged for Ticket {tid}: {hours}h, £{cost}!")
-            self.hours_entry.delete(0, 'end')
-            self.cost_entry.delete(0, 'end')
+            self.manage_result.configure(
+                text=f"✓ Costs logged: {hours}h, £{cost}",
+                text_color=T.SUCCESS)
+            self.hours_entry.delete(0, "end")
+            self.cost_entry.delete(0, "end")
             self.refresh_list()
         except ValueError:
-            messagebox.showerror("Error", "Ticket ID, Hours, and Cost must be valid numbers.")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+            show_error(self._root, "Ticket ID, Hours, and Cost must be numbers.")
+        except Exception as ex:
+            show_error(self._root, str(ex))
+
+    def notify_tenant(self):
+        tid  = self.manage_id.get()
+        date = self.notify_date_entry.get()
+        if not tid or not date:
+            show_warning(self._root, "Ticket ID and date are required.")
+            return
+        try:
+            result = self.manager.notify_tenant_scheduled_date(int(tid), date)
+            self.manage_result.configure(
+                text=f"✓ Date set and tenant notified: {result['scheduled_date']}",
+                text_color=T.SUCCESS)
+            self.refresh_list()
+        except Exception as ex:
+            show_error(self._root, str(ex))
+
+    def _on_ticket_select(self, event=None):
+        selected = self.tree.selection()
+        has = bool(selected)
+        color = T.TEXT if has else T.TEXT_MUTED
+        self._tkt_detail_btn.configure(state="normal" if has else "disabled",
+                                        text_color=color)
+        # Delete only for Open/Assigned
+        is_deletable = False
+        if has:
+            status = self.tree.item(selected[0], "values")[5]
+            is_deletable = status in ("Open", "Assigned")
+        del_color = T.TEXT if is_deletable else T.TEXT_MUTED
+        self._tkt_del_btn.configure(state="normal" if is_deletable else "disabled",
+                                     text_color=del_color)
+
+    def _delete_selected_ticket(self):
+        selected = self.tree.selection()
+        if not selected:
+            return
+        v = self.tree.item(selected[0], "values")
+        ticket_id = int(v[0])
+        issue = (v[3] or "")[:40]
+        if not confirm_dialog(self._root, "Delete Ticket",
+                              f"Permanently delete ticket #{ticket_id}: '{issue}'?",
+                              danger=True):
+            return
+        try:
+            self.manager.delete_ticket(ticket_id)
+            show_success(self._root, f"Ticket #{ticket_id} deleted.")
+            self.refresh_list()
+        except Exception as ex:
+            show_error(self._root, str(ex))
+
+    def _show_ticket_detail(self):
+        selected = self.tree.selection()
+        if not selected:
+            return
+        ticket_id = int(self.tree.item(selected[0], "values")[0])
+        try:
+            d = self.manager.get_ticket_detail(ticket_id)
+        except Exception as ex:
+            show_error(self._root, str(ex))
+            return
+
+        import tkinter as _tk
+        popup = ctk.CTkToplevel(self._root)
+        popup.title(f"Ticket #{d['id']} — Details")
+        popup.geometry("460x520")
+        popup.resizable(False, False)
+        popup.grab_set()
+        popup.configure(fg_color=T.SURFACE)
+
+        band = ctk.CTkFrame(popup, fg_color=T.PRIMARY_MUTED, corner_radius=0)
+        band.pack(fill="x")
+        ctk.CTkLabel(band, text=f"🔧  Ticket #{d['id']}",
+                      font=T.FONT_H2, text_color=T.TEXT).pack(pady=(T.SP_L, T.SP_XS))
+        ctk.CTkLabel(band, text=f"Unit {d['unit_number']}  ·  {d['priority']}  ·  {d['status']}",
+                      font=T.FONT_BODY, text_color=T.TEXT_MUTED).pack(pady=(0, T.SP_L))
+        _tk.Frame(popup, bg=T.BORDER, height=1).pack(fill="x")
+
+        body = ctk.CTkScrollableFrame(popup, fg_color="transparent",
+                                       scrollbar_button_color=T.SURFACE_3)
+        body.pack(fill="both", expand=True, padx=T.SP_XL, pady=T.SP_L)
+
+        def _section(title, fields):
+            sec = ctk.CTkFrame(body, fg_color=T.SURFACE_2, corner_radius=T.RADIUS_SM)
+            sec.pack(fill="x", pady=(0, T.SP_S))
+            ctk.CTkLabel(sec, text=title, font=T.FONT_CAPTION_B,
+                          text_color=T.TEXT_SUBTLE).pack(
+                anchor="w", padx=T.SP_M, pady=(T.SP_S, 0))
+            for label, value in fields:
+                r = ctk.CTkFrame(sec, fg_color="transparent")
+                r.pack(fill="x", padx=T.SP_M, pady=T.SP_XS)
+                ctk.CTkLabel(r, text=label, font=T.FONT_CAPTION,
+                              text_color=T.TEXT_MUTED, width=110, anchor="e").pack(side="left")
+                ctk.CTkLabel(r, text=str(value) if value is not None else "-",
+                              font=T.FONT_CAPTION_B, text_color=T.TEXT,
+                              anchor="w", wraplength=280).pack(side="left", padx=(T.SP_S, 0))
+            ctk.CTkFrame(sec, height=T.SP_XS, fg_color="transparent").pack()
+
+        _section("Issue", [
+            ("Description", d["description"]),
+            ("Priority",    d["priority"]),
+            ("Status",      d["status"]),
+        ])
+        _section("Dates", [
+            ("Reported",   d["date_reported"]),
+            ("Scheduled",  d["scheduled_date"]),
+            ("Resolved",   d["date_resolved"]),
+        ])
+        _section("Property & Tenant", [
+            ("Unit",          d["unit_number"]),
+            ("Address",       d["address"]),
+            ("City",          d["city"]),
+            ("Reported by",   d["tenant_name"]),
+            ("Tenant phone",  d["tenant_phone"]),
+        ])
+        _section("Assignment & Costs", [
+            ("Assigned to",  d["assigned_staff"]),
+            ("Time spent",   f"{d['time_spent']:.1f} hrs"),
+            ("Total cost",   f"£{d['cost']:.2f}"),
+        ])
+
+        _tk.Frame(popup, bg=T.BORDER, height=1).pack(fill="x")
+        from views.ui_helpers import create_primary_button as _cpb
+        _cpb(popup, "Close", popup.destroy, width=120).pack(pady=T.SP_M)
+        popup.bind("<Escape>", lambda e: popup.destroy())
+        popup.bind("<Return>", lambda e: popup.destroy())
 
     def refresh_list(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
         for t in self.manager.get_all_tickets():
-            # id, unit, tenant, desc, priority, status, reported, scheduled, assigned_to, time, cost
-            self.tree.insert("", "end", values=(t[0], t[1] or "N/A", t[2] or "N/A",
-                (t[3] or "")[:30], t[4], t[5], t[6], t[7] or "Not set", t[8] or "Unassigned",
+            self.tree.insert("", "end", values=(
+                t[0], t[1] or "N/A", t[2] or "N/A",
+                (t[3] or "")[:30], t[4], t[5], t[6],
+                t[7] or "Not set", t[8] or "Unassigned",
                 f"{t[9] or 0.0:.1f}", f"£{(t[10] or 0.0):.2f}"))
         apply_row_stripes(self.tree)
         autofit_columns(self.tree)
 
-    def build_cost_tab(self, tab):
-        """Builds the maintenance cost report tab with per-apartment and per-city breakdown."""
-        # Wrap everything in a scrollable frame so content below the window is reachable
-        scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
-        scroll.pack(fill="both", expand=True)
-
-        # ─── Summary Cards ───
-        self.cost_summary_frame = ctk.CTkFrame(scroll)
-        self.cost_summary_frame.pack(fill="x", padx=10, pady=10)
-
-        # ─── Per-Apartment Breakdown ───
-        ctk.CTkLabel(scroll, text="Cost by Apartment", font=("Arial", 14, "bold")).pack(pady=(10, 5))
-
-        apt_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        apt_frame.pack(fill="both", expand=True, padx=10, pady=5)
-
-        cols = ("Unit", "City", "Total Tickets", "Open", "Resolved", "Total Cost", "Total Hours", "Avg Cost")
-        self.cost_apt_tree = setup_treeview_scroll(apt_frame, columns=cols, height=6, bind_scroll=False)
-        for c in cols:
-            self.cost_apt_tree.column(c, width=90)
-
-        # ─── Per-City Breakdown ───
-        ctk.CTkLabel(scroll, text="Cost by City", font=("Arial", 14, "bold")).pack(pady=(10, 5))
-
-        city_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        city_frame.pack(fill="both", expand=True, padx=10, pady=5)
-
-        city_cols = ("City", "Total Tickets", "Total Cost", "Total Hours", "Avg Cost")
-        self.cost_city_tree = setup_treeview_scroll(city_frame, columns=city_cols, height=5, bind_scroll=False)
-        for c in city_cols:
-            self.cost_city_tree.column(c, width=120)
-
-        ctk.CTkButton(scroll, text="🔄 Refresh Report", command=self.refresh_cost_report).pack(pady=8)
-        self.refresh_cost_report()
-        # Bind trackpad scroll — must run AFTER all children exist
-        scroll.after(200, lambda: enable_trackpad_scroll(scroll))
-
-
     def refresh_cost_report(self):
-        """Refreshes the cost report data in both tables and summary cards."""
-        # ─── Summary Cards ───
-        for w in self.cost_summary_frame.winfo_children():
+        for w in self.cost_kpi_frame.winfo_children():
             w.destroy()
         status_counts = self.manager.get_tickets_by_status_count()
         total = sum(status_counts.values())
-        cards = [("Total Tickets", str(total))]
+        kpi_data = [("Total Tickets", str(total), "primary")]
+        kind_map = {"Open": "info", "In Progress": "warning",
+                    "Fixed": "success", "Closed": "muted"}
         for status, count in status_counts.items():
-            cards.append((status, str(count)))
-        for i, (label, val) in enumerate(cards):
-            card = ctk.CTkFrame(self.cost_summary_frame, corner_radius=10)
-            card.grid(row=0, column=i, padx=8, pady=8, sticky="nsew")
-            self.cost_summary_frame.grid_columnconfigure(i, weight=1)
-            ctk.CTkLabel(card, text=val, font=("Arial", 22, "bold")).pack(pady=(10, 2))
-            ctk.CTkLabel(card, text=label, font=("Arial", 11), text_color="gray").pack(pady=(0, 10))
+            kpi_data.append((status, str(count), kind_map.get(status, "neutral")))
+        for i, (label, val, kind) in enumerate(kpi_data):
+            tile = create_kpi_tile_l(self.cost_kpi_frame, label=label,
+                                      value=val, kind=kind)
+            tile.grid(row=0, column=i, padx=T.SP_M, pady=T.SP_S, sticky="nsew")
+            self.cost_kpi_frame.grid_columnconfigure(i, weight=1)
 
-        # ─── Per-Apartment Table ───
         for item in self.cost_apt_tree.get_children():
             self.cost_apt_tree.delete(item)
         for row in self.manager.get_cost_report_by_apartment():
-            # unit, city, total, open, resolved, cost, hours, avg
             self.cost_apt_tree.insert("", "end", values=(
                 row[0], row[1], row[2], row[3], row[4],
                 f"£{row[5]:.2f}", f"{row[6]:.1f}h", f"£{row[7]:.2f}"))
         apply_row_stripes(self.cost_apt_tree)
         autofit_columns(self.cost_apt_tree)
 
-        # ─── Per-City Table ───
         for item in self.cost_city_tree.get_children():
             self.cost_city_tree.delete(item)
         for row in self.manager.get_cost_report_by_city():
-            # city, total, cost, hours, avg
             self.cost_city_tree.insert("", "end", values=(
                 row[0], row[1], f"£{row[2]:.2f}", f"{row[3]:.1f}h", f"£{row[4]:.2f}"))
         apply_row_stripes(self.cost_city_tree)
         autofit_columns(self.cost_city_tree)
 
-    def notify_tenant(self):
-        """Handles the 'Communicate Dates' requirement from the brief."""
-        tid = self.manage_id.get()
-        date = self.notify_date_entry.get()
-        if not tid or not date:
-            messagebox.showwarning("Error", "Ticket ID and date required.")
+    def _export_tickets_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="tickets_export.csv", title="Export Tickets to CSV")
+        if not path:
             return
-        try:
-            result = self.manager.notify_tenant_scheduled_date(int(tid), date)
-            msg = (f"✅ Maintenance scheduled for {result['scheduled_date']}!\n\n"
-                   f"Tenant: {result['tenant_name']}\n"
-                   f"Phone: {result.get('phone', 'N/A')}\n"
-                   f"Email: {result.get('email', 'N/A')}\n\n"
-                   f"Please contact the tenant to confirm.")
-            messagebox.showinfo("Tenant Notified", msg)
-            self.manage_result.configure(text="Date set & tenant notified!", text_color="green")
-            self.refresh_list()
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+        rows = self.manager.get_all_tickets()
+        export_table_to_csv(
+            ["ID", "Unit", "Tenant", "Description", "Priority", "Status",
+             "Reported", "Scheduled", "Assigned To", "Hours", "Cost"],
+            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")

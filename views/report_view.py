@@ -2,79 +2,101 @@
 # Student ID: 24020879
 
 import customtkinter as ctk
+import tkinter as tk
 from report_manager import ReportManager
-from views.ui_helpers import setup_treeview_scroll, autofit_columns, apply_row_stripes
+from views import theme as T
+from views.ui_helpers import (
+    setup_treeview_scroll, autofit_columns, apply_row_stripes,
+    create_page_header, create_card, create_card_fill, create_kpi_tile_l, create_tabview,
+    create_ghost_button, export_table_to_csv,
+    show_success, show_error,
+)
 
 
 class ReportView:
     def __init__(self, parent, db_manager):
-        self.db_manager = db_manager
+        self.db_manager     = db_manager
         self.report_manager = ReportManager(db_manager)
+        self._root = parent.winfo_toplevel()
 
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="both", expand=True, padx=20, pady=20)
+        frame = ctk.CTkFrame(parent, fg_color=T.BG)
+        frame.pack(fill="both", expand=True)
 
-        ctk.CTkLabel(frame, text="📈 Reports", font=("Arial", 22, "bold")).pack(pady=(0, 10))
+        create_page_header(frame, "📈 Reports",
+                            subtitle="Occupancy, financial, and maintenance analytics")
 
-        # Tab view for 3 report types
-        self.tabview = ctk.CTkTabview(frame)
-        self.tabview.pack(fill="both", expand=True)
+        self.tabview = create_tabview(frame)
 
-        tab_occupancy = self.tabview.add("Occupancy")
-        tab_financial = self.tabview.add("Financial Summary")
-        tab_maintenance = self.tabview.add("Maintenance Costs")
+        tab_occ = self.tabview.add("Occupancy")
+        tab_fin = self.tabview.add("Financial Summary")
+        tab_mnt = self.tabview.add("Maintenance Costs")
 
-        self.build_occupancy_tab(tab_occupancy)
-        self.build_financial_tab(tab_financial)
-        self.build_maintenance_tab(tab_maintenance)
+        self._build_occupancy_tab(tab_occ)
+        self._build_financial_tab(tab_fin)
+        self._build_maintenance_tab(tab_mnt)
 
-    # ─── OCCUPANCY REPORT ───────────────────────────────────
-    def build_occupancy_tab(self, tab):
-        # Filter bar
-        filter_frame = ctk.CTkFrame(tab)
-        filter_frame.pack(fill="x", padx=10, pady=(10, 5))
+    # ── Occupancy ─────────────────────────────────────────────────────────────
 
-        ctk.CTkLabel(filter_frame, text="Filter by City:", font=("Arial", 13)).pack(side="left", padx=(10, 5))
+    def _build_occupancy_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
+        scroll.pack(fill="both", expand=True)
+
+        # Filter bar card
+        filter_inner = create_card(scroll)
+        filter_inner.pack_configure(pady=(0, T.SP_XS))
+        ctk.CTkLabel(filter_inner, text="City:", font=T.FONT_BODY,
+                      text_color=T.TEXT_MUTED).pack(side="left", padx=(0, T.SP_S))
         cities = ["All"] + self.report_manager.get_cities()
-        self.occ_city_filter = ctk.CTkComboBox(filter_frame, values=cities, width=180,
-                                                command=lambda _: self.refresh_occupancy())
-        self.occ_city_filter.pack(side="left", padx=5)
+        self.occ_city_filter = ctk.CTkComboBox(
+            filter_inner, values=cities, width=180, height=T.INPUT_HEIGHT,
+            fg_color=T.SURFACE_3, border_color=T.BORDER,
+            button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
+            text_color=T.TEXT,
+            command=lambda _: self.refresh_occupancy())
+        self.occ_city_filter.pack(side="left")
         self.occ_city_filter.set("All")
 
-        # Summary cards
-        self.occ_summary_frame = ctk.CTkFrame(tab)
-        self.occ_summary_frame.pack(fill="x", padx=10, pady=5)
+        # KPI tiles
+        self.occ_kpi_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        self.occ_kpi_frame.pack(fill="x", padx=T.SP_XL, pady=(0, 0))
 
-        # Data table
-        tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        # Toolbar: Refresh + Export
+        occ_toolbar = ctk.CTkFrame(scroll, fg_color="transparent")
+        occ_toolbar.pack(fill="x", padx=T.SP_XL, pady=T.SP_XS)
+        create_ghost_button(occ_toolbar, "⟳  Refresh",
+                             self.refresh_occupancy).pack(side="right")
+        create_ghost_button(occ_toolbar, "⬇  Export CSV",
+                             self._export_occ_csv).pack(side="right", padx=(0, T.SP_S))
 
+        # Table card
+        tbl_inner = create_card_fill(scroll, title="Apartment Occupancy")
         cols = ("Unit", "Address", "City", "Rooms", "Rent", "Status")
-        self.occ_tree = setup_treeview_scroll(tree_frame, columns=cols, height=12)
-
+        self.occ_tree = setup_treeview_scroll(
+            tbl_inner, columns=cols, height=12,
+            status_columns=["Status"],
+            empty_message="No apartments found for the selected city",
+        )
         self.refresh_occupancy()
 
     def refresh_occupancy(self):
         city = self.occ_city_filter.get()
 
-        # Update summary cards
-        for w in self.occ_summary_frame.winfo_children():
+        for w in self.occ_kpi_frame.winfo_children():
             w.destroy()
         summary = self.report_manager.get_occupancy_summary(city)
-        cards = [
-            ("Total", str(summary["total"])),
-            ("Occupied", str(summary["occupied"])),
-            ("Vacant", str(summary["vacant"])),
-            ("Rate", f"{summary['occupancy_rate']}%"),
+        kpi_data = [
+            ("Total",    str(summary["total"]),            "primary"),
+            ("Occupied", str(summary["occupied"]),         "success"),
+            ("Vacant",   str(summary["vacant"]),           "muted"),
+            ("Rate",     f"{summary['occupancy_rate']}%",  "info"),
         ]
-        for i, (label, val) in enumerate(cards):
-            card = ctk.CTkFrame(self.occ_summary_frame, corner_radius=10)
-            card.grid(row=0, column=i, padx=10, pady=10, sticky="nsew")
-            self.occ_summary_frame.grid_columnconfigure(i, weight=1)
-            ctk.CTkLabel(card, text=val, font=("Arial", 28, "bold")).pack(pady=(15, 3))
-            ctk.CTkLabel(card, text=label, font=("Arial", 12), text_color="gray").pack(pady=(0, 15))
+        for i, (label, val, kind) in enumerate(kpi_data):
+            tile = create_kpi_tile_l(self.occ_kpi_frame, label=label,
+                                      value=val, kind=kind)
+            tile.grid(row=0, column=i, padx=T.SP_M, pady=T.SP_S, sticky="nsew")
+            self.occ_kpi_frame.grid_columnconfigure(i, weight=1)
 
-        # Update table
         for item in self.occ_tree.get_children():
             self.occ_tree.delete(item)
         for apt in self.report_manager.get_occupancy_report(city):
@@ -83,41 +105,47 @@ class ReportView:
         apply_row_stripes(self.occ_tree)
         autofit_columns(self.occ_tree)
 
-    # ─── FINANCIAL SUMMARY ──────────────────────────────────
-    def build_financial_tab(self, tab):
-        # Summary cards
-        self.fin_summary_frame = ctk.CTkFrame(tab)
-        self.fin_summary_frame.pack(fill="x", padx=10, pady=10)
+    # ── Financial Summary ─────────────────────────────────────────────────────
 
-        # Per-tenant breakdown table
-        tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
+    def _build_financial_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
+        scroll.pack(fill="both", expand=True)
 
+        self.fin_kpi_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        self.fin_kpi_frame.pack(fill="x", padx=T.SP_XL, pady=(T.SP_S, 0))
+
+        toolbar_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        toolbar_frame.pack(fill="x", padx=T.SP_XL, pady=T.SP_XS)
+        create_ghost_button(toolbar_frame, "⟳  Refresh",
+                             self.refresh_financial).pack(side="right")
+        create_ghost_button(toolbar_frame, "⬇  Export CSV",
+                             self._export_fin_csv).pack(side="right", padx=(0, T.SP_S))
+
+        tbl_inner = create_card_fill(scroll, title="Per-Tenant Financial Breakdown")
         cols = ("Tenant", "Total Invoiced", "Total Paid", "Outstanding")
-        self.fin_tree = setup_treeview_scroll(tree_frame, columns=cols, height=12)
-
-        ctk.CTkButton(tab, text="🔄 Refresh", command=self.refresh_financial).pack(pady=5)
+        self.fin_tree = setup_treeview_scroll(
+            tbl_inner, columns=cols, height=12,
+            empty_message="No financial data yet",
+        )
         self.refresh_financial()
 
     def refresh_financial(self):
-        # Update summary cards
-        for w in self.fin_summary_frame.winfo_children():
+        for w in self.fin_kpi_frame.winfo_children():
             w.destroy()
         summary = self.report_manager.get_financial_summary()
-        cards = [
-            ("Collected", f"£{summary['collected']:.2f}"),
-            ("Pending", f"£{summary['pending']:.2f}"),
-            ("Total Invoiced", f"£{summary['total_invoiced']:.2f}"),
-            ("Collection Rate", f"{summary['collection_rate']}%"),
+        kpi_data = [
+            ("Collected",       f"£{summary['collected']:.2f}",      "success"),
+            ("Pending",         f"£{summary['pending']:.2f}",         "warning"),
+            ("Total Invoiced",  f"£{summary['total_invoiced']:.2f}",  "primary"),
+            ("Collection Rate", f"{summary['collection_rate']}%",     "info"),
         ]
-        for i, (label, val) in enumerate(cards):
-            card = ctk.CTkFrame(self.fin_summary_frame, corner_radius=10)
-            card.grid(row=0, column=i, padx=10, pady=10, sticky="nsew")
-            self.fin_summary_frame.grid_columnconfigure(i, weight=1)
-            ctk.CTkLabel(card, text=val, font=("Arial", 24, "bold")).pack(pady=(15, 3))
-            ctk.CTkLabel(card, text=label, font=("Arial", 12), text_color="gray").pack(pady=(0, 15))
+        for i, (label, val, kind) in enumerate(kpi_data):
+            tile = create_kpi_tile_l(self.fin_kpi_frame, label=label,
+                                      value=val, kind=kind)
+            tile.grid(row=0, column=i, padx=T.SP_M, pady=T.SP_S, sticky="nsew")
+            self.fin_kpi_frame.grid_columnconfigure(i, weight=1)
 
-        # Update table
         for item in self.fin_tree.get_children():
             self.fin_tree.delete(item)
         for row in self.report_manager.get_financial_breakdown():
@@ -126,53 +154,104 @@ class ReportView:
         apply_row_stripes(self.fin_tree)
         autofit_columns(self.fin_tree)
 
-    # ─── MAINTENANCE COST REPORT ────────────────────────────
-    def build_maintenance_tab(self, tab):
-        # Filter bar
-        filter_frame = ctk.CTkFrame(tab)
-        filter_frame.pack(fill="x", padx=10, pady=(10, 5))
+    # ── Maintenance Costs ─────────────────────────────────────────────────────
 
-        ctk.CTkLabel(filter_frame, text="Filter by City:", font=("Arial", 13)).pack(side="left", padx=(10, 5))
+    def _build_maintenance_tab(self, tab):
+        scroll = ctk.CTkScrollableFrame(tab, fg_color=T.BG,
+                                         scrollbar_button_color=T.SURFACE_3)
+        scroll.pack(fill="both", expand=True)
+
+        filter_inner = create_card(scroll)
+        ctk.CTkLabel(filter_inner, text="City:", font=T.FONT_BODY,
+                      text_color=T.TEXT_MUTED).pack(side="left", padx=(0, T.SP_S))
         cities = ["All"] + self.report_manager.get_cities()
-        self.mnt_city_filter = ctk.CTkComboBox(filter_frame, values=cities, width=180,
-                                                command=lambda _: self.refresh_maintenance())
-        self.mnt_city_filter.pack(side="left", padx=5)
+        self.mnt_city_filter = ctk.CTkComboBox(
+            filter_inner, values=cities, width=180, height=T.INPUT_HEIGHT,
+            fg_color=T.SURFACE_3, border_color=T.BORDER,
+            button_color=T.SURFACE_3, dropdown_fg_color=T.SURFACE,
+            text_color=T.TEXT,
+            command=lambda _: self.refresh_maintenance())
+        self.mnt_city_filter.pack(side="left")
         self.mnt_city_filter.set("All")
 
-        # Summary cards
-        self.mnt_summary_frame = ctk.CTkFrame(tab)
-        self.mnt_summary_frame.pack(fill="x", padx=10, pady=5)
+        self.mnt_kpi_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        self.mnt_kpi_frame.pack(fill="x", padx=T.SP_XL, pady=(T.SP_S, 0))
 
-        # Data table
-        tree_frame = ctk.CTkFrame(tab, fg_color="transparent")
-        tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        # Toolbar: Refresh + Export
+        mnt_toolbar = ctk.CTkFrame(scroll, fg_color="transparent")
+        mnt_toolbar.pack(fill="x", padx=T.SP_XL, pady=T.SP_XS)
+        create_ghost_button(mnt_toolbar, "⟳  Refresh",
+                             self.refresh_maintenance).pack(side="right")
+        create_ghost_button(mnt_toolbar, "⬇  Export CSV",
+                             self._export_mnt_csv).pack(side="right", padx=(0, T.SP_S))
 
+        tbl_inner = create_card_fill(scroll, title="Maintenance Cost by Apartment")
         cols = ("Unit", "City", "Tickets", "Total Cost", "Total Hours")
-        self.mnt_tree = setup_treeview_scroll(tree_frame, columns=cols, height=12)
-
+        self.mnt_tree = setup_treeview_scroll(
+            tbl_inner, columns=cols, height=12,
+            empty_message="No maintenance data for the selected city",
+        )
         self.refresh_maintenance()
+
+    def _export_occ_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="occupancy_report.csv", title="Export Occupancy Report")
+        if not path:
+            return
+        city = self.occ_city_filter.get()
+        rows = self.report_manager.get_occupancy_report(city)
+        export_table_to_csv(["Unit", "Address", "City", "Rooms", "Rent", "Status"],
+                            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
+
+    def _export_fin_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="financial_report.csv", title="Export Financial Report")
+        if not path:
+            return
+        rows = self.report_manager.get_financial_breakdown()
+        export_table_to_csv(["Tenant", "Total Invoiced", "Total Paid", "Outstanding"],
+                            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
+
+    def _export_mnt_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="maintenance_cost_report.csv", title="Export Maintenance Report")
+        if not path:
+            return
+        city = self.mnt_city_filter.get()
+        rows = self.report_manager.get_maintenance_cost_report(city)
+        export_table_to_csv(["Unit", "City", "Tickets", "Total Cost", "Total Hours"],
+                            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
 
     def refresh_maintenance(self):
         city = self.mnt_city_filter.get()
 
-        # Update summary
-        for w in self.mnt_summary_frame.winfo_children():
+        for w in self.mnt_kpi_frame.winfo_children():
             w.destroy()
         summary = self.report_manager.get_maintenance_cost_summary()
-        cards = [
-            ("Total Spend", f"£{summary['total_cost']:.2f}"),
-            ("Avg Cost", f"£{summary['avg_cost']:.2f}"),
-            ("Total Hours", f"{summary['total_hours']:.1f}h"),
-            ("Completed", str(summary["completed_tickets"])),
+        kpi_data = [
+            ("Total Spend",  f"£{summary['total_cost']:.2f}",   "danger"),
+            ("Avg Cost",     f"£{summary['avg_cost']:.2f}",     "warning"),
+            ("Total Hours",  f"{summary['total_hours']:.1f}h",  "info"),
+            ("Completed",    str(summary["completed_tickets"]), "success"),
         ]
-        for i, (label, val) in enumerate(cards):
-            card = ctk.CTkFrame(self.mnt_summary_frame, corner_radius=10)
-            card.grid(row=0, column=i, padx=10, pady=10, sticky="nsew")
-            self.mnt_summary_frame.grid_columnconfigure(i, weight=1)
-            ctk.CTkLabel(card, text=val, font=("Arial", 24, "bold")).pack(pady=(15, 3))
-            ctk.CTkLabel(card, text=label, font=("Arial", 12), text_color="gray").pack(pady=(0, 15))
+        for i, (label, val, kind) in enumerate(kpi_data):
+            tile = create_kpi_tile_l(self.mnt_kpi_frame, label=label,
+                                      value=val, kind=kind)
+            tile.grid(row=0, column=i, padx=T.SP_M, pady=T.SP_S, sticky="nsew")
+            self.mnt_kpi_frame.grid_columnconfigure(i, weight=1)
 
-        # Update table
         for item in self.mnt_tree.get_children():
             self.mnt_tree.delete(item)
         for row in self.report_manager.get_maintenance_cost_report(city):

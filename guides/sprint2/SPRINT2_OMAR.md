@@ -26,8 +26,8 @@ We need overdue invoice and maintenance data so that Sprint 2 features (reports,
         # (tenant_id, issue_date, due_date, total_amount, status)
         (6, thirty_ago, due_past, 850.00, "Pending"),    # John — OVERDUE (past due date, still Pending)
         (6, today, due_future, 850.00, "Pending"),        # John — upcoming, not overdue
-        (7, thirty_ago, due_past, 1100.00, "Paid"),       # Sarah — paid on time
-        (7, today, due_future, 1100.00, "Pending"),       # Sarah — upcoming, not overdue
+        (7, thirty_ago, due_past, 1100.00, "Paid"),       # Emily — paid on time
+        (7, today, due_future, 1100.00, "Pending"),       # Emily — upcoming, not overdue
     ]
     for inv in invoices:
         cursor.execute("INSERT OR IGNORE INTO invoices (tenant_id, issue_date, due_date, total_amount, status) VALUES (?,?,?,?,?)", inv)
@@ -35,7 +35,7 @@ We need overdue invoice and maintenance data so that Sprint 2 features (reports,
     # 6. Payments (partial data for financial summary)
     payments = [
         # (invoice_id, amount, payment_date, method, transaction_ref)
-        (3, 1100.00, thirty_ago, "Bank Transfer", "TXN-001"),  # Sarah's paid invoice
+        (3, 1100.00, thirty_ago, "Bank Transfer", "TXN-001"),  # Emily's paid invoice
     ]
     for pay in payments:
         cursor.execute("INSERT OR IGNORE INTO payments (invoice_id, amount, payment_date, method, transaction_ref) VALUES (?,?,?,?,?)", pay)
