@@ -110,6 +110,11 @@ class LoginView:
 
         user = self.auth_manager.login(username, password)
         if user:
+            if user[3] == "tenant":
+                self.status_label.configure(
+                    text="This system is for staff use only.",
+                    text_color=T.DANGER)
+                return
             self.status_label.configure(text="Login successful!",
                                          text_color=T.SUCCESS)
             self.on_login_success(user)

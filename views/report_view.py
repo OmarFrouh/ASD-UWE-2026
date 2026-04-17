@@ -8,7 +8,8 @@ from views import theme as T
 from views.ui_helpers import (
     setup_treeview_scroll, autofit_columns, apply_row_stripes,
     create_page_header, create_card, create_card_fill, create_kpi_tile_l, create_tabview,
-    create_ghost_button,
+    create_ghost_button, export_table_to_csv,
+    show_success, show_error,
 )
 
 
@@ -58,7 +59,15 @@ class ReportView:
 
         # KPI tiles
         self.occ_kpi_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        self.occ_kpi_frame.pack(fill="x", padx=T.SP_XL, pady=(0, T.SP_S))
+        self.occ_kpi_frame.pack(fill="x", padx=T.SP_XL, pady=(0, 0))
+
+        # Toolbar: Refresh + Export
+        occ_toolbar = ctk.CTkFrame(scroll, fg_color="transparent")
+        occ_toolbar.pack(fill="x", padx=T.SP_XL, pady=T.SP_XS)
+        create_ghost_button(occ_toolbar, "⟳  Refresh",
+                             self.refresh_occupancy).pack(side="right")
+        create_ghost_button(occ_toolbar, "⬇  Export CSV",
+                             self._export_occ_csv).pack(side="right", padx=(0, T.SP_S))
 
         # Table card
         tbl_inner = create_card_fill(scroll, title="Apartment Occupancy")
@@ -110,6 +119,8 @@ class ReportView:
         toolbar_frame.pack(fill="x", padx=T.SP_XL, pady=T.SP_XS)
         create_ghost_button(toolbar_frame, "⟳  Refresh",
                              self.refresh_financial).pack(side="right")
+        create_ghost_button(toolbar_frame, "⬇  Export CSV",
+                             self._export_fin_csv).pack(side="right", padx=(0, T.SP_S))
 
         tbl_inner = create_card_fill(scroll, title="Per-Tenant Financial Breakdown")
         cols = ("Tenant", "Total Invoiced", "Total Paid", "Outstanding")
@@ -166,6 +177,14 @@ class ReportView:
         self.mnt_kpi_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         self.mnt_kpi_frame.pack(fill="x", padx=T.SP_XL, pady=(T.SP_S, 0))
 
+        # Toolbar: Refresh + Export
+        mnt_toolbar = ctk.CTkFrame(scroll, fg_color="transparent")
+        mnt_toolbar.pack(fill="x", padx=T.SP_XL, pady=T.SP_XS)
+        create_ghost_button(mnt_toolbar, "⟳  Refresh",
+                             self.refresh_maintenance).pack(side="right")
+        create_ghost_button(mnt_toolbar, "⬇  Export CSV",
+                             self._export_mnt_csv).pack(side="right", padx=(0, T.SP_S))
+
         tbl_inner = create_card_fill(scroll, title="Maintenance Cost by Apartment")
         cols = ("Unit", "City", "Tickets", "Total Cost", "Total Hours")
         self.mnt_tree = setup_treeview_scroll(
@@ -173,6 +192,47 @@ class ReportView:
             empty_message="No maintenance data for the selected city",
         )
         self.refresh_maintenance()
+
+    def _export_occ_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="occupancy_report.csv", title="Export Occupancy Report")
+        if not path:
+            return
+        city = self.occ_city_filter.get()
+        rows = self.report_manager.get_occupancy_report(city)
+        export_table_to_csv(["Unit", "Address", "City", "Rooms", "Rent", "Status"],
+                            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
+
+    def _export_fin_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="financial_report.csv", title="Export Financial Report")
+        if not path:
+            return
+        rows = self.report_manager.get_financial_breakdown()
+        export_table_to_csv(["Tenant", "Total Invoiced", "Total Paid", "Outstanding"],
+                            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
+
+    def _export_mnt_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="maintenance_cost_report.csv", title="Export Maintenance Report")
+        if not path:
+            return
+        city = self.mnt_city_filter.get()
+        rows = self.report_manager.get_maintenance_cost_report(city)
+        export_table_to_csv(["Unit", "City", "Tickets", "Total Cost", "Total Hours"],
+                            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
 
     def refresh_maintenance(self):
         city = self.mnt_city_filter.get()
