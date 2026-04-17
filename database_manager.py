@@ -92,7 +92,7 @@ class DatabaseManager:
                 references_info TEXT,
                 emergency_contact TEXT,
                 apartment_requirements TEXT,
-                apartment_id INTEGER UNIQUE,
+                apartment_id INTEGER,
                 lease_start_date TEXT,
                 lease_end_date TEXT,
                 deposit_amount REAL,
@@ -164,7 +164,53 @@ class DatabaseManager:
             );
         """)
 
+        self._apply_migrations()
         print("✅ Database schema created successfully.")
+
+    def _apply_migrations(self):
+        """Detect and apply any necessary schema migrations on existing databases."""
+        schema = self.fetch_one(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='tenants'"
+        )
+        if schema and schema[0] and "apartment_id INTEGER UNIQUE" in schema[0]:
+            self._migrate_drop_apt_unique()
+
+    def _migrate_drop_apt_unique(self):
+        """Recreate the tenants table without the UNIQUE constraint on apartment_id."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.executescript("""
+                CREATE TABLE IF NOT EXISTS tenants_new (
+                    user_id INTEGER PRIMARY KEY,
+                    ni_number TEXT UNIQUE,
+                    full_name TEXT NOT NULL,
+                    phone_number TEXT,
+                    email TEXT,
+                    occupation TEXT,
+                    references_info TEXT,
+                    emergency_contact TEXT,
+                    apartment_requirements TEXT,
+                    apartment_id INTEGER,
+                    lease_start_date TEXT,
+                    lease_end_date TEXT,
+                    deposit_amount REAL,
+                    monthly_rent REAL,
+                    status TEXT DEFAULT 'Active',
+                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                    FOREIGN KEY (apartment_id) REFERENCES apartments (id) ON DELETE SET NULL
+                );
+                INSERT INTO tenants_new SELECT * FROM tenants;
+                DROP TABLE tenants;
+                ALTER TABLE tenants_new RENAME TO tenants;
+            """)
+            conn.commit()
+            print("✅ Migration: removed apartment_id UNIQUE constraint from tenants.")
+        except Exception as e:
+            conn.rollback()
+            print(f"Migration error: {e}")
+        finally:
+            conn.close()
 
 if __name__ == "__main__":
     db = DatabaseManager()

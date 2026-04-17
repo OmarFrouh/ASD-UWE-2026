@@ -105,6 +105,44 @@ class PaymentManager:
             LIMIT 6
         """)
 
+    def void_payment(self, payment_id):
+        pay = self.db_manager.fetch_one(
+            "SELECT invoice_id FROM payments WHERE id=?", (payment_id,))
+        if not pay:
+            raise Exception(f"Payment {payment_id} not found.")
+        invoice_id = pay[0]
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DELETE FROM payments WHERE id=?", (payment_id,))
+            cursor.execute(
+                "SELECT total_amount, status FROM invoices WHERE id=?", (invoice_id,))
+            inv = cursor.fetchone()
+            if inv:
+                cursor.execute(
+                    "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE invoice_id=?",
+                    (invoice_id,))
+                remaining = cursor.fetchone()[0]
+                if inv[1] == "Paid" and remaining < inv[0]:
+                    cursor.execute(
+                        "UPDATE invoices SET status='Pending' WHERE id=?", (invoice_id,))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+
+    def get_payments_for_tenant(self, tenant_id):
+        return self.db_manager.fetch_all("""
+            SELECT p.id, p.amount, p.payment_date, p.method,
+                   p.transaction_ref, i.id AS invoice_id
+            FROM payments p
+            JOIN invoices i ON p.invoice_id = i.id
+            WHERE i.tenant_id = ?
+            ORDER BY p.payment_date DESC
+        """, (tenant_id,))
+
     def get_receipt_data(self, payment_id):
         """Returns formatted receipt data for a payment.
         Brief: 'generating the billing/dues receipts'

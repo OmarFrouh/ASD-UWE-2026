@@ -87,6 +87,19 @@ class TenantManager:
 
 
 
+    def reactivate_tenant(self, tenant_user_id):
+        tenant = self.db_manager.fetch_one(
+            "SELECT status FROM tenants WHERE user_id=?", (tenant_user_id,))
+        if not tenant:
+            raise Exception("Tenant not found")
+        if tenant[0] == "Terminated":
+            raise Exception("Cannot reactivate a Terminated tenant.")
+        if tenant[0] == "Active":
+            raise Exception("Tenant is already Active.")
+        self.db_manager.execute_query(
+            "UPDATE tenants SET status='Active' WHERE user_id=?", (tenant_user_id,))
+        return True
+
     def archive_tenant(self, tenant_user_id):
         tenant = self.db_manager.fetch_one(
             "SELECT apartment_id, status FROM tenants WHERE user_id=?", (tenant_user_id,))

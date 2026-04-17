@@ -79,6 +79,92 @@ class AuthManager:
             ORDER BY u.id
         """)
 
+    def reset_password(self, user_id, new_password):
+        if not new_password or len(new_password) < 6:
+            raise Exception("Password must be at least 6 characters.")
+        user = self.db_manager.fetch_one(
+            "SELECT id FROM users WHERE id=?", (user_id,))
+        if not user:
+            raise Exception("User not found.")
+        salt   = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(new_password.encode("utf-8"), salt).decode("utf-8")
+        self.db_manager.execute_query(
+            "UPDATE users SET password_hash=? WHERE id=?", (hashed, user_id))
+
+    def update_user(self, user_id, role, employee_id, department, current_user_id):
+        if user_id == current_user_id:
+            raise Exception("Cannot edit your own account here.")
+
+        if role not in VALID_ROLES:
+            raise Exception(f"Invalid role '{role}'. Must be one of: {', '.join(VALID_ROLES)}")
+
+        user = self.db_manager.fetch_one(
+            "SELECT id, role FROM users WHERE id=?", (user_id,))
+        if not user:
+            raise Exception("User not found.")
+
+        # Prevent demoting the last admin
+        if user[1] == "admin" and role != "admin":
+            admin_count = self.db_manager.fetch_one(
+                "SELECT COUNT(*) FROM users WHERE role='admin'"
+            )[0]
+            if admin_count <= 1:
+                raise Exception("Cannot change the role of the only admin account.")
+
+        STAFF_ROLES = {"staff", "manager", "maintenance", "front_desk", "finance_manager"}
+        needs_staff = role in STAFF_ROLES
+        if needs_staff and not employee_id:
+            raise Exception("Employee ID is required for staff roles.")
+
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("UPDATE users SET role=? WHERE id=?", (role, user_id))
+            has_staff = cursor.execute(
+                "SELECT user_id FROM staff WHERE user_id=?", (user_id,)
+            ).fetchone()
+            if needs_staff:
+                if has_staff:
+                    cursor.execute(
+                        "UPDATE staff SET employee_id=?, department=? WHERE user_id=?",
+                        (employee_id, department, user_id))
+                else:
+                    cursor.execute(
+                        "INSERT INTO staff (user_id, employee_id, department) VALUES (?,?,?)",
+                        (user_id, employee_id, department))
+            elif has_staff:
+                cursor.execute("DELETE FROM staff WHERE user_id=?", (user_id,))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+
+    def delete_user(self, user_id, current_user_id):
+        if user_id == current_user_id:
+            raise Exception("Cannot delete your own account.")
+
+        user = self.db_manager.fetch_one(
+            "SELECT id, role FROM users WHERE id=?", (user_id,))
+        if not user:
+            raise Exception("User not found.")
+
+        if user[1] == "admin":
+            admin_count = self.db_manager.fetch_one(
+                "SELECT COUNT(*) FROM users WHERE role='admin'"
+            )[0]
+            if admin_count <= 1:
+                raise Exception("Cannot remove the only admin account.")
+
+        tenant = self.db_manager.fetch_one(
+            "SELECT user_id FROM tenants WHERE user_id=?", (user_id,))
+        if tenant:
+            raise Exception(
+                "Cannot delete a user with tenant records. Archive the tenant first.")
+
+        self.db_manager.execute_query("DELETE FROM users WHERE id=?", (user_id,))
+
     def get_dashboard_stats(self):
         stats = {}
         try:

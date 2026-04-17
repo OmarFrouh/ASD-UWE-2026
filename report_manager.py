@@ -103,9 +103,11 @@ class ReportManager:
     def get_maintenance_cost_summary(self):
         """Returns dict with total maintenance spend and average cost."""
         result = self.db_manager.fetch_one("""
-            SELECT COALESCE(SUM(cost), 0), COALESCE(AVG(cost), 0),
-                   COALESCE(SUM(time_spent), 0), COUNT(*)
-            FROM maintenance_requests WHERE cost IS NOT NULL
+            SELECT COALESCE(SUM(cost), 0),
+                   COALESCE(AVG(CASE WHEN cost IS NOT NULL THEN cost END), 0),
+                   COALESCE(SUM(time_spent), 0),
+                   COUNT(CASE WHEN cost IS NOT NULL THEN 1 END)
+            FROM maintenance_requests
         """)
         return {
             "total_cost": result[0],
