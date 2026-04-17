@@ -13,15 +13,21 @@ from views.ui_helpers import (
     create_danger_button, create_warning_button, create_success_button,
     create_ghost_button,
     show_success, show_error, show_warning,
-    confirm_dialog,
+    confirm_dialog, export_table_to_csv,
 )
+from invoice_manager import InvoiceManager
+from payment_manager import PaymentManager
+from maintenance_manager import MaintenanceManager
 
 
 class TenantView:
     def __init__(self, parent, db_manager, role="front_desk"):
-        self.db_manager     = db_manager
-        self.role           = role
-        self.tenant_manager = TenantManager(db_manager)
+        self.db_manager         = db_manager
+        self.role               = role
+        self.tenant_manager     = TenantManager(db_manager)
+        self.invoice_manager    = InvoiceManager(db_manager)
+        self.payment_manager    = PaymentManager(db_manager)
+        self.maintenance_manager = MaintenanceManager(db_manager)
         self._root = parent.winfo_toplevel()
 
         self.frame = ctk.CTkFrame(parent, fg_color=T.BG)
@@ -87,6 +93,15 @@ class TenantView:
                              self.reset_filters, width=90).pack(side="left")
         create_ghost_button(toolbar, "⟳  Refresh",
                              self.refresh_list).pack(side="right")
+        create_ghost_button(toolbar, "⬇  Export CSV",
+                             self._export_tenants_csv).pack(side="right", padx=(0, T.SP_S))
+        self._profile_btn = ctk.CTkButton(
+            toolbar, text="👤  Profile", width=90, height=28,
+            fg_color=T.SURFACE_3, hover_color=T.SURFACE_2,
+            text_color=T.TEXT_MUTED, font=T.FONT_CAPTION_B,
+            corner_radius=T.RADIUS_SM, state="disabled",
+            command=self._show_tenant_profile)
+        self._profile_btn.pack(side="right", padx=(0, T.SP_S))
 
         # Summary strip
         self.summary_frame = ctk.CTkFrame(frame, fg_color=T.SURFACE_2,
@@ -100,6 +115,7 @@ class TenantView:
             status_columns=["Status"],
             empty_message="No tenants match the current filter",
         )
+        self.tree.bind("<<TreeviewSelect>>", self._on_tenant_select)
         self.refresh_list()
 
         self._root.bind("<Control-f>",
@@ -113,6 +129,15 @@ class TenantView:
         toolbar = ctk.CTkFrame(frame, fg_color="transparent")
         toolbar.pack(fill="x", padx=T.SP_L, pady=T.SP_S)
         create_ghost_button(toolbar, "⟳  Refresh", self.refresh_archived).pack(side="right")
+        create_ghost_button(toolbar, "⬇  Export CSV",
+                             self._export_archived_csv).pack(side="right", padx=(0, T.SP_S))
+        self._reactivate_btn = ctk.CTkButton(
+            toolbar, text="↩  Reactivate", width=110, height=28,
+            fg_color=T.SUCCESS_MUTED, hover_color=T.SUCCESS,
+            text_color=T.TEXT_MUTED, font=T.FONT_CAPTION_B,
+            corner_radius=T.RADIUS_SM, state="disabled",
+            command=self._reactivate_selected)
+        self._reactivate_btn.pack(side="right", padx=(0, T.SP_S))
 
         cols = ("ID", "NI", "Name", "Status")
         self.archived_tree = setup_treeview_scroll(
@@ -120,6 +145,7 @@ class TenantView:
             status_columns=["Status"],
             empty_message="No archived or terminated tenants",
         )
+        self.archived_tree.bind("<<TreeviewSelect>>", self._on_archived_select)
         self.refresh_archived()
 
     # ── Register ──────────────────────────────────────────────────────────────
@@ -200,24 +226,32 @@ class TenantView:
                                          scrollbar_button_color=T.SURFACE_3)
         scroll.pack(fill="both", expand=True)
 
-        # Lookup
+        # Lookup — 3-column grid so entry stretches, matching the form below
         lookup_inner = create_card(scroll)
+        lookup_inner.grid_columnconfigure(0, minsize=110)
+        lookup_inner.grid_columnconfigure(1, weight=1)
+        lookup_inner.grid_columnconfigure(2, minsize=130)
         ctk.CTkLabel(lookup_inner, text="Tenant ID *", font=T.FONT_BODY_B,
-                      text_color=T.DANGER).pack(side="left", padx=(0, T.SP_M))
-        self.edit_id_entry = ctk.CTkEntry(lookup_inner, width=160, height=T.INPUT_HEIGHT,
+                      text_color=T.DANGER, anchor="e").grid(
+            row=0, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_M, sticky="e")
+        self.edit_id_entry = ctk.CTkEntry(lookup_inner, height=T.INPUT_HEIGHT,
                                            fg_color=T.SURFACE_3, border_color=T.BORDER,
                                            text_color=T.TEXT)
-        self.edit_id_entry.pack(side="left", padx=(0, T.SP_M))
+        self.edit_id_entry.grid(row=0, column=1, padx=(0, T.SP_S), pady=T.SP_M, sticky="ew")
         create_secondary_button(lookup_inner, "Load Tenant",
-                                 self.load_tenant_for_edit, width=120).pack(side="left")
+                                 self.load_tenant_for_edit, width=120).grid(
+            row=0, column=2, padx=(0, T.SP_M), pady=T.SP_M, sticky="e")
 
         # NI display
         ni_inner = create_card(scroll)
+        ni_inner.grid_columnconfigure(0, minsize=110)
+        ni_inner.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(ni_inner, text="NI Number  (read-only):", font=T.FONT_BODY,
-                      text_color=T.TEXT_SUBTLE).pack(side="left", padx=(0, T.SP_M))
+                      text_color=T.TEXT_SUBTLE, anchor="e").grid(
+            row=0, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_M, sticky="e")
         self.edit_ni_label = ctk.CTkLabel(ni_inner, text="—",
-                                           font=T.FONT_BODY_B, text_color=T.TEXT)
-        self.edit_ni_label.pack(side="left")
+                                           font=T.FONT_BODY_B, text_color=T.TEXT, anchor="w")
+        self.edit_ni_label.grid(row=0, column=1, padx=(0, T.SP_M), pady=T.SP_M, sticky="w")
 
         # Editable fields
         edit_inner = create_card(scroll, title="Editable Fields")
@@ -245,20 +279,27 @@ class TenantView:
 
         # Lease info
         lease_inner = create_card(scroll)
+        lease_inner.grid_columnconfigure(0, minsize=110)
+        lease_inner.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(lease_inner, text="Lease info (read-only):", font=T.FONT_BODY,
-                      text_color=T.TEXT_SUBTLE).pack(side="left", padx=(0, T.SP_M))
+                      text_color=T.TEXT_SUBTLE, anchor="e").grid(
+            row=0, column=0, padx=(T.SP_M, T.SP_S), pady=T.SP_M, sticky="e")
         self.edit_lease_label = ctk.CTkLabel(lease_inner,
                                               text="Load a tenant to see lease details",
-                                              font=T.FONT_CAPTION, text_color=T.TEXT_SUBTLE)
-        self.edit_lease_label.pack(side="left")
+                                              font=T.FONT_CAPTION, text_color=T.TEXT_SUBTLE,
+                                              anchor="w")
+        self.edit_lease_label.grid(row=0, column=1, padx=(0, T.SP_M), pady=T.SP_M, sticky="w")
 
         # Save + result
         save_inner = create_card(scroll)
+        save_inner.grid_columnconfigure(0, minsize=110)
+        save_inner.grid_columnconfigure(1, weight=1)
         create_success_button(save_inner, "Save Changes",
-                               self.save_tenant_edit, width=280).pack(side="left")
+                               self.save_tenant_edit, width=280).grid(
+            row=0, column=0, padx=T.SP_M, pady=T.SP_M, sticky="w")
         self.edit_result = ctk.CTkLabel(save_inner, text="", font=T.FONT_BODY,
-                                         text_color=T.TEXT_MUTED)
-        self.edit_result.pack(side="left", padx=T.SP_L)
+                                         text_color=T.TEXT_MUTED, anchor="w")
+        self.edit_result.grid(row=0, column=1, padx=(0, T.SP_M), pady=T.SP_M, sticky="w")
 
         scroll.after(200, lambda: enable_trackpad_scroll(scroll))
 
@@ -317,6 +358,8 @@ class TenantView:
                                self.do_resolve_complaint, width=160).pack(side="left")
         create_ghost_button(toolbar, "⟳  Refresh",
                              self.refresh_complaints).pack(side="right")
+        create_ghost_button(toolbar, "⬇  Export CSV",
+                             self._export_complaints_csv).pack(side="right", padx=(0, T.SP_S))
 
         cols = ("ID", "Tenant", "Subject", "Date", "Status", "Description")
         self.complaints_tree = setup_treeview_scroll(
@@ -586,16 +629,31 @@ class TenantView:
                 danger=True):
             return
 
+        # Generate penalty invoice BEFORE termination (tenant must still be Active)
+        invoice_id = None
+        if penalty > 0:
+            try:
+                invoice_id = self.invoice_manager.generate_invoice(tid_int, penalty)
+            except Exception as ex:
+                show_error(self._root, f"Failed to create penalty invoice: {ex}")
+                return
+
         try:
             result = self.tenant_manager.early_termination(tid_int)
             name = tenant[0]
-            eff = result['effective_date']
-            pen = result['penalty']
-            self.action_result.configure(
-                text=f"✓ Terminated: {name}. Notice ends {eff}. Penalty: £{pen:.2f}",
-                text_color=T.SUCCESS)
+            eff  = result['effective_date']
+            pen  = result['penalty']
+            msg  = f"✓ Terminated: {name}. Notice ends {eff}. Penalty: £{pen:.2f}"
+            if invoice_id:
+                msg += f" (Invoice #{invoice_id} created)"
+            self.action_result.configure(text=msg, text_color=T.SUCCESS)
             self.refresh_list()
         except Exception as ex:
+            if invoice_id:
+                try:
+                    self.invoice_manager.delete_invoice(invoice_id)
+                except Exception:
+                    pass
             show_error(self._root, str(ex))
 
     def do_archive(self):
@@ -654,6 +712,116 @@ class TenantView:
 
     # ── Refresh helpers ───────────────────────────────────────────────────────
 
+    def _on_tenant_select(self, event=None):
+        has = bool(self.tree.selection())
+        color = T.TEXT if has else T.TEXT_MUTED
+        self._profile_btn.configure(state="normal" if has else "disabled",
+                                     text_color=color)
+
+    def _on_archived_select(self, event=None):
+        selected = self.archived_tree.selection()
+        has = bool(selected)
+        is_archived = False
+        if has:
+            status = self.archived_tree.item(selected[0], "values")[3]
+            is_archived = status == "Archived"
+        color = T.TEXT if is_archived else T.TEXT_MUTED
+        self._reactivate_btn.configure(state="normal" if is_archived else "disabled",
+                                        text_color=color)
+
+    def _reactivate_selected(self):
+        selected = self.archived_tree.selection()
+        if not selected:
+            return
+        v = self.archived_tree.item(selected[0], "values")
+        tenant_id, name = int(v[0]), v[2]
+        if not confirm_dialog(self._root, "Reactivate Tenant",
+                              f"Reactivate {name}? Their status will be set back to Active."):
+            return
+        try:
+            self.tenant_manager.reactivate_tenant(tenant_id)
+            show_success(self._root, f"{name} reactivated successfully.")
+            self.refresh_list()
+        except Exception as ex:
+            show_error(self._root, str(ex))
+
+    def _show_tenant_profile(self):
+        selected = self.tree.selection()
+        if not selected:
+            return
+        v = self.tree.item(selected[0], "values")
+        tenant_id, name = int(v[0]), v[2]
+
+        invoices     = self.invoice_manager.get_invoices_for_tenant(tenant_id)
+        payments     = self.payment_manager.get_payments_for_tenant(tenant_id)
+        tickets      = self.maintenance_manager.get_tickets_for_tenant(tenant_id)
+
+        import tkinter as _tk
+        popup = ctk.CTkToplevel(self._root)
+        popup.title(f"{name} — Profile")
+        popup.geometry("600x620")
+        popup.resizable(True, True)
+        popup.grab_set()
+        popup.configure(fg_color=T.SURFACE)
+
+        band = ctk.CTkFrame(popup, fg_color=T.PRIMARY_MUTED, corner_radius=0)
+        band.pack(fill="x")
+        ctk.CTkLabel(band, text=f"👤  {name}", font=T.FONT_H2,
+                      text_color=T.TEXT).pack(pady=(T.SP_L, T.SP_XS))
+        ctk.CTkLabel(band, text=f"NI: {v[1]}  ·  {v[3] or ''}  ·  {v[4] or ''}",
+                      font=T.FONT_BODY, text_color=T.TEXT_MUTED).pack(pady=(0, T.SP_L))
+        _tk.Frame(popup, bg=T.BORDER, height=1).pack(fill="x")
+
+        tabs = ctk.CTkTabview(popup, fg_color=T.SURFACE,
+                               segmented_button_fg_color=T.SURFACE_2,
+                               segmented_button_selected_color=T.PRIMARY,
+                               segmented_button_unselected_color=T.SURFACE_2,
+                               segmented_button_selected_hover_color=T.PRIMARY_HOVER,
+                               text_color=T.TEXT)
+        tabs.pack(fill="both", expand=True, padx=T.SP_M, pady=T.SP_S)
+        t_inv  = tabs.add(f"Invoices ({len(invoices)})")
+        t_pay  = tabs.add(f"Payments ({len(payments)})")
+        t_mnt  = tabs.add(f"Maintenance ({len(tickets)})")
+
+        from views.ui_helpers import setup_treeview_scroll as _stv, autofit_columns as _ac
+
+        inv_cols = ("ID", "Issue Date", "Due Date", "Amount", "Status")
+        inv_tree = _stv(t_inv, columns=inv_cols, height=12,
+                         status_columns=["Status"],
+                         empty_message="No invoices for this tenant")
+        from datetime import datetime as _dt
+        for i in invoices:
+            status_d = i[5]
+            if i[5] == "Pending":
+                try:
+                    if _dt.strptime(i[3], "%Y-%m-%d") < _dt.now():
+                        status_d = "Overdue"
+                except (ValueError, TypeError):
+                    pass
+            inv_tree.insert("", "end", values=(i[0], i[2], i[3], f"£{i[4]:.2f}", status_d))
+        _ac(inv_tree)
+
+        pay_cols = ("ID", "Amount", "Date", "Method", "Reference", "Invoice")
+        pay_tree = _stv(t_pay, columns=pay_cols, height=12,
+                         empty_message="No payments for this tenant")
+        for p in payments:
+            pay_tree.insert("", "end", values=(
+                p[0], f"£{p[1]:.2f}", p[2], p[3], p[4] or "-", p[5]))
+        _ac(pay_tree)
+
+        mnt_cols = ("ID", "Unit", "Description", "Priority", "Status", "Reported")
+        mnt_tree = _stv(t_mnt, columns=mnt_cols, height=12,
+                         status_columns=["Status", "Priority"],
+                         empty_message="No maintenance tickets for this tenant")
+        for m in tickets:
+            mnt_tree.insert("", "end", values=(m[0], m[1] or "-", m[2], m[3], m[4], m[5]))
+        _ac(mnt_tree)
+
+        _tk.Frame(popup, bg=T.BORDER, height=1).pack(fill="x")
+        from views.ui_helpers import create_primary_button as _cpb
+        _cpb(popup, "Close", popup.destroy, width=120).pack(pady=T.SP_M)
+        popup.bind("<Escape>", lambda e: popup.destroy())
+
     def reset_filters(self):
         self.search_entry.delete(0, "end")
         self.status_filter.set("Active")
@@ -708,3 +876,48 @@ class TenantView:
                 c[0], c[1], c[2], c[3], c[4], c[5] or ""))
         apply_row_stripes(self.complaints_tree)
         autofit_columns(self.complaints_tree)
+
+    # ── CSV exports ───────────────────────────────────────────────────────────
+
+    def _export_tenants_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="tenants_export.csv", title="Export Tenants to CSV")
+        if not path:
+            return
+        status = self.status_filter.get() if hasattr(self, "status_filter") else "Active"
+        rows = self.tenant_manager.filter_tenants_by_status(status)
+        export_table_to_csv(
+            ["ID", "NI", "Name", "Phone", "Email", "Occupation",
+             "Apt ID", "Lease Start", "Lease End", "Rent", "Status"],
+            [(*r[:11],) for r in rows], path)
+        from views.ui_helpers import show_success as _ss
+        _ss(self._root, f"Exported {len(rows)} rows to CSV.")
+
+    def _export_archived_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="archived_tenants.csv", title="Export Archived Tenants to CSV")
+        if not path:
+            return
+        rows = self.tenant_manager.get_archived_tenants()
+        export_table_to_csv(["ID", "NI", "Name", "Status"], rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
+
+    def _export_complaints_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="complaints_export.csv", title="Export Complaints to CSV")
+        if not path:
+            return
+        rows = self.tenant_manager.get_all_complaints()
+        export_table_to_csv(
+            ["ID", "Tenant", "Subject", "Date", "Status", "Description"],
+            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")

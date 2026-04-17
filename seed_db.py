@@ -44,7 +44,7 @@ def seed():
     # 4. Tenants with full brief-required fields
     ts = [
         (6, "NI123456A", "John Smith", "07712345678", "john@email.com", "Software Engineer", "Dr. Adams", "Jane Smith", "2 bed flat", 1, "2025-01-01", "2026-01-01", 850.00, 850.00, "Active"),
-        (7, "NI789012B", "Sarah Jones", "07798765432", "sarah@email.com", "Teacher", "Mr. Brown", "Tom Jones", "3 bed house", 3, "2025-06-01", "2026-06-01", 1100.00, 1100.00, "Active"),
+        (7, "NI789012B", "Emily Carter", "07798765432", "emily@email.com", "Teacher", "Mr. Brown", "Daniel Carter", "3 bed house", 3, "2025-06-01", "2026-06-01", 1100.00, 1100.00, "Active"),
     ]
     for t in ts:
         cursor.execute("INSERT OR IGNORE INTO tenants (user_id, ni_number, full_name, phone_number, email, occupation, references_info, emergency_contact, apartment_requirements, apartment_id, lease_start_date, lease_end_date, deposit_amount, monthly_rent, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", t)
@@ -59,15 +59,15 @@ def seed():
     invoices = [
         (6, thirty_ago, due_past, 850.00, "Pending"),    # John — OVERDUE
         (6, today, due_future, 850.00, "Pending"),        # John — upcoming
-        (7, thirty_ago, due_past, 1100.00, "Paid"),       # Sarah — paid on time
-        (7, today, due_future, 1100.00, "Pending"),       # Sarah — upcoming
+        (7, thirty_ago, due_past, 1100.00, "Paid"),       # Emily — paid on time
+        (7, today, due_future, 1100.00, "Pending"),       # Emily — upcoming
     ]
     for inv in invoices:
         cursor.execute("INSERT OR IGNORE INTO invoices (tenant_id, issue_date, due_date, total_amount, status) VALUES (?,?,?,?,?)", inv)
 
     # 6. Payments (partial data for financial summary)
     payments = [
-        (3, 1100.00, thirty_ago, "Bank Transfer", "TXN-001"),  # Sarah's paid invoice
+        (3, 1100.00, thirty_ago, "Bank Transfer", "TXN-001"),  # Emily's paid invoice
     ]
     for pay in payments:
         cursor.execute("INSERT OR IGNORE INTO payments (invoice_id, amount, payment_date, method, transaction_ref) VALUES (?,?,?,?,?)", pay)

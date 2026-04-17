@@ -39,19 +39,19 @@ Expected output: `Ran 133 tests in ~10s` — `OK`
 | Tenant | User ID | Apartment | City | Rent | Status |
 |--------|---------|-----------|------|------|--------|
 | John Smith | 6 | 101 (Bristol) | Bristol | £850 | Active |
-| Sarah Jones | 7 | 201 (Cardiff) | Cardiff | £1100 | Active |
+| Emily Carter | 7 | 201 (Cardiff) | Cardiff | £1100 | Active |
 
 | Invoice | Tenant | Amount | Status | Notes |
 |---------|--------|--------|--------|-------|
 | 1 | John | £850 | Pending | **OVERDUE** (due 5 days ago) |
 | 2 | John | £850 | Pending | Due in 25 days |
-| 3 | Sarah | £1100 | Paid | Paid via Bank Transfer |
-| 4 | Sarah | £1100 | Pending | Due in 25 days |
+| 3 | Emily | £1100 | Paid | Paid via Bank Transfer |
+| 4 | Emily | £1100 | Pending | Due in 25 days |
 
 | Ticket | Apartment | Tenant | Description | Priority | Status |
 |--------|-----------|--------|-------------|----------|--------|
 | 1 | 101 Bristol | John | Leaking kitchen tap | High | Fixed |
-| 2 | 201 Cardiff | Sarah | Broken window latch | Medium | Fixed |
+| 2 | 201 Cardiff | Emily | Broken window latch | Medium | Fixed |
 | 3 | 101 Bristol | John | Flickering hallway light | Low | Open |
 
 ---
@@ -82,10 +82,10 @@ Expected output: `Ran 133 tests in ~10s` — `OK`
 
 | Test ID | Action | Expected Result | Pass/Fail |
 |---------|--------|-----------------|-----------|
-| TEN-01 | Open Active Tenants tab | John Smith and Sarah Jones both visible. Status filter set to "Active" | ⬜ |
+| TEN-01 | Open Active Tenants tab | John Smith and Emily Carter both visible. Status filter set to "Active" | ⬜ |
 | TEN-02 | Summary bar at top of Active Tenants | Shows count labels: "Active: 2" at minimum | ⬜ |
 | TEN-03 | Type "john" in search box | List filters live — only John Smith visible | ⬜ |
-| TEN-04 | Type "sarah@email.com" in search box | Only Sarah Jones visible (email match) | ⬜ |
+| TEN-04 | Type "emily@email.com" in search box | Only Emily Carter visible (email match) | ⬜ |
 | TEN-05 | Type "07712345678" in search box | Only John Smith visible (phone match) | ⬜ |
 | TEN-06 | Type "NI123456A" in search box | Only John Smith visible (NI match) | ⬜ |
 | TEN-07 | Type "zzznomatch" in search box | List is empty — no results | ⬜ |
@@ -105,8 +105,8 @@ Expected output: `Ran 133 tests in ~10s` — `OK`
 | TEN-16 | Archived/Terminated tab after TEN-14 | John Smith appears with status "Terminated" | ⬜ |
 | TEN-17 | Login as `admin`, Apartments tab | Apartment 101 (Bristol) now shows "Vacant" | ⬜ |
 | TEN-18 | Login as `admin`, Actions Tab — enter ID 6, click Early Termination again | Error: "Tenant is already Terminated" | ⬜ |
-| TEN-19 | Login as `admin`, Actions Tab — Archive Tenant ID 7 (Sarah) → confirm | Success: Sarah archived | ⬜ |
-| TEN-20 | Archived/Terminated tab after TEN-19 | Shows both John (Terminated) and Sarah (Archived) | ⬜ |
+| TEN-19 | Login as `admin`, Actions Tab — Archive Tenant ID 7 (Emily) → confirm | Success: Emily archived | ⬜ |
+| TEN-20 | Archived/Terminated tab after TEN-19 | Shows both John (Terminated) and Emily (Archived) | ⬜ |
 | TEN-21 | Click Tenants tab freshly after all above actions | Tab loads without crash — no `archived_tree` AttributeError | ⬜ |
 
 ---
@@ -128,7 +128,7 @@ Expected output: `Ran 133 tests in ~10s` — `OK`
 
 | Test ID | Action | Expected Result | Pass/Fail |
 |---------|--------|-----------------|-----------|
-| INV-05 | Generate Invoice — Tenant ID: 7, Amount: blank | Success popup. New invoice for £1100 (Sarah's monthly rent) | ⬜ |
+| INV-05 | Generate Invoice — Tenant ID: 7, Amount: blank | Success popup. New invoice for £1100 (Emily's monthly rent) | ⬜ |
 | INV-06 | Generate Invoice — Tenant ID: 999 | Error: "Tenant not found" | ⬜ |
 | INV-07 | Generate Invoice — Tenant ID: 7, Amount: -500 | Error: "Invalid amount" | ⬜ |
 | INV-08 | Generate Invoice — Amount: "abc" | Error: "must be valid numbers" | ⬜ |
@@ -149,7 +149,7 @@ Expected output: `Ran 133 tests in ~10s` — `OK`
 | INV-13 | "Days Overdue" column for Invoice 1 | Shows "5 days" (approximately — due 5 days ago) | ⬜ |
 | INV-14 | Email column for John | Shows "john@email.com" | ⬜ |
 | INV-15 | Phone column for John | Shows "07712345678" | ⬜ |
-| INV-16 | Invoice 3 (Sarah, Paid) | Does NOT appear in Late Notifications | ⬜ |
+| INV-16 | Invoice 3 (Emily, Paid) | Does NOT appear in Late Notifications | ⬜ |
 
 ---
 
@@ -173,7 +173,7 @@ Expected output: `Ran 133 tests in ~10s` — `OK`
 | Test ID | Action | Expected Result | Pass/Fail |
 |---------|--------|-----------------|-----------|
 | PAY-07 | Open Financial Summary tab | 3 summary cards visible: Collected, Pending, Total Invoiced | ⬜ |
-| PAY-08 | Collected card (before PAY-01) | Shows £1100.00 (only Sarah's Bank Transfer payment seeded) | ⬜ |
+| PAY-08 | Collected card (before PAY-01) | Shows £1100.00 (only Emily's Bank Transfer payment seeded) | ⬜ |
 | PAY-09 | Pending card (before PAY-01) | Shows £1700.00 (Invoice 1 £850 + Invoice 2 £850 — Invoice 4 is Pending too making it £2950 total pending) | ⬜ |
 | PAY-10 | After PAY-01 — Collected card | Updates to £1950.00 (£1100 + £850) | ⬜ |
 | PAY-11 | Payment Method Breakdown table | Shows at least "Bank Transfer" row from seeded data. Headings: Payment Method, Total Amount, Transaction Count | ⬜ |

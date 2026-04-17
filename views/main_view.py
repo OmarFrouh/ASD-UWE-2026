@@ -77,7 +77,7 @@ class MainView:
 
         # Right: logout · bell · user chip (packed right-to-left)
         right = ctk.CTkFrame(header, fg_color="transparent")
-        right.pack(side="right", padx=T.SP_XL, pady=T.SP_M)
+        right.pack(side="right", padx=T.SP_XL, pady=T.SP_XS)
 
         # Logout icon button
         ctk.CTkButton(right, text="🚪", command=self.logout,
@@ -110,9 +110,10 @@ class MainView:
         info = ctk.CTkFrame(chip, fg_color="transparent")
         info.pack(side="left", padx=(T.SP_S, 0))
         ctk.CTkLabel(info, text=username, font=T.FONT_BODY_B,
-                     text_color=T.TEXT).pack(anchor="w")
+                     text_color=T.TEXT, anchor="w").pack(anchor="w")
         ctk.CTkLabel(info, text=role.replace("_", " "),
-                     font=T.FONT_CAPTION, text_color=T.TEXT_MUTED).pack(anchor="w")
+                     font=T.FONT_CAPTION, text_color=T.TEXT_MUTED,
+                     anchor="w", wraplength=120).pack(anchor="w")
 
     def _build_bell(self):
         for w in self._bell_frame.winfo_children():
@@ -313,7 +314,7 @@ class MainView:
             self._show_dashboard()
         elif view_name == "users":
             from views.user_view import UserView
-            UserView(self.content_frame, self.auth_manager)
+            UserView(self.content_frame, self.auth_manager, self.current_user)
         elif view_name == "apartments":
             from views.apartment_view import ApartmentView
             ApartmentView(self.content_frame, self.property_manager)

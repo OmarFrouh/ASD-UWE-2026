@@ -11,6 +11,7 @@ from views.ui_helpers import (
     create_page_header, create_card, create_card_fill, create_kpi_tile_l, create_tabview,
     create_primary_button, create_ghost_button, create_success_button,
     show_success, show_error, show_warning,
+    confirm_dialog, export_table_to_csv,
 )
 
 
@@ -89,6 +90,24 @@ class MaintenanceView:
         toolbar = ctk.CTkFrame(frame, fg_color="transparent")
         toolbar.pack(fill="x", padx=T.SP_L, pady=T.SP_S)
         create_ghost_button(toolbar, "⟳  Refresh", self.refresh_list).pack(side="right")
+        create_ghost_button(toolbar, "⬇  Export CSV",
+                             self._export_tickets_csv).pack(side="right", padx=(0, T.SP_S))
+
+        self._tkt_del_btn = ctk.CTkButton(
+            toolbar, text="🗑  Delete", width=80, height=28,
+            fg_color=T.DANGER_MUTED, hover_color=T.DANGER,
+            text_color=T.TEXT_MUTED, font=T.FONT_CAPTION_B,
+            corner_radius=T.RADIUS_SM, state="disabled",
+            command=self._delete_selected_ticket)
+        self._tkt_del_btn.pack(side="right", padx=(0, T.SP_S))
+
+        self._tkt_detail_btn = ctk.CTkButton(
+            toolbar, text="🔍  View Details", width=120, height=28,
+            fg_color=T.SURFACE_3, hover_color=T.SURFACE_2,
+            text_color=T.TEXT_MUTED, font=T.FONT_CAPTION_B,
+            corner_radius=T.RADIUS_SM, state="disabled",
+            command=self._show_ticket_detail)
+        self._tkt_detail_btn.pack(side="right", padx=(0, T.SP_S))
 
         cols = ("ID", "Unit", "Tenant", "Issue", "Priority", "Status",
                 "Reported", "Scheduled", "Assigned To", "Hours", "Cost (£)")
@@ -97,6 +116,7 @@ class MaintenanceView:
             status_columns=["Priority", "Status"],
             empty_message="No maintenance tickets yet",
         )
+        self.tree.bind("<<TreeviewSelect>>", self._on_ticket_select)
         self.refresh_list()
 
     # ── Manage ────────────────────────────────────────────────────────────────
@@ -350,6 +370,115 @@ class MaintenanceView:
         except Exception as ex:
             show_error(self._root, str(ex))
 
+    def _on_ticket_select(self, event=None):
+        selected = self.tree.selection()
+        has = bool(selected)
+        color = T.TEXT if has else T.TEXT_MUTED
+        self._tkt_detail_btn.configure(state="normal" if has else "disabled",
+                                        text_color=color)
+        # Delete only for Open/Assigned
+        is_deletable = False
+        if has:
+            status = self.tree.item(selected[0], "values")[5]
+            is_deletable = status in ("Open", "Assigned")
+        del_color = T.TEXT if is_deletable else T.TEXT_MUTED
+        self._tkt_del_btn.configure(state="normal" if is_deletable else "disabled",
+                                     text_color=del_color)
+
+    def _delete_selected_ticket(self):
+        selected = self.tree.selection()
+        if not selected:
+            return
+        v = self.tree.item(selected[0], "values")
+        ticket_id = int(v[0])
+        issue = (v[3] or "")[:40]
+        if not confirm_dialog(self._root, "Delete Ticket",
+                              f"Permanently delete ticket #{ticket_id}: '{issue}'?",
+                              danger=True):
+            return
+        try:
+            self.manager.delete_ticket(ticket_id)
+            show_success(self._root, f"Ticket #{ticket_id} deleted.")
+            self.refresh_list()
+        except Exception as ex:
+            show_error(self._root, str(ex))
+
+    def _show_ticket_detail(self):
+        selected = self.tree.selection()
+        if not selected:
+            return
+        ticket_id = int(self.tree.item(selected[0], "values")[0])
+        try:
+            d = self.manager.get_ticket_detail(ticket_id)
+        except Exception as ex:
+            show_error(self._root, str(ex))
+            return
+
+        import tkinter as _tk
+        popup = ctk.CTkToplevel(self._root)
+        popup.title(f"Ticket #{d['id']} — Details")
+        popup.geometry("460x520")
+        popup.resizable(False, False)
+        popup.grab_set()
+        popup.configure(fg_color=T.SURFACE)
+
+        band = ctk.CTkFrame(popup, fg_color=T.PRIMARY_MUTED, corner_radius=0)
+        band.pack(fill="x")
+        ctk.CTkLabel(band, text=f"🔧  Ticket #{d['id']}",
+                      font=T.FONT_H2, text_color=T.TEXT).pack(pady=(T.SP_L, T.SP_XS))
+        ctk.CTkLabel(band, text=f"Unit {d['unit_number']}  ·  {d['priority']}  ·  {d['status']}",
+                      font=T.FONT_BODY, text_color=T.TEXT_MUTED).pack(pady=(0, T.SP_L))
+        _tk.Frame(popup, bg=T.BORDER, height=1).pack(fill="x")
+
+        body = ctk.CTkScrollableFrame(popup, fg_color="transparent",
+                                       scrollbar_button_color=T.SURFACE_3)
+        body.pack(fill="both", expand=True, padx=T.SP_XL, pady=T.SP_L)
+
+        def _section(title, fields):
+            sec = ctk.CTkFrame(body, fg_color=T.SURFACE_2, corner_radius=T.RADIUS_SM)
+            sec.pack(fill="x", pady=(0, T.SP_S))
+            ctk.CTkLabel(sec, text=title, font=T.FONT_CAPTION_B,
+                          text_color=T.TEXT_SUBTLE).pack(
+                anchor="w", padx=T.SP_M, pady=(T.SP_S, 0))
+            for label, value in fields:
+                r = ctk.CTkFrame(sec, fg_color="transparent")
+                r.pack(fill="x", padx=T.SP_M, pady=T.SP_XS)
+                ctk.CTkLabel(r, text=label, font=T.FONT_CAPTION,
+                              text_color=T.TEXT_MUTED, width=110, anchor="e").pack(side="left")
+                ctk.CTkLabel(r, text=str(value) if value is not None else "-",
+                              font=T.FONT_CAPTION_B, text_color=T.TEXT,
+                              anchor="w", wraplength=280).pack(side="left", padx=(T.SP_S, 0))
+            ctk.CTkFrame(sec, height=T.SP_XS, fg_color="transparent").pack()
+
+        _section("Issue", [
+            ("Description", d["description"]),
+            ("Priority",    d["priority"]),
+            ("Status",      d["status"]),
+        ])
+        _section("Dates", [
+            ("Reported",   d["date_reported"]),
+            ("Scheduled",  d["scheduled_date"]),
+            ("Resolved",   d["date_resolved"]),
+        ])
+        _section("Property & Tenant", [
+            ("Unit",          d["unit_number"]),
+            ("Address",       d["address"]),
+            ("City",          d["city"]),
+            ("Reported by",   d["tenant_name"]),
+            ("Tenant phone",  d["tenant_phone"]),
+        ])
+        _section("Assignment & Costs", [
+            ("Assigned to",  d["assigned_staff"]),
+            ("Time spent",   f"{d['time_spent']:.1f} hrs"),
+            ("Total cost",   f"£{d['cost']:.2f}"),
+        ])
+
+        _tk.Frame(popup, bg=T.BORDER, height=1).pack(fill="x")
+        from views.ui_helpers import create_primary_button as _cpb
+        _cpb(popup, "Close", popup.destroy, width=120).pack(pady=T.SP_M)
+        popup.bind("<Escape>", lambda e: popup.destroy())
+        popup.bind("<Return>", lambda e: popup.destroy())
+
     def refresh_list(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
@@ -394,3 +523,18 @@ class MaintenanceView:
                 row[0], row[1], f"£{row[2]:.2f}", f"{row[3]:.1f}h", f"£{row[4]:.2f}"))
         apply_row_stripes(self.cost_city_tree)
         autofit_columns(self.cost_city_tree)
+
+    def _export_tickets_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="tickets_export.csv", title="Export Tickets to CSV")
+        if not path:
+            return
+        rows = self.manager.get_all_tickets()
+        export_table_to_csv(
+            ["ID", "Unit", "Tenant", "Description", "Priority", "Status",
+             "Reported", "Scheduled", "Assigned To", "Hours", "Cost"],
+            rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")

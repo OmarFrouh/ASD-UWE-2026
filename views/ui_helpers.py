@@ -303,6 +303,22 @@ def enable_trackpad_scroll(scrollable_frame):
     except AttributeError:
         return
 
+    # Force the canvas window item to fill the canvas width.
+    # Needed when the frame lives inside a CTkTabview tab that wasn't visible
+    # at creation time — the canvas <Configure> event may not have fired yet.
+    window_id = getattr(scrollable_frame, "_create_window_id", None)
+    def _fit_width(c=canvas, wid=window_id):
+        if wid is None:
+            return
+        w = c.winfo_width()
+        if w > 1:
+            try:
+                c.itemconfigure(wid, width=w)
+            except Exception:
+                pass
+    canvas.after(50,  _fit_width)
+    canvas.after(200, _fit_width)
+
     def _scroll(event):
         canvas.yview_scroll(int(-1 * event.delta), "units")
         return "break"
@@ -344,7 +360,7 @@ def _sort_column(tree, col, reverse):
 def create_page_header(parent, title, subtitle=None, actions=None):
     """Top-of-page title bar: H1 title + optional muted subtitle + right-aligned buttons."""
     bar = ctk.CTkFrame(parent, fg_color="transparent")
-    bar.pack(fill="x", padx=T.SP_XL, pady=(T.SP_XL, T.SP_M))
+    bar.pack(fill="x", padx=T.SP_XL, pady=(T.SP_M, T.SP_XS))
     bar.grid_columnconfigure(0, weight=1)
 
     left = ctk.CTkFrame(bar, fg_color="transparent")
@@ -440,6 +456,13 @@ def create_tabview(parent, **kwargs):
         **kwargs,
     )
     tv.pack(fill="both", expand=True, padx=T.SP_XS, pady=T.SP_XS)
+
+    # After each tab switch, nudge the geometry engine so any CTkScrollableFrame
+    # inside the newly-visible tab fills its canvas correctly.
+    def _on_tab_change():
+        tv.after(30, tv.update_idletasks)
+    tv.configure(command=_on_tab_change)
+
     return tv
 
 
@@ -775,3 +798,12 @@ def confirm_dialog(root, title, message, danger=False):
 
     dlg.wait_window()
     return result[0]
+
+
+def export_table_to_csv(headers, rows, filepath):
+    """Write headers + rows to a CSV file at filepath."""
+    import csv
+    with open(filepath, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        writer.writerows(rows)

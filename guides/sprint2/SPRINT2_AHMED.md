@@ -295,8 +295,8 @@ After running `seed_db.py`, the following test data exists:
 |------------|--------|--------|--------|----------|----------|
 | 1 | John Smith | £850 | Pending | ~5 days ago | ✅ YES |
 | 2 | John Smith | £850 | Pending | ~25 days from now | ❌ No |
-| 3 | Sarah Jones | £1100 | Paid | ~5 days ago | ❌ No (paid) |
-| 4 | Sarah Jones | £1100 | Pending | ~25 days from now | ❌ No |
+| 3 | Emily Carter | £1100 | Paid | ~5 days ago | ❌ No (paid) |
+| 4 | Emily Carter | £1100 | Pending | ~25 days from now | ❌ No |
 
 **What you should see:**
 - Invoice ID 1 should show "⚠️ OVERDUE" in the All Invoices tab

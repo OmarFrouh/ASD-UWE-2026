@@ -10,6 +10,7 @@ from views.ui_helpers import (
     create_page_header, create_card, create_card_fill, create_kpi_tile_l, create_tabview,
     create_primary_button, create_ghost_button,
     show_success, show_error, show_warning,
+    confirm_dialog, export_table_to_csv,
 )
 
 
@@ -86,11 +87,32 @@ class PaymentView:
         toolbar = ctk.CTkFrame(frame, fg_color="transparent")
         toolbar.pack(fill="x", padx=T.SP_L, pady=T.SP_S)
         create_ghost_button(toolbar, "⟳  Refresh", self.refresh).pack(side="right")
+
+        create_ghost_button(toolbar, "⬇  Export CSV",
+                            self._export_payments_csv).pack(side="right", padx=(0, T.SP_S))
+
+        self._void_btn = ctk.CTkButton(
+            toolbar, text="🗑  Void", width=80, height=28,
+            fg_color=T.DANGER_MUTED, hover_color=T.DANGER,
+            text_color=T.TEXT_MUTED, font=T.FONT_CAPTION_B,
+            corner_radius=T.RADIUS_SM, state="disabled",
+            command=self._void_selected_payment)
+        self._void_btn.pack(side="right", padx=(0, T.SP_S))
+
+        self._pay_receipt_btn = ctk.CTkButton(
+            toolbar, text="🧾  View Receipt", width=120, height=28,
+            fg_color=T.SURFACE_3, hover_color=T.SURFACE_2,
+            text_color=T.TEXT_MUTED, font=T.FONT_CAPTION_B,
+            corner_radius=T.RADIUS_SM, state="disabled",
+            command=self._view_selected_receipt)
+        self._pay_receipt_btn.pack(side="right", padx=(0, T.SP_S))
+
         cols = ("ID", "Tenant", "Amount", "Date", "Method", "Ref", "Invoice")
         self.pay_tree = setup_treeview_scroll(
             frame, columns=cols, height=15,
             empty_message="No payments recorded yet",
         )
+        self.pay_tree.bind("<<TreeviewSelect>>", self._on_pay_select)
 
     # ── Summary tab ───────────────────────────────────────────────────────────
 
@@ -105,6 +127,10 @@ class PaymentView:
 
         # Breakdown tables
         bd_inner = create_card_fill(scroll, title="Payment Method Breakdown")
+        bd_toolbar = ctk.CTkFrame(bd_inner, fg_color="transparent")
+        bd_toolbar.pack(fill="x", pady=(0, T.SP_S))
+        create_ghost_button(bd_toolbar, "⬇  Export CSV",
+                             self._export_method_breakdown_csv).pack(side="right")
         cols = ("Payment Method", "Total Amount", "Transaction Count")
         self.sum_tree = setup_treeview_scroll(bd_inner, columns=cols,
                                                col_widths=[180, 150, 150], height=4,
@@ -112,11 +138,92 @@ class PaymentView:
                                                )
 
         rev_inner = create_card_fill(scroll, title="Monthly Revenue (Last 6 Months)")
+        rev_toolbar = ctk.CTkFrame(rev_inner, fg_color="transparent")
+        rev_toolbar.pack(fill="x", pady=(0, T.SP_S))
+        create_ghost_button(rev_toolbar, "⬇  Export CSV",
+                             self._export_monthly_revenue_csv).pack(side="right")
         rev_cols = ("Month", "Total Collected")
         self.rev_tree = setup_treeview_scroll(rev_inner, columns=rev_cols,
                                                col_widths=[200, 200], height=6,
                                                empty_message="No revenue data for the last 6 months",
                                                )
+
+    # ── Payment History actions ────────────────────────────────────────────────
+
+    def _on_pay_select(self, event=None):
+        selected = self.pay_tree.selection()
+        has = bool(selected)
+        color = T.TEXT if has else T.TEXT_MUTED
+        self._pay_receipt_btn.configure(state="normal" if has else "disabled",
+                                        text_color=color)
+        self._void_btn.configure(state="normal" if has else "disabled",
+                                 text_color=color)
+
+    def _view_selected_receipt(self):
+        selected = self.pay_tree.selection()
+        if not selected:
+            return
+        pay_id = int(self.pay_tree.item(selected[0], "values")[0])
+        self.show_receipt(pay_id)
+
+    def _void_selected_payment(self):
+        selected = self.pay_tree.selection()
+        if not selected:
+            return
+        pay_id = int(self.pay_tree.item(selected[0], "values")[0])
+        tenant = self.pay_tree.item(selected[0], "values")[1]
+        amount = self.pay_tree.item(selected[0], "values")[2]
+        if not confirm_dialog(self._root, "Void Payment",
+                              f"Void {amount} payment for {tenant}?\n"
+                              "The invoice will revert to Pending if this was the only payment.",
+                              danger=True):
+            return
+        try:
+            self.payment_manager.void_payment(pay_id)
+            show_success(self._root, "Payment voided. Invoice reverted if applicable.")
+            self.refresh()
+        except Exception as ex:
+            show_error(self._root, str(ex))
+
+    def _export_method_breakdown_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="payment_methods.csv", title="Export Method Breakdown to CSV")
+        if not path:
+            return
+        rows = self.payment_manager.get_payment_history_by_method()
+        export_table_to_csv(["Payment Method", "Total Amount", "Transaction Count"], rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
+
+    def _export_monthly_revenue_csv(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            parent=self._root, defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="monthly_revenue.csv", title="Export Monthly Revenue to CSV")
+        if not path:
+            return
+        rows = self.payment_manager.get_monthly_revenue()
+        export_table_to_csv(["Month", "Total Collected"], rows, path)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
+
+    def _export_payments_csv(self):
+        from tkinter import filedialog
+        filepath = filedialog.asksaveasfilename(
+            parent=self._root,
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="payments_export.csv",
+            title="Export Payments to CSV",
+        )
+        if not filepath:
+            return
+        rows = self.payment_manager.get_all_payments()
+        headers = ["ID", "Tenant", "Amount", "Date", "Method", "Reference", "Invoice ID"]
+        export_table_to_csv(headers, rows, filepath)
+        show_success(self._root, f"Exported {len(rows)} rows to CSV.")
 
     # ── Receipt popup ─────────────────────────────────────────────────────────
 
