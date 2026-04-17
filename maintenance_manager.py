@@ -169,6 +169,63 @@ class MaintenanceManager:
             ORDER BY total_cost DESC
         """)
 
+    def get_ticket_detail(self, ticket_id):
+        row = self.db_manager.fetch_one("""
+            SELECT m.id, a.unit_number, a.address, a.city,
+                   t.full_name, t.phone_number,
+                   m.description, m.priority, m.status,
+                   m.date_reported, m.scheduled_date, m.date_resolved,
+                   m.time_spent, m.cost,
+                   u.username AS assigned_staff
+            FROM maintenance_requests m
+            LEFT JOIN apartments a ON m.apartment_id = a.id
+            LEFT JOIN tenants t ON m.tenant_id = t.user_id
+            LEFT JOIN staff st ON m.staff_id = st.user_id
+            LEFT JOIN users u ON st.user_id = u.id
+            WHERE m.id = ?
+        """, (ticket_id,))
+        if not row:
+            raise Exception(f"Ticket {ticket_id} not found.")
+        return {
+            "id":             row[0],
+            "unit_number":    row[1] or "-",
+            "address":        row[2] or "-",
+            "city":           row[3] or "-",
+            "tenant_name":    row[4] or "-",
+            "tenant_phone":   row[5] or "-",
+            "description":    row[6],
+            "priority":       row[7],
+            "status":         row[8],
+            "date_reported":  row[9] or "-",
+            "scheduled_date": row[10] or "-",
+            "date_resolved":  row[11] or "-",
+            "time_spent":     row[12] or 0,
+            "cost":           row[13] or 0,
+            "assigned_staff": row[14] or "-",
+        }
+
+    def get_tickets_for_tenant(self, tenant_id):
+        return self.db_manager.fetch_all("""
+            SELECT m.id, a.unit_number, m.description, m.priority,
+                   m.status, m.date_reported
+            FROM maintenance_requests m
+            LEFT JOIN apartments a ON m.apartment_id = a.id
+            WHERE m.tenant_id = ?
+            ORDER BY m.date_reported DESC
+        """, (tenant_id,))
+
+    def delete_ticket(self, ticket_id):
+        ticket = self.db_manager.fetch_one(
+            "SELECT status FROM maintenance_requests WHERE id=?", (ticket_id,))
+        if not ticket:
+            raise Exception(f"Ticket {ticket_id} not found.")
+        if ticket[0] not in ("Open", "Assigned"):
+            raise Exception(
+                f"Cannot delete a ticket with status '{ticket[0]}'. "
+                "Only Open or Assigned tickets can be deleted.")
+        self.db_manager.execute_query(
+            "DELETE FROM maintenance_requests WHERE id=?", (ticket_id,))
+
     def get_tickets_by_status_count(self):
         """Returns count of tickets grouped by status.
         Returns: dict of status -> count"""
