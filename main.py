@@ -1,45 +1,42 @@
-import tkinter as tk
+# Student Name: Omar Alfrouh
+# Student ID: 24020879
+
+import customtkinter as ctk
 from database_manager import DatabaseManager
 from auth_manager import AuthManager
-from views.main_view import MainView
+from property_manager import PropertyManager
 from views.login_view import LoginView
+from views.main_view import MainView
 import sys
+
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 def main():
     try:
-        # 1. Initialize Backend
-        db_name = "pams.db"
-        db_manager = DatabaseManager(db_name)
+        db_manager = DatabaseManager("pams.db")
+        db_manager.create_tables()
         auth_manager = AuthManager(db_manager)
-        from property_manager import PropertyManager
         property_manager = PropertyManager(db_manager)
-        
-        # 2. Setup GUI Root
-        root = tk.Tk()
-        
-        # 3. Define Navigation Logic
-        def launch_dashboard(user):
-            # Close the Login Window (which was the root)
-            # Actually, since LoginView used 'root', destroying it kills the app.
-            # Strategy: LoginView uses a Toplevel or Frame? 
-            # Or simpler: Clear the root frame and build Dashboard?
-            
-            # Better Strategy:
-            # 1. Clear all widgets from root (Login View stuff)
+
+        root = ctk.CTk()
+
+        def launch_login():
             for widget in root.winfo_children():
                 widget.destroy()
-                
-            # 2. Build Main View on the same root
-            MainView(root, auth_manager, property_manager, user)
+            LoginView(root, auth_manager, launch_dashboard)
 
-        # 4. Inject Dependencies & Start
-        # Pass the callback to LoginView
-        app = LoginView(root, auth_manager, launch_dashboard)
-        
+        def launch_dashboard(user):
+            for widget in root.winfo_children():
+                widget.destroy()
+            MainView(root, auth_manager, property_manager, db_manager, user, launch_login)
+
+        launch_login()
+
         print("Starting PAMS...")
         root.mainloop()
     except Exception as e:
-        print(f"Error starting application: {e}")
+        print(f"Error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

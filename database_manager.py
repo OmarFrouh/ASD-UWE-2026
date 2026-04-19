@@ -1,16 +1,18 @@
+# Student Name: Omar Alfrouh
+# Student ID: 24020879
+
 import sqlite3
-import os
 
 class DatabaseManager:
     def __init__(self, db_name="pams.db"):
         self.db_name = db_name
- 
+
     def get_connection(self):
-        """Returns a database connection."""
-        return sqlite3.connect(self.db_name)
+        conn = sqlite3.connect(self.db_name)
+        conn.execute("PRAGMA foreign_keys = ON")
+        return conn
 
     def execute_query(self, query, params=()):
-        """Executes a query that changes data (CREATE, INSERT, UPDATE, DELETE)."""
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
@@ -22,7 +24,6 @@ class DatabaseManager:
             return None
 
     def fetch_all(self, query, params=()):
-        """Executes a query and returns all results (SELECT)."""
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
@@ -33,7 +34,6 @@ class DatabaseManager:
             return []
 
     def fetch_one(self, query, params=()):
-        """Executes a query and returns a single result (SELECT)."""
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
@@ -44,22 +44,19 @@ class DatabaseManager:
             return None
 
     def create_tables(self):
-        """Creates the initial database schema based on SYSTEM_DESIGN.md."""
-        
-        # 1. Users Table (Base for Admin, Staff, Tenant)
-        # Stores authentication and role data.
+        # 1. Users
         self.execute_query("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
                 role TEXT NOT NULL,
-                created_at TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 last_login TEXT
             );
         """)
 
-        # 2. Staff Details (Linked to Users)
+        # 2. Staff
         self.execute_query("""
             CREATE TABLE IF NOT EXISTS staff (
                 user_id INTEGER PRIMARY KEY,
@@ -69,73 +66,83 @@ class DatabaseManager:
             );
         """)
 
-        # 3. Apartments Table
+        # 3. Apartments (Updated: city, number_of_rooms)
         self.execute_query("""
             CREATE TABLE IF NOT EXISTS apartments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 unit_number TEXT UNIQUE NOT NULL,
                 address TEXT,
+                city TEXT DEFAULT 'Bristol',
+                number_of_rooms INTEGER DEFAULT 1,
                 rental_price REAL,
                 square_footage INTEGER,
                 status TEXT DEFAULT 'Vacant'
             );
         """)
 
-        # 4. Tenants Details (Linked to Users and Apartments)
-        # Includes apartment_id FK to link Tenant -> Apartment (1:1 optional)
+        # 4. Tenants (Updated: NI, occupation, references, etc.)
         self.execute_query("""
             CREATE TABLE IF NOT EXISTS tenants (
                 user_id INTEGER PRIMARY KEY,
-                apartment_id INTEGER UNIQUE,
+                ni_number TEXT UNIQUE,
                 full_name TEXT NOT NULL,
-                email TEXT,
                 phone_number TEXT,
+                email TEXT,
+                occupation TEXT,
+                references_info TEXT,
                 emergency_contact TEXT,
+                apartment_requirements TEXT,
+                apartment_id INTEGER,
                 lease_start_date TEXT,
                 lease_end_date TEXT,
+                deposit_amount REAL,
+                monthly_rent REAL,
+                status TEXT DEFAULT 'Active',
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
                 FOREIGN KEY (apartment_id) REFERENCES apartments (id) ON DELETE SET NULL
             );
         """)
 
-        # 5. Maintenance Requests
-        # Linked to Apartment (History) and Staff (Assignment)
+        # 5. Maintenance Requests (Updated: tenant_id, costs, scheduling)
         self.execute_query("""
             CREATE TABLE IF NOT EXISTS maintenance_requests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 apartment_id INTEGER NOT NULL,
+                tenant_id INTEGER,
                 staff_id INTEGER,
                 description TEXT NOT NULL,
-                priority TEXT,
+                priority TEXT DEFAULT 'Medium',
                 status TEXT DEFAULT 'Open',
-                date_reported TEXT,
+                date_reported TEXT DEFAULT CURRENT_TIMESTAMP,
+                scheduled_date TEXT,
                 date_resolved TEXT,
+                time_spent REAL,
+                cost REAL,
                 FOREIGN KEY (apartment_id) REFERENCES apartments (id) ON DELETE CASCADE,
+                FOREIGN KEY (tenant_id) REFERENCES tenants (user_id) ON DELETE SET NULL,
                 FOREIGN KEY (staff_id) REFERENCES staff (user_id) ON DELETE SET NULL
             );
         """)
 
         # 6. Invoices
-        # Linked to Tenant
         self.execute_query("""
             CREATE TABLE IF NOT EXISTS invoices (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 tenant_id INTEGER NOT NULL,
                 issue_date TEXT,
                 due_date TEXT,
-                total_amount REAL,
+                total_amount REAL NOT NULL,
                 status TEXT DEFAULT 'Pending',
                 FOREIGN KEY (tenant_id) REFERENCES tenants (user_id) ON DELETE CASCADE
             );
         """)
 
         # 7. Payments
-        # Linked to Invoice (Composition)
         self.execute_query("""
             CREATE TABLE IF NOT EXISTS payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 invoice_id INTEGER NOT NULL,
-                amount REAL,
+                amount REAL NOT NULL,
                 payment_date TEXT,
                 method TEXT,
                 transaction_ref TEXT,
@@ -143,7 +150,67 @@ class DatabaseManager:
             );
         """)
 
+        # 8. Complaints (Sprint 3)
+        self.execute_query("""
+            CREATE TABLE IF NOT EXISTS complaints (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tenant_id INTEGER NOT NULL,
+                date_logged TEXT DEFAULT CURRENT_TIMESTAMP,
+                subject TEXT NOT NULL,
+                description TEXT NOT NULL,
+                status TEXT DEFAULT 'Open',
+                resolved_date TEXT,
+                FOREIGN KEY (tenant_id) REFERENCES tenants (user_id) ON DELETE CASCADE
+            );
+        """)
+
+        self._apply_migrations()
         print("✅ Database schema created successfully.")
+
+    def _apply_migrations(self):
+        """Detect and apply any necessary schema migrations on existing databases."""
+        schema = self.fetch_one(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='tenants'"
+        )
+        if schema and schema[0] and "apartment_id INTEGER UNIQUE" in schema[0]:
+            self._migrate_drop_apt_unique()
+
+    def _migrate_drop_apt_unique(self):
+        """Recreate the tenants table without the UNIQUE constraint on apartment_id."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.executescript("""
+                CREATE TABLE IF NOT EXISTS tenants_new (
+                    user_id INTEGER PRIMARY KEY,
+                    ni_number TEXT UNIQUE,
+                    full_name TEXT NOT NULL,
+                    phone_number TEXT,
+                    email TEXT,
+                    occupation TEXT,
+                    references_info TEXT,
+                    emergency_contact TEXT,
+                    apartment_requirements TEXT,
+                    apartment_id INTEGER,
+                    lease_start_date TEXT,
+                    lease_end_date TEXT,
+                    deposit_amount REAL,
+                    monthly_rent REAL,
+                    status TEXT DEFAULT 'Active',
+                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                    FOREIGN KEY (apartment_id) REFERENCES apartments (id) ON DELETE SET NULL
+                );
+                INSERT INTO tenants_new SELECT * FROM tenants;
+                DROP TABLE tenants;
+                ALTER TABLE tenants_new RENAME TO tenants;
+            """)
+            conn.commit()
+            print("✅ Migration: removed apartment_id UNIQUE constraint from tenants.")
+        except Exception as e:
+            conn.rollback()
+            print(f"Migration error: {e}")
+        finally:
+            conn.close()
 
 if __name__ == "__main__":
     db = DatabaseManager()
