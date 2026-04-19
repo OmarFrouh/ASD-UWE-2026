@@ -44,7 +44,7 @@
 | 15 | **Occupancy Report** (chart by apartment/city) | Reporting | Numair |
 | 16 | **Maintenance Cost Report** (budget tracking) | Reporting | Numair |
 | 17 | **Use Case Diagram** | Element 1 | Feras |
-| 18 | **Testing Document** (test cases table + screenshots) | Element 3 | Numair |
+| 18 | **Testing Document** (test cases table + screenshots) | Element 3 | Feras |
 | 19 | **Agile Practices Report** (PDF, methodology evidence) | Element 2 | Omar |
 | 20 | **Mock Data** (seed DB for demo) | Element 2 | Omar |
 | 21 | **Non-functional: Security** (bcrypt ✅, role-based ✅, input validation) | Element 2 | All |
@@ -93,10 +93,10 @@
 |-------|-------|-------------|
 | **Feras** | Polish UI consistency across all forms | Clean UI |
 | **Feras** | Help with test cases for Tenant features | Test rows |
+| **Feras** | Create **Testing Document** (test case table + screenshots) | `TESTING.pdf` |
+| **Feras** | Run automated tests (pytest) + capture screenshots | Evidence |
 | **Ahmed** | Input validation on all finance forms | Robust forms |
 | **Ahmed** | Help with test cases for Finance features | Test rows |
-| **Numair** | Create **Testing Document** (test case table + screenshots) | `TESTING.pdf` |
-| **Numair** | Run automated tests (pytest) + capture screenshots | Evidence |
 | **Omar** | Write **Agile Practices Report** (Scrum evidence, Git log, sprint reviews) | `AGILE_REPORT.pdf` |
 | **Omar** | Final bug fixes, security audit (input validation, SQL injection prevention) | Hardened code |
 | **All** | Merge all branches, resolve conflicts | Clean `main` |

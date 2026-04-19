@@ -41,6 +41,7 @@
     *   **UI Consistency**: Making sure all forms look the same.
     *   **Tenant Operations**: Everything related to tenants and leases.
     *   **Use Case Diagram**: Designing the system use case diagram.
+    *   **Testing**: Creating the testing document with evidence.
 *   **Sprint 1 Tasks** (Mar 31 - Apr 6):
     *   [ ] Draw **Use Case Diagram** in Astah
     *   [ ] Build `tenant_manager.py` (add, update, remove, archive tenant)
@@ -53,6 +54,9 @@
 *   **Sprint 3 Tasks** (Apr 14 - Apr 18):
     *   [ ] Polish UI consistency across all tenant forms
     *   [ ] Write test cases for tenant features
+    *   [ ] Create **Testing Document** (test case table format from brief)
+    *   [ ] Run automated tests (pytest) + capture pass/fail screenshots
+    *   [ ] Write evidence for manual testing
 
 ---
 
@@ -80,7 +84,6 @@
 *   **Responsibility**:
     *   **Maintenance**: The full ticketing lifecycle (report → assign → resolve → log costs).
     *   **Reporting**: Occupancy and maintenance cost reports.
-    *   **Testing**: Creating the testing document with evidence.
 *   **Sprint 1 Tasks** (Mar 31 - Apr 6):
     *   [ ] Build `maintenance_manager.py` (report issue, set priority, update status)
     *   [ ] Build `MaintenanceTicketView` (report form + ticket list)
@@ -91,6 +94,3 @@
     *   [ ] Build `OccupancyReportView` (chart: occupied vs empty by location)
     *   [ ] Build `MaintenanceCostReport` (budget tracking view)
 *   **Sprint 3 Tasks** (Apr 14 - Apr 18):
-    *   [ ] Create **Testing Document** (test case table format from brief)
-    *   [ ] Run automated tests (pytest) + capture pass/fail screenshots
-    *   [ ] Write evidence for manual testing
