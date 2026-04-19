@@ -116,9 +116,11 @@
 *   [x] **Class Diagram**: 29 classes across Core/Managers/Entities/Views/Utilities incl. `theme`/`ui_helpers`/`pdf_generator`. (Omar — done 18 Apr)
 *   [x] **Sequence Diagrams**: 4 flows — login, register tenant, record payment (with receipt PDF branch), early termination. (Omar — done 18 Apr)
 *   [x] **diagrams.pdf**: One PDF (23 pages, A3, 2.2 MB) at project root, gitignored, goes straight into submission ZIP. (Omar — done 18 Apr)
+*   [x] **Merge dev → main**: Tag `submission-final`. (Omar — done 19 Apr)
+*   [x] **Repo cleanup**: Drop dead `test_auth.py`, untrack Sprint 2 guides, refresh design + timeline docs. (Omar — done 19 Apr)
 *   [ ] **Agile Practices Report PDF**: Scrum evidence, Git log, sprint reviews, contributions. (Omar compiles + all team sections)
 *   [ ] **Testing Document PDF**: Test case table + screenshots + 330-test automated results. (Feras)
-*   [ ] **Merge dev → main**: Tag `submission-final`. (Omar)
+*   [ ] **Regenerate `pams.db`**: Run `seed_db.py` immediately before ZIP so the DB matches the final schema + seed. (Omar)
 *   [ ] **Submission ZIP**: Build `Group28_<StudentID>.zip` and upload individually to Blackboard. (All)
 *   [ ] **Demo/Viva Rehearsal**: Full walkthrough with all 5 test accounts. (All)
 
