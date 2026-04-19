@@ -17,6 +17,7 @@ Python 3.10 or higher, pip, and the packages in requirements.txt:
     customtkinter
     darkdetect
     packaging
+    fpdf2
 
 SETUP
 -----
@@ -65,7 +66,7 @@ RUNNING THE AUTOMATED TESTS
 From the source_code folder:
     python3 -m unittest discover -s tests -v
 
-Expected result: 189 tests pass, with an OK line at the bottom.
+Expected result: 330 tests pass, with an OK line at the bottom.
 Each test creates and tears down its own temporary SQLite database,
 so tests do not affect your pams.db file.
 
@@ -86,7 +87,7 @@ source_code/
     pams.db                     SQLite database with seed data
     requirements.txt            pip dependencies
     README.txt                  this file
-    tests/                      unittest test files (189 tests)
+    tests/                      unittest test files (330 tests)
     views/                      CustomTkinter UI layer
 
 SUBMISSION CONTENTS

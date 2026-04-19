@@ -68,7 +68,7 @@ Always run tests using the project venv, **not** the system Python:
 ```bash
 ./venv/bin/python3 -m unittest discover -s tests -v
 ```
-Expected: **~189 tests, all passing**.
+Expected: **330 tests, all passing**.
 
 ---
 
