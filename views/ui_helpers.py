@@ -580,70 +580,6 @@ def create_ghost_button(parent, text, command, width=None):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Form helpers
-# ─────────────────────────────────────────────────────────────────────────────
-
-def create_form_row(parent, row, label, required=False, help_text=None,
-                    widget=None, col_offset=0):
-    """Label (with * marker) + widget in a grid row.  Returns the widget."""
-    lbl_text = label + (" *" if required else "")
-    lbl_color = T.DANGER if required else T.TEXT_MUTED
-    ctk.CTkLabel(parent, text=lbl_text, font=T.FONT_BODY,
-                 text_color=lbl_color, anchor="e").grid(
-        row=row, column=col_offset, padx=(0, T.SP_S), pady=T.SP_S, sticky="e")
-
-    if widget is None:
-        w = ctk.CTkEntry(parent, height=T.INPUT_HEIGHT,
-                         fg_color=T.SURFACE_3,
-                         border_color=T.BORDER,
-                         text_color=T.TEXT)
-    else:
-        w = widget
-
-    w.grid(row=row, column=col_offset + 1, padx=(0, T.SP_M),
-           pady=T.SP_S, sticky="w")
-
-    if help_text:
-        ctk.CTkLabel(parent, text=help_text, font=T.FONT_CAPTION,
-                     text_color=T.TEXT_SUBTLE).grid(
-            row=row + 1, column=col_offset + 1, sticky="w",
-            padx=(0, T.SP_M), pady=(0, T.SP_XS))
-
-    return w
-
-
-def create_section_divider(parent, text=None):
-    """1 px horizontal divider, optional centred label."""
-    frame = ctk.CTkFrame(parent, fg_color="transparent")
-    frame.pack(fill="x", pady=T.SP_M)
-    if text:
-        ctk.CTkLabel(frame, text=text, font=T.FONT_CAPTION_B,
-                     text_color=T.TEXT_SUBTLE).pack(anchor="w")
-    tk.Frame(frame, bg=T.BORDER, height=1).pack(fill="x")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Inline badge label
-# ─────────────────────────────────────────────────────────────────────────────
-
-_BADGE_KINDS = {
-    "success": (T.SUCCESS,   T.SUCCESS_MUTED),
-    "warning": (T.WARNING,   T.WARNING_MUTED),
-    "danger":  (T.DANGER,    T.DANGER_MUTED),
-    "info":    (T.INFO,      T.INFO_MUTED),
-    "muted":   (T.TEXT_MUTED, T.SURFACE_3),
-    "primary": (T.PRIMARY,   T.PRIMARY_MUTED),
-}
-
-def create_badge(parent, text, kind="muted"):
-    fg, bg = _BADGE_KINDS.get(kind, _BADGE_KINDS["muted"])
-    return ctk.CTkLabel(parent, text=f"  {text}  ",
-                        font=T.FONT_CAPTION_B,
-                        text_color=fg, fg_color=bg,
-                        corner_radius=T.RADIUS_PILL)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Empty state
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -659,35 +595,6 @@ def create_empty_state(parent, icon, title, message, action=None):
     if action:
         create_primary_button(frame, **action).pack(pady=T.SP_L)
     return frame
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Search bar
-# ─────────────────────────────────────────────────────────────────────────────
-
-def create_search_bar(parent, placeholder, on_change):
-    """🔍 search entry + ✕ clear button. Returns the CTkEntry widget."""
-    bar = ctk.CTkFrame(parent, fg_color="transparent")
-    bar.pack(side="left", padx=(0, T.SP_M))
-
-    ctk.CTkLabel(bar, text="🔍", font=T.FONT_BODY).pack(side="left",
-                                                         padx=(0, T.SP_XS))
-    entry = ctk.CTkEntry(bar, placeholder_text=placeholder,
-                         width=200, height=T.INPUT_HEIGHT,
-                         fg_color=T.SURFACE_3, border_color=T.BORDER,
-                         text_color=T.TEXT)
-    entry.pack(side="left")
-    entry.bind("<KeyRelease>", lambda e: on_change(entry.get()))
-
-    def _clear():
-        entry.delete(0, "end")
-        on_change("")
-
-    ctk.CTkButton(bar, text="✕", command=_clear,
-                  width=28, height=T.INPUT_HEIGHT,
-                  fg_color="transparent", hover_color=T.SURFACE_3,
-                  text_color=T.TEXT_MUTED, font=T.FONT_CAPTION).pack(side="left")
-    return entry
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -744,9 +651,6 @@ def show_error(root, message):
 
 def show_warning(root, message):
     show_toast(root, message, kind="warning")
-
-def show_info(root, message):
-    show_toast(root, message, kind="info")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

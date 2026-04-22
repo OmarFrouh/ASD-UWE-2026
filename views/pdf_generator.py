@@ -21,6 +21,24 @@ _BORDER   = (203, 213, 225)
 _GBP      = chr(163)           # £ — safe in FPDF Latin-1 fonts
 
 
+# Built-in Helvetica is Latin-1 only. Map common typographic characters to
+# ASCII equivalents so smart quotes, dashes and ellipses don't crash rendering,
+# then drop anything still outside Latin-1.
+_TYPO_MAP = str.maketrans({
+    "‘": "'", "’": "'", "‚": "'", "‛": "'",
+    "“": '"', "”": '"', "„": '"', "‟": '"',
+    "–": "-", "—": "-", "−": "-",
+    "…": "...", " ": " ", "•": "*",
+})
+
+
+def _safe(value):
+    if value is None:
+        return ""
+    s = str(value).translate(_TYPO_MAP)
+    return s.encode("latin-1", "replace").decode("latin-1")
+
+
 def _status_colors(status):
     s = (status or "").lower()
     if s == "paid":    return _SUCCESS
@@ -48,7 +66,7 @@ def _kv(pdf, label, value, lm, cw):
     pdf.cell(42, 6, label + ":")
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(*_TEXT)
-    pdf.cell(cw - 48, 6, str(value) if value else "-")
+    pdf.cell(cw - 48, 6, _safe(value) if value else "-")
     pdf.set_y(y + 6)
 
 
@@ -200,7 +218,8 @@ def generate_invoice_pdf(data, save_path):
         pdf.set_y(y + 8)
 
         for pay in data["payments"]:
-            vals = [f"{_GBP}{pay[0]:.2f}", str(pay[1]), str(pay[2]), str(pay[3]) or "—"]
+            vals = [f"{_GBP}{pay[0]:.2f}", _safe(pay[1]), _safe(pay[2]),
+                    _safe(pay[3]) or "-"]
             y = pdf.get_y()
             x = LM + 3
             pdf.set_font("Helvetica", "", 9)

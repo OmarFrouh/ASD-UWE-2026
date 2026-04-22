@@ -6,7 +6,7 @@
 
 ---
 
-## 1. 👑 Omar Alfrouh (Group Leader) — Student ID 24020879
+## 1. Omar Alfrouh (Group Leader) — Student ID 24020879
 *   **Role**: Scrum Master & Core Architect
 *   **Responsibility**:
     *   **The Backbone**: Database, authentication, main window, and project infrastructure.
@@ -41,19 +41,19 @@
     *   [x] `requirements.txt` refreshed from `pip freeze`, `fpdf2` added
     *   [x] `views/theme.py` — design-token module (colors, fonts, spacing, radii)
     *   [x] UI redesign: sidebar highlight, toast + confirm dialog, dashboard KPIs, status pills, empty states, notification dropdown, keyboard shortcuts
-    *   [x] `views/pdf_generator.py` — fpdf2 invoice + receipt PDF
+    *   [x] `views/pdf_generator.py` — fpdf2 invoice PDF
     *   [x] `database_manager._apply_migrations()` — idempotent migration dropping legacy `UNIQUE` constraint on `tenants.apartment_id`
     *   [x] Tenant role blocked at `login_view` (staff-only system)
     *   [x] CSV export helpers on reports
     *   [x] 9 new test files added (coverage gaps, v2 managers, PDF, search, CSV, reactivate) — total 330 passing
     *   [x] Use Case + Class + 4 Sequence diagrams exported to `diagrams.pdf` (23 pages, A3)
     *   [x] Merge `dev` → `main`, tag `submission-final`
-    *   [ ] Agile Practices Report PDF (compile team sections)
-    *   [ ] Build final submission ZIP (`Group28_24020879.zip`)
+    *   [x] Agile Practices Report PDF (compile team sections)
+    *   [x] Build final submission ZIP (`Group28_24020879.zip`)
 
 ---
 
-## 2. 🎨 Feras Bader (Frontend Lead) — Student ID 24033513
+## 2. Feras Bader (Frontend Lead) — Student ID 24033513
 *   **Role**: Frontend Lead & Tenant Module Owner
 *   **Responsibility**:
     *   **UI Consistency**: Making sure all tenant forms look the same.
@@ -77,14 +77,14 @@
 *   **Sprint 4 Tasks (Apr 13 – Apr 23)**:
     *   [x] Reactivate-archived-tenant support in the Register flow
     *   [x] Tenant module smoke-tested on the new redesigned UI
-    *   [ ] **Testing Document PDF** — manual test-case table + 330-test automated results screenshot
-    *   [ ] Agile Practices Report — individual contribution section
-    *   [ ] Demo rehearsal for tenant module (3–4 min)
-    *   [ ] Upload final submission ZIP to Blackboard
+    *   [x] **Testing Document PDF** — manual test-case table + 330-test automated results screenshot
+    *   [x] Agile Practices Report — individual contribution section
+    *   [x] Demo rehearsal for tenant module (3–4 min)
+    *   [x] Upload final submission ZIP to Blackboard
 
 ---
 
-## 3. 💸 Ahmed Deraz (Finance Lead) — Student ID 24046227
+## 3. Ahmed Deraz (Finance Lead) — Student ID 24046227
 *   **Role**: Finance Lead
 *   **Responsibility**:
     *   **Money**: Invoices, Payments, and Financial Reports.
@@ -108,13 +108,13 @@
 *   **Sprint 4 Tasks (Apr 13 – Apr 23)**:
     *   [x] Finance module smoke-tested against the redesigned receipt modal
     *   [x] Invoice search (`search_invoices`) + aging dashboard support
-    *   [ ] Agile Practices Report — individual contribution section
-    *   [ ] Demo rehearsal for invoices + payments (3 min)
-    *   [ ] Upload final submission ZIP to Blackboard
+    *   [x] Agile Practices Report — individual contribution section
+    *   [x] Demo rehearsal for invoices + payments (3 min)
+    *   [x] Upload final submission ZIP to Blackboard
 
 ---
 
-## 4. 🔧 Numair (Maintenance Lead) — Student ID 24026758
+## 4. Numair (Maintenance Lead) — Student ID 24026758
 *   **Role**: Maintenance Lead
 *   **Responsibility**:
     *   **Maintenance**: The full ticketing lifecycle (report → assign → resolve → log costs).
@@ -130,11 +130,11 @@
     *   [x] 40 unit tests in `tests/test_numair_sprint2.py`
 *   **Sprint 3 Tasks (Apr 14 – Apr 18)** — ✅ delivered in PR #28:
     *   [x] 16 edge-case tests in `tests/test_numair_sprint3.py`
-        *   Complaint isolation between tenants
-        *   Update-tenant field targeting
-        *   1-month notice-period boundaries
+    *   [x] Complaint isolation between tenants
+    *   [x] Update-tenant field targeting
+    *   [x] 1-month notice-period boundaries
 *   **Sprint 4 Tasks (Apr 13 – Apr 23)**:
     *   [x] Maintenance module smoke-tested against redesigned UI (priority pills, KPI cost-report cards)
-    *   [ ] Agile Practices Report — individual contribution section
-    *   [ ] Demo rehearsal for maintenance module (3 min)
-    *   [ ] Upload final submission ZIP to Blackboard
+    *   [x] Agile Practices Report — individual contribution section
+    *   [x] Demo rehearsal for maintenance module (3 min)
+    *   [x] Upload final submission ZIP to Blackboard

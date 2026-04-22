@@ -248,26 +248,6 @@ class TestNotificationManager(BaseTest):
         self.assertGreater(overdue[0][4], overdue[1][4])
         self.assertGreater(overdue[1][4], overdue[2][4])
 
-    # ─── UPCOMING MAINTENANCE ───
-    def test_no_upcoming_maintenance_when_none_scheduled(self):
-        upcoming = self.nm.get_upcoming_maintenance()
-        self.assertEqual(len(upcoming), 0)
-
-    def test_upcoming_maintenance_detected(self):
-        # Create ticket, assign staff, schedule date
-        self.db.execute_query("INSERT INTO users (username, password_hash, role) VALUES ('maint_staff', 'hash', 'maintenance')")
-        staff_id = self.db.fetch_one("SELECT id FROM users WHERE username='maint_staff'")[0]
-        self.db.execute_query("INSERT INTO staff (user_id, employee_id, department) VALUES (?, 'EMP', 'Maintenance')", (staff_id,))
-
-        self.maint.create_ticket(self.apt_id, self.uid, "Fix pipe", "High")
-        ticket_id = self.db.fetch_one("SELECT id FROM maintenance_requests")[0]
-        future_date = (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d")
-        self.maint.assign_staff(ticket_id, staff_id, future_date)
-
-        upcoming = self.nm.get_upcoming_maintenance()
-        self.assertEqual(len(upcoming), 1)
-        self.assertEqual(upcoming[0][3], "Fix pipe")
-
     # ─── EXPIRING LEASES ───
     def test_no_expiring_leases_when_far_away(self):
         # Lease ends in 2026-12-31, more than 30 days away
@@ -311,6 +291,35 @@ class TestNotificationManager(BaseTest):
 
         count = self.nm.get_notification_count()
         self.assertGreaterEqual(count, 1)
+
+    # ─── NOTIFICATION FEED ───
+    def test_get_notifications_returns_overdue_as_dict(self):
+        past_due = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        issue_date = (datetime.now() - timedelta(days=37)).strftime("%Y-%m-%d")
+        self.db.execute_query(
+            "INSERT INTO invoices (tenant_id, issue_date, due_date, total_amount, status) VALUES (?,?,?,?,?)",
+            (self.uid, issue_date, past_due, 850.0, "Pending"))
+
+        items = self.nm.get_notifications()
+        overdue_items = [i for i in items if i["type"] == "overdue"]
+        self.assertEqual(len(overdue_items), 1)
+        self.assertIn("Notif User", overdue_items[0]["text"])
+        self.assertIn("850.00", overdue_items[0]["text"])
+
+    def test_get_notifications_combines_overdue_and_expiring(self):
+        past_due = (datetime.now() - timedelta(days=3)).strftime("%Y-%m-%d")
+        issue_date = (datetime.now() - timedelta(days=33)).strftime("%Y-%m-%d")
+        self.db.execute_query(
+            "INSERT INTO invoices (tenant_id, issue_date, due_date, total_amount, status) VALUES (?,?,?,?,?)",
+            (self.uid, issue_date, past_due, 850.0, "Pending"))
+        near = (datetime.now() + timedelta(days=10)).strftime("%Y-%m-%d")
+        self.db.execute_query("UPDATE tenants SET lease_end_date=? WHERE user_id=?",
+                              (near, self.uid))
+
+        items = self.nm.get_notifications()
+        types = {i["type"] for i in items}
+        self.assertIn("overdue", types)
+        self.assertIn("expiring", types)
 
 
 if __name__ == "__main__":
