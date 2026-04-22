@@ -104,5 +104,6 @@ Expected: **330 tests, all passing**.
 
 ## Documentation
 
-- [Backlog](BACKLOG.md)
-- Sprint guides in `guides/` (gitignored — local team use only)
+- [Backlog](docs/BACKLOG.md)
+- [Team Charter](docs/TEAM_CHARTER.md)
+- [Team Responsibilities](docs/TEAM_RESPONSIBILITIES.md)
