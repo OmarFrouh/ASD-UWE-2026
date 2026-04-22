@@ -71,7 +71,16 @@ for the full role and permissions matrix.
 RUNNING THE AUTOMATED TESTS
 ----------------------------
 Make sure the virtual environment is active, then from the source_code folder:
-    python3 -m unittest discover -s tests -v
+
+    macOS / Linux:
+        ulimit -n 4096
+        python3 -m unittest discover -s tests -v
+
+    Windows:
+        python3 -m unittest discover -s tests -v
+
+The ulimit line raises the shell's file-descriptor limit for the current
+session only and has no lasting effect. It is not needed on Windows.
 
 Expected result: 330 tests pass, with an OK line at the bottom.
 Each test creates and tears down its own temporary SQLite database,
