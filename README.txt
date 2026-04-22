@@ -19,16 +19,23 @@ Python 3.10 or higher, pip, and the packages in requirements.txt:
     packaging
     fpdf2
 
+Note for Linux users: tkinter is not bundled with Python on some distributions.
+If you see "No module named tkinter", install it first:
+    sudo apt install python3-tk      # Debian / Ubuntu
+    sudo dnf install python3-tkinter # Fedora
+
 SETUP
 -----
 1. Unzip the source_code archive and cd into the source_code folder:
        unzip source_code.zip
        cd source_code
 
-2. (Recommended) Create a virtual environment and activate it:
+2. Create a virtual environment and activate it:
        python3 -m venv venv
        source venv/bin/activate        # macOS / Linux
        venv\Scripts\activate           # Windows
+
+   All subsequent commands assume the virtual environment is active.
 
 3. Install dependencies:
        pip install -r requirements.txt
@@ -63,7 +70,7 @@ for the full role and permissions matrix.
 
 RUNNING THE AUTOMATED TESTS
 ----------------------------
-From the source_code folder:
+Make sure the virtual environment is active, then from the source_code folder:
     python3 -m unittest discover -s tests -v
 
 Expected result: 330 tests pass, with an OK line at the bottom.
