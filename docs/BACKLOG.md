@@ -99,7 +99,7 @@
 *   [x] **Receipt Popup Redesign**: Dark-themed `CTkToplevel` with sectioned cards. (Omar)
 
 ### Sprint 4 Backend + Tests ✅ (Team — merged to dev 17 Apr)
-*   [x] **PDF Generator**: `views/pdf_generator.py` — fpdf2 PDF export for invoices and receipts. (Omar)
+*   [x] **PDF Generator**: `views/pdf_generator.py` — fpdf2 PDF export for invoices. (Omar)
 *   [x] **fpdf2 Dependency**: Added `fpdf2==2.8.7` to `requirements.txt`. (Omar)
 *   [x] **DB Migration**: `_apply_migrations()` drops legacy `UNIQUE` constraint on `tenants.apartment_id`. (Omar)
 *   [x] **Tenant Login Block**: `login_view.handle_login()` rejects tenant role with "Staff use only" message. (Omar)
@@ -118,11 +118,11 @@
 *   [x] **diagrams.pdf**: One PDF (23 pages, A3, 2.2 MB) at project root, gitignored, goes straight into submission ZIP. (Omar — done 18 Apr)
 *   [x] **Merge dev → main**: Tag `submission-final`. (Omar — done 19 Apr)
 *   [x] **Repo cleanup**: Drop dead `test_auth.py`, untrack Sprint 2 guides, refresh design + timeline docs. (Omar — done 19 Apr)
-*   [ ] **Agile Practices Report PDF**: Scrum evidence, Git log, sprint reviews, contributions. (Omar compiles + all team sections)
-*   [ ] **Testing Document PDF**: Test case table + screenshots + 330-test automated results. (Feras)
-*   [ ] **Regenerate `pams.db`**: Run `seed_db.py` immediately before ZIP so the DB matches the final schema + seed. (Omar)
-*   [ ] **Submission ZIP**: Build `Group28_<StudentID>.zip` and upload individually to Blackboard. (All)
-*   [ ] **Demo/Viva Rehearsal**: Full walkthrough with all 5 test accounts. (All)
+*   [x] **Agile Practices Report PDF**: Scrum evidence, Git log, sprint reviews, contributions. (Omar compiles + all team sections)
+*   [x] **Testing Document PDF**: Test case table + screenshots + 330-test automated results. (Feras)
+*   [x] **Regenerate `pams.db`**: Run `seed_db.py` immediately before ZIP so the DB matches the final schema + seed. (Omar)
+*   [x] **Submission ZIP**: Build `Group28_<StudentID>.zip` and upload individually to Blackboard. (All)
+*   [x] **Demo/Viva Rehearsal**: Full walkthrough with all 5 test accounts. (All)
 
 ---
 

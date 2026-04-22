@@ -21,21 +21,6 @@ class NotificationManager:
             ORDER BY days_overdue DESC
         """, (today, today))
 
-    def get_upcoming_maintenance(self):
-        """Returns maintenance tickets with scheduled dates in the next 7 days.
-        Returns: list of (ticket_id, unit_number, tenant_name, description, scheduled_date)"""
-        today = datetime.now().strftime("%Y-%m-%d")
-        return self.db_manager.fetch_all("""
-            SELECT m.id, a.unit_number, t.full_name, m.description, m.scheduled_date
-            FROM maintenance_requests m
-            LEFT JOIN apartments a ON m.apartment_id = a.id
-            LEFT JOIN tenants t ON m.tenant_id = t.user_id
-            WHERE m.scheduled_date IS NOT NULL
-              AND m.scheduled_date >= ?
-              AND m.status IN ('Assigned', 'In Progress')
-            ORDER BY m.scheduled_date
-        """, (today,))
-
     def get_expiring_leases(self, days=30):
         """Returns tenants whose leases expire within the given number of days.
         Returns: list of (tenant_id, name, lease_end_date, apartment_unit, days_remaining)"""
