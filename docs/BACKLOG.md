@@ -1,7 +1,5 @@
 # Product Backlog
 
-*Copy and paste each of these items as a separate "New Issue" in the GitHub 'Issues' tab.*
-
 ## User Stories (Features)
 
 ### User Management ✅ (Omar - Sprint 1 Complete)
