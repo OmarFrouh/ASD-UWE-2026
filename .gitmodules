@@ -1,0 +1,3 @@
+[submodule "external/Desd"]
+	path = external/Desd
+	url = https://github.com/leonardmas-dev/Desd.git
